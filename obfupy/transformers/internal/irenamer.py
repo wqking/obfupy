@@ -9,14 +9,18 @@ class _IRenamer :
 		self._documentManager = None
 		self._randomSymbolLeadLetters = 'iIloO'
 		self._randomSymbolAllLetters = self._randomSymbolLeadLetters + '0123456789'
+		self._uidTokenListMap = {}
 
 	def transform(self, documentManager) :
 		self._documentManager = documentManager
+		self.buildUidTokenListMap()
 		symbolMap = {}
 		self.extractAllSymbols(symbolMap)
 		symbolMap = self.doFilterSymbols(symbolMap)
 		self.generateNewSymbols(symbolMap)
+		self.insertExtraSpaces()
 		self.replaceAllDocuments(symbolMap)
+		self.finalize()
 		print(symbolMap)
 
 	def getDocumentList(self) :
@@ -74,33 +78,53 @@ class _IRenamer :
 		while len(result) < length :
 			result += random.choice(self._randomSymbolAllLetters)
 		return result
+	
+	def buildUidTokenListMap(self) :
+		for document in self.getDocumentList() :
+			content = document.getContent()
+			generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
+			tokenList = []
+			for tokenType, tokenValue,  _,  _, _ in generator:
+				tokenList.append((tokenType, tokenValue))
+			self._uidTokenListMap[document.getUid()] = tokenList
 
 	def buildReservedSymbols(self, reservedMap) :
 		for document in self.getDocumentList() :
 			self.buildReservedSymbolsForDocument(document, reservedMap)
 
 	def buildReservedSymbolsForDocument(self, document, reservedMap) :
-		content = document.getContent()
-		generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
-		for tokenType, tokenValue,  _,  _, _ in generator:
+		for tokenType, tokenValue in self._uidTokenListMap[document.getUid()]:
 			if tokenType == tokenize.STRING and len(tokenValue) > 2 and tokenValue[0] == 'f' :
 				symbols = re.findall(r'\b[\w\d_]+\b', tokenValue)
 				for name in symbols :
 					reservedMap[name] = None
 
+	def insertExtraSpaces(self) :
+		for document in self.getDocumentList() :
+			extraSpaces = ' ' * random.randint(8, 64)
+			previousIsIndent = False
+			tokenList = self._uidTokenListMap[document.getUid()]
+			for i in range(len(tokenList)) :
+				tokenType, tokenValue = tokenList[i]
+				if tokenType == tokenize.OP :
+					tokenValue += extraSpaces
+					if not previousIsIndent :
+						tokenValue = extraSpaces + tokenValue
+				previousIsIndent = (tokenType == tokenize.INDENT)
+				tokenList[i] = (tokenType, tokenValue)
+
 	def replaceAllDocuments(self, symbolMap) :
 		for document in self.getDocumentList() :
-			self.replaceDocument(document, symbolMap)
+			tokenList = self._uidTokenListMap[document.getUid()]
+			for i in range(len(tokenList)) :
+				tokenType, tokenValue = tokenList[i]
+				if tokenType == tokenize.NAME :
+					if tokenValue in symbolMap :
+						tokenValue = symbolMap[tokenValue]
+				tokenList[i] = (tokenType, tokenValue)
 
-	def replaceDocument(self, document, symbolMap) :
-		content = document.getContent()
-		tokenList = []
-		generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
-		for tokenType, tokenValue,  _,  _, _ in generator:
-			if tokenType == tokenize.NAME :
-				if tokenValue in symbolMap :
-					tokenValue = symbolMap[tokenValue]
-			tokenList.append((tokenType, tokenValue))
-		content = tokenize.untokenize(tokenList).decode('utf-8')
-		document.setContent(content)
-
+	def finalize(self) :
+		for document in self.getDocumentList() :
+			tokenList = self._uidTokenListMap[document.getUid()]
+			content = tokenize.untokenize(tokenList).decode('utf-8')
+			document.setContent(content)
