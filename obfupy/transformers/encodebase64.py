@@ -7,15 +7,7 @@ eval(compile(base64.b64decode({name}),'<string>','exec'))
 '''
 
 class EncodeBase64 :
-	def getDocumentManager(self) :
-		return self._documentManager
-	
 	def transform(self, documentManager) :
-		self._documentManager = documentManager
-		self.doTransform()
-
-	def doTransform(self) :
-		documentManager = self.getDocumentManager()
 		for document in documentManager.getDocumentList() :
 			self.doTransformDocument(document)
 

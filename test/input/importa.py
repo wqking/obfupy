@@ -1,6 +1,9 @@
 class ClassA :
 	def __init__(self) -> None:
-		pass
+		self._prefix = "what"
+
+	def makeMessage(self, tail) :
+		return 'makeMessage: ' + self._prefix + ' ' + tail
 
 	def sayHello(self) :
-		print("Hello world")
+		print("Hello world, " + self.makeMessage('good'))
