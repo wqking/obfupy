@@ -31,6 +31,9 @@ class _IRenamer :
 		for node in ast.walk(parsedAst) :
 			if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef) :
 				symbolMap[node.name] = None
+				if node.args.args :
+					for arg in node.args.args :
+						symbolMap[arg.arg] = None
 			if isinstance(node, ast.ClassDef) :
 				symbolMap[node.name] = None
 			if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load) :
@@ -40,9 +43,14 @@ class _IRenamer :
 
 	def doFilterSymbols(self, symbolMap) :
 		result = {}
+		reservedMap = {}
+		self.buildReservedSymbols(reservedMap)
 		for name in symbolMap :
-			if self.isValidSymbolName(name) :
-				result[name] = symbolMap[name]
+			if name in reservedMap :
+				continue
+			if not self.isValidSymbolName(name) :
+				continue
+			result[name] = symbolMap[name]
 		return result
 
 	def isValidSymbolName(self, name) :
@@ -66,6 +74,19 @@ class _IRenamer :
 		while len(result) < length :
 			result += random.choice(self._randomSymbolAllLetters)
 		return result
+
+	def buildReservedSymbols(self, reservedMap) :
+		for document in self.getDocumentList() :
+			self.buildReservedSymbolsForDocument(document, reservedMap)
+
+	def buildReservedSymbolsForDocument(self, document, reservedMap) :
+		content = document.getContent()
+		generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
+		for tokenType, tokenValue,  _,  _, _ in generator:
+			if tokenType == tokenize.STRING and len(tokenValue) > 2 and tokenValue[0] == 'f' :
+				symbols = re.findall(r'\b[\w\d_]+\b', tokenValue)
+				for name in symbols :
+					reservedMap[name] = None
 
 	def replaceAllDocuments(self, symbolMap) :
 		for document in self.getDocumentList() :
