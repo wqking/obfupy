@@ -12,9 +12,9 @@ from obfupy.transformers.operator import Operator
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input')))
 
-#Renamer().transform(documentManager)
+Renamer().transform(documentManager)
 #EncodeBase64().transform(documentManager)
-Operator().transform(documentManager)
+#Operator().transform(documentManager)
 
 util.writeOutputFiles(documentManager, 'input', 'output')
 

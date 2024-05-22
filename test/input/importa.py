@@ -1,5 +1,8 @@
 class ClassA :
+	# This is comment
+	# another comment
 	def __init__(self) -> None:
+		'''This is docstring'''
 		self._prefix = "what"
 
 	def makeMessage(self, tail) :

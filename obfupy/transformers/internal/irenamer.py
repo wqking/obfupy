@@ -7,8 +7,8 @@ import io
 class _IRenamer :
 	def __init__(self) :
 		self._documentManager = None
-		self._randomSymbolLeadLetters = 'iIloO'
-		self._randomSymbolAllLetters = self._randomSymbolLeadLetters + '0123456789'
+		self._randomSymbolLeadLetters = 'Il'
+		self._randomSymbolAllLetters = self._randomSymbolLeadLetters + '1'
 		self._symbolMap = {}
 		self._uidTokenListMap = {}
 
@@ -18,6 +18,8 @@ class _IRenamer :
 		self.extractAllSymbols()
 		self.doFilterSymbols()
 		self.generateNewSymbols()
+		self.removeComment()
+		self.removeDocString()
 		self.expandIndent()
 		self.insertExtraSpaces()
 		self.rename()
@@ -63,15 +65,18 @@ class _IRenamer :
 	def generateNewSymbols(self) :
 		usedMap = {}
 		for name in self._symbolMap :
+			length = 12
 			while True :
-				newName = self.generateSingleNewSymbol()
+				newName = self.generateSingleNewSymbol(length)
 				if newName not in usedMap :
 					usedMap[newName] = True
 					self._symbolMap[name] = newName
 					break
+				length = None
 
-	def generateSingleNewSymbol(self) :
-		length = random.randint(6, 20)
+	def generateSingleNewSymbol(self, length = None) :
+		if length is None :
+			length = random.randint(6, 20)
 		result = random.choice(self._randomSymbolLeadLetters)
 		while len(result) < length :
 			result += random.choice(self._randomSymbolAllLetters)
@@ -133,9 +138,30 @@ class _IRenamer :
 
 	def getRandomSpaces(self) :
 		if random.randint(0, 1) == 0 :
-			return '\t' * random.randint(8, 64)
+			return '\t' * random.randint(8, 16)
 		else :
-			return ' ' * random.randint(16, 128)
+			return ' ' * random.randint(16, 32)
+		
+	def removeComment(self) :
+		for document in self.getDocumentList() :
+			tokenList = self._uidTokenListMap[document.getUid()]
+			for i in range(len(tokenList)) :
+				tokenType, tokenValue = tokenList[i]
+				if tokenType == tokenize.COMMENT :
+					tokenValue = ''
+					tokenList[i] = (tokenType, tokenValue)
+
+	def removeDocString(self) :
+		for document in self.getDocumentList() :
+			tokenList = self._uidTokenListMap[document.getUid()]
+			previousTokenType = None
+			for i in range(len(tokenList)) :
+				tokenType, tokenValue = tokenList[i]
+				if tokenType == tokenize.STRING :
+					if previousTokenType == tokenize.INDENT or previousTokenType == tokenize.NEWLINE :
+						tokenValue = ''
+						tokenList[i] = (tokenType, tokenValue)
+				previousTokenType = tokenType
 
 	def rename(self) :
 		for document in self.getDocumentList() :
