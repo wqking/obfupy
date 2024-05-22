@@ -12,20 +12,38 @@ class _IOperator :
 			self.doTransformDocument(document)
 
 	def doTransformDocument(self, document) :
-		operator = random.choice(operatorList)
+		operatorCount = random.randint(1, 5)
+		operatorList = []
+		while len(operatorList) < operatorCount :
+			operatorList.append(random.choice(operatorConfigList))
+		keyList = []
+		while len(keyList) < operatorCount :
+			keyRange = (1, 255)
+			k = len(keyList)
+			if 'keyRange' in operatorList[k] :
+				keyRange = operatorList[k]['keyRange']
+			keyList.append(random.randint(keyRange[0], keyRange[1]))
+
 		content = document.getContent()
-		key = random.randint(1, 255)
-		encoded = base64.b64encode(operator['encode'](key, bytearray(content, 'utf-8'))).decode('utf-8')
+		data = bytearray(content, 'utf-8')
+		for i in range(len(data)) :
+			for k in range(operatorCount - 1, -1, -1) :
+				data[i] = operatorList[k]['encode'](data[i], keyList[k])
+		encoded = base64.b64encode(data).decode('utf-8')
 		decoderName = util.getRandomSymbol()
+		dataName = util.getRandomSymbol()
+		decoderCode = ''
+		indent = '    '
+		decoderCode += f"def {decoderName}({dataName}) :\n"
+		decoderCode += f"{indent}for i in range(len({dataName})) :\n"
+		for k in range(operatorCount) :
+			decoderCode += f"{indent}{indent}{dataName}[i] = " + operatorList[k]['decode'].format(data = f"{dataName}[i]", key = keyList[k]) + "\n"
+		decoderCode += f"{indent}return {dataName}\n"
 		newContent = template.format(
 			name = util.getRandomSymbol(),
 			decoderName = decoderName,
 			code = encoded,
-			decoder = operator['decode'].format(
-				decoderName = decoderName,
-				dataName = util.getRandomSymbol(),
-				key = key
-			)
+			decoder = decoderCode
 		)
 		document.setContent(newContent)
 
@@ -36,20 +54,46 @@ import base64
 eval(compile({decoderName}(bytearray(base64.b64decode({name}))),'<string>','exec'))
 '''
 
-def _encodeXor(key, data) :
-	for i in range(len(data)) :
-		data[i] ^= key
-	return data
+def xor(data, key) :
+	return data ^ key
 
-_decodeXor = '''
-def {decoderName}({dataName}) :
-	for i in range(len({dataName})) : {dataName}[i] ^= {key}
-	return {dataName}
-'''
+def add(data, key) :
+	return (data + key) % 256
 
-operatorList = [
+def sub(data, key) :
+	return (data - key) % 256
+
+def ror(data, key) :
+	return ((data >> key) | (data << (8 - key))) & 0xff
+
+def rol(data, key) :
+	return ((data << key) | (data >> (8 - key))) & 0xff
+
+operatorConfigList = [
 	{
-		'encode' : _encodeXor,
-		'decode' : _decodeXor,
-	}
+		'encode' : xor,
+		'decode' : '{data} ^ {key}',
+	},
+
+	{
+		'encode' : add,
+		'decode' : '({data} - {key}) % 256',
+	},
+
+	{
+		'encode' : sub,
+		'decode' : '({data} + {key}) % 256',
+	},
+
+	{
+		'encode' : ror,
+		'decode' : '(({data} << {key}) | ({data} >> (8 - {key}))) & 0xff',
+		'keyRange' : (1, 7)
+	},
+
+	{
+		'encode' : rol,
+		'decode' : '(({data} >> {key}) | ({data} << (8 - {key}))) & 0xff',
+		'keyRange' : (1, 7)
+	},
 ]
