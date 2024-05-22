@@ -1,4 +1,5 @@
 import os
+import codecs
 
 class Document :
 	_uidSeed = 1
@@ -11,9 +12,10 @@ class Document :
 
 	def loadFromFile(self, fileName) :
 		fileName = os.path.abspath(fileName)
-		with open(fileName, "r") as file :
-			self._content = file.read()
-			self._fileName = fileName
+		file = codecs.open(fileName, "r", "utf-8")
+		self._content = file.read()
+		file.close()
+		self._fileName = fileName
 		return self
 
 	def getContent(self) :

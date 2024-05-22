@@ -12,7 +12,7 @@ from obfupy.transformers.operator import Operator
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input')))
 
-Renamer().transform(documentManager)
+Renamer(addExtraSpaces = True, expandIndent = not True).transform(documentManager)
 #EncodeBase64().transform(documentManager)
 #Operator().transform(documentManager)
 
