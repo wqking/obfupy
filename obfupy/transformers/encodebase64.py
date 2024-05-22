@@ -1,5 +1,7 @@
 import base64
 
+from .internal import util as util
+
 template = '''
 import base64
 {name} = """{code}"""
@@ -15,7 +17,7 @@ class EncodeBase64 :
 		content = document.getContent()
 		encoded = base64.b64encode(content.encode('utf-8')).decode('utf-8')
 		newContent = template.format(
-			name = 'aaa',
+			name = util.getRandomSymbol(),
 			code = encoded
 		)
 		document.setContent(newContent)

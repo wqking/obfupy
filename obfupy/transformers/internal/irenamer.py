@@ -9,67 +9,65 @@ class _IRenamer :
 		self._documentManager = None
 		self._randomSymbolLeadLetters = 'iIloO'
 		self._randomSymbolAllLetters = self._randomSymbolLeadLetters + '0123456789'
+		self._symbolMap = {}
 		self._uidTokenListMap = {}
 
 	def transform(self, documentManager) :
 		self._documentManager = documentManager
 		self.buildUidTokenListMap()
-		symbolMap = {}
-		self.extractAllSymbols(symbolMap)
-		symbolMap = self.doFilterSymbols(symbolMap)
-		self.generateNewSymbols(symbolMap)
+		self.extractAllSymbols()
+		self.doFilterSymbols()
+		self.generateNewSymbols()
+		self.expandIndent()
 		self.insertExtraSpaces()
-		self.replaceAllDocuments(symbolMap)
+		self.rename()
 		self.finalize()
-		print(symbolMap)
+		print(self._symbolMap)
 
 	def getDocumentList(self) :
 		return self._documentManager.getDocumentList()
 
-	def extractAllSymbols(self, symbolMap) :
+	def extractAllSymbols(self) :
 		for document in self.getDocumentList() :
-			self.extractAllSymbolsFromDocument(document, symbolMap)
+			parsedAst = ast.parse(document.getContent())
+			for node in ast.walk(parsedAst) :
+				if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef) :
+					self._symbolMap[node.name] = None
+					if node.args.args :
+						for arg in node.args.args :
+							self._symbolMap[arg.arg] = None
+				if isinstance(node, ast.ClassDef) :
+					self._symbolMap[node.name] = None
+				if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load) :
+					self._symbolMap[node.id] = None
+				if isinstance(node, ast.Attribute) and not isinstance(node.ctx, ast.Load) :
+					self._symbolMap[node.attr] = None
 
-	def extractAllSymbolsFromDocument(self, document, symbolMap) :
-		parsedAst = ast.parse(document.getContent())
-		for node in ast.walk(parsedAst) :
-			if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef) :
-				symbolMap[node.name] = None
-				if node.args.args :
-					for arg in node.args.args :
-						symbolMap[arg.arg] = None
-			if isinstance(node, ast.ClassDef) :
-				symbolMap[node.name] = None
-			if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load) :
-				symbolMap[node.id] = None
-			if isinstance(node, ast.Attribute) and not isinstance(node.ctx, ast.Load) :
-				symbolMap[node.attr] = None
-
-	def doFilterSymbols(self, symbolMap) :
+	def doFilterSymbols(self) :
 		result = {}
 		reservedMap = {}
 		self.buildReservedSymbols(reservedMap)
-		for name in symbolMap :
+		for name in self._symbolMap :
 			if name in reservedMap :
 				continue
 			if not self.isValidSymbolName(name) :
 				continue
-			result[name] = symbolMap[name]
-		return result
+			result[name] = self._symbolMap[name]
+		self._symbolMap = result
 
 	def isValidSymbolName(self, name) :
 		if re.match(r'^__.*__$', name) :
 			return False
 		return True
 
-	def generateNewSymbols(self, symbolMap) :
+	def generateNewSymbols(self) :
 		usedMap = {}
-		for name in symbolMap :
+		for name in self._symbolMap :
 			while True :
 				newName = self.generateSingleNewSymbol()
 				if newName not in usedMap :
 					usedMap[newName] = True
-					symbolMap[name] = newName
+					self._symbolMap[name] = newName
 					break
 
 	def generateSingleNewSymbol(self) :
@@ -90,37 +88,63 @@ class _IRenamer :
 
 	def buildReservedSymbols(self, reservedMap) :
 		for document in self.getDocumentList() :
-			self.buildReservedSymbolsForDocument(document, reservedMap)
-
-	def buildReservedSymbolsForDocument(self, document, reservedMap) :
-		for tokenType, tokenValue in self._uidTokenListMap[document.getUid()]:
-			if tokenType == tokenize.STRING and len(tokenValue) > 2 and tokenValue[0] == 'f' :
-				symbols = re.findall(r'\b[\w\d_]+\b', tokenValue)
-				for name in symbols :
-					reservedMap[name] = None
+			for tokenType, tokenValue in self._uidTokenListMap[document.getUid()]:
+				if tokenType == tokenize.STRING and len(tokenValue) > 2 and tokenValue[0] == 'f' :
+					symbols = re.findall(r'\b[\w\d_]+\b', tokenValue)
+					for name in symbols :
+						reservedMap[name] = None
 
 	def insertExtraSpaces(self) :
 		for document in self.getDocumentList() :
-			extraSpaces = ' ' * random.randint(8, 64)
 			previousIsIndent = False
 			tokenList = self._uidTokenListMap[document.getUid()]
 			for i in range(len(tokenList)) :
 				tokenType, tokenValue = tokenList[i]
 				if tokenType == tokenize.OP :
+					extraSpaces = self.getRandomSpaces()
 					tokenValue += extraSpaces
 					if not previousIsIndent :
 						tokenValue = extraSpaces + tokenValue
 				previousIsIndent = (tokenType == tokenize.INDENT)
 				tokenList[i] = (tokenType, tokenValue)
 
-	def replaceAllDocuments(self, symbolMap) :
+	def expandIndent(self) :
+		for document in self.getDocumentList() :
+			self.expandIndentForDocument(document)
+
+	def expandIndentForDocument(self, document) :
+		newIndent = self.getRandomSpaces()
+		minIndentLength = 0
+		tokenList = self._uidTokenListMap[document.getUid()]
+		for i in range(len(tokenList)) :
+			tokenType, tokenValue = tokenList[i]
+			if tokenType == tokenize.INDENT :
+				if minIndentLength == 0 or len(tokenValue) < minIndentLength :
+					minIndentLength = len(tokenValue)
+				if minIndentLength > 0 and len(tokenValue) % minIndentLength != 0 :
+					return
+		if minIndentLength == 0 :
+			return
+		for i in range(len(tokenList)) :
+			tokenType, tokenValue = tokenList[i]
+			if tokenType == tokenize.INDENT :
+				tokenValue = newIndent * (len(tokenValue) // minIndentLength)
+				tokenList[i] = (tokenType, tokenValue)
+
+	def getRandomSpaces(self) :
+		if random.randint(0, 1) == 0 :
+			return '\t' * random.randint(8, 64)
+		else :
+			return ' ' * random.randint(16, 128)
+
+	def rename(self) :
 		for document in self.getDocumentList() :
 			tokenList = self._uidTokenListMap[document.getUid()]
 			for i in range(len(tokenList)) :
 				tokenType, tokenValue = tokenList[i]
 				if tokenType == tokenize.NAME :
-					if tokenValue in symbolMap :
-						tokenValue = symbolMap[tokenValue]
+					if tokenValue in self._symbolMap :
+						tokenValue = self._symbolMap[tokenValue]
 				tokenList[i] = (tokenType, tokenValue)
 
 	def finalize(self) :

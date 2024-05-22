@@ -3,8 +3,10 @@ class ClassA :
 		self._prefix = "what"
 
 	def makeMessage(self, tail) :
-		return 'makeMessage: ' + self._prefix + f' {tail}'
+		x = 6
+		x = x // 3
+		return 'makeMessage: ' + self._prefix + str(x) + f' {tail}'
 
 	def sayHello(self) :
 		(abc) = ('good')
-		print("Hello world, " + self.makeMessage('good'))
+		print("Hello world, " + self.makeMessage(abc))
