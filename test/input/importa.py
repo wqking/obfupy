@@ -12,16 +12,16 @@ class ClassA :
 	def getOne() :
 		return 1
 
-	def makeMessage(self, tail) :
-		x = 6
-		x = x // 3
-		return 'makeMessage: ' + self._prefix + str(x) + f' {tail}'
+	def makeMessage(self, tail, x) :
+		n = 6
+		n = n // 3
+		return 'makeMessage: ' + self._prefix + str(n) + f' {tail}' + x
 
 	def sayHello(self) :
 		#importa = 5
 		path = 6
 		(abc) = ('good')
-		print("Hello world, " + self.makeMessage(abc))
+		print("Hello world, " + self.makeMessage(abc, x = "hi"))
 		anotherTest()
 
 def anotherTest() :

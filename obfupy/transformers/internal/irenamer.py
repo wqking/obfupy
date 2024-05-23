@@ -1,256 +1,169 @@
-import re
 import ast
-import tokenize
-import random
-import io
-from collections import namedtuple
+import enum
+
+from . import util
+
+@enum.unique
+class _ScopeType(enum.IntEnum) :
+	globalScope = 1
+	functionScope = 2
+	classScope = 3
+
+@enum.unique
+class _AstVistorPhase(enum.IntEnum) :
+	first = 1
+	second = 2
+
+class _Scope :
+	def __init__(self, type) :
+		self._type = type
+		self._nameReplaceMap = {}
+		self._usedNameSet = {}
+
+	def isGlobal(self) :
+		return self._type == _ScopeType.globalScope
+
+	def isFunction(self) :
+		return self._type == _ScopeType.functionScope
+
+	def isClass(self) :
+		return self._type == _ScopeType.classScope
+
+	def getNewName(self, name) :
+		if name not in self._nameReplaceMap :
+			length = 12
+			while True :
+				newName = util.getRandomSymbol(length)
+				if newName not in self._usedNameSet :
+					self._usedNameSet[newName] = True
+					self._nameReplaceMap[name] = newName
+					break
+				length = None
+		return self._nameReplaceMap[name]
+	
+	def findNewName(self, name) :
+		if name in self._nameReplaceMap :
+			return self._nameReplaceMap[name]
+		return None
+	
+class _ScopeStack :
+	def __init__(self, globalScope) :
+		self._localScopeStack = [ globalScope ]
+
+	def getCurrentScope(self) :
+		assert len(self._localScopeStack) > 0
+		return self._localScopeStack[-1]
+	
+	def pushScope(self, type) :
+		scope = _Scope(type)
+		self._localScopeStack.append(scope)
+		return scope
+	
+	def popScope(self) :
+		assert len(self._localScopeStack) > 1
+		self._localScopeStack.pop()
+
+	def findNewName(self, name, returnNameIfNotFound = True) :
+		newName = None
+		for i in range(len(self._localScopeStack) - 1, -1, -1) :
+			newName = self._localScopeStack[i].findNewName(name)
+			if newName is not None :
+				break
+		if returnNameIfNotFound and newName is None :
+			return name
+		return newName
+	
+class ProjectContext :
+	def __init__(self) :
+		self._keptNameMap = {}
+
+	def addKeptName(self, name, scopeName = '') :
+		if scopeName not in self._keptNameMap :
+			self._keptNameMap[scopeName] = {}
+		self._keptNameMap[scopeName][name] = True
+
+	def shouldKeepName(self, name, scopeName = '') :
+		if scopeName not in self._keptNameMap :
+			return False
+		return name in self._keptNameMap[scopeName]
+
+class _AstVistor(ast.NodeTransformer) :
+	def __init__(self, scopeStack, projectContext, phase) :
+		super().__init__()
+		self._scopeStack = scopeStack
+		self._projectContext = projectContext
+		self._phase = phase
+
+	def visit_ClassDef(self, node):
+		node.body = [ self.visit(n) for n in node.body if n ]
+		return node
+
+	def visit_FunctionDef(self, node) :
+		scope = self._scopeStack.pushScope(_ScopeType.functionScope)
+		if self.isRenamePhase() :
+			funcName = node.name
+			for arg in node.args.args :
+				if not self._projectContext.shouldKeepName(arg.arg, funcName) :
+					arg.arg = scope.getNewName(arg.arg)
+		node.body = [ self.visit(n) for n in node.body ]
+		self._scopeStack.popScope()
+		return node
+
+	def visit_Name(self, node) :
+		if self.isRenamePhase() :
+			node.id = self._scopeStack.findNewName(node.id)
+		return node
+	
+	def visit_Call(self, node) :
+		if self.isPreprocessPhase() :
+			self.doParseCallKeywordArguments(node)
+		return self.generic_visit(node)
+	
+	def doParseCallKeywordArguments(self, node) :
+		funcName = None
+		if isinstance(node.func, ast.Name) :
+			funcName = node.func.id
+		elif isinstance(node.func, ast.Attribute) :
+			funcName = node.func.attr
+		if funcName is None :
+			return
+		if node.keywords is None or len(node.keywords) == 0 :
+			return
+		for keyword in node.keywords :
+			self._projectContext.addKeptName(keyword.arg, funcName)
+	
+	def isPreprocessPhase(self) :
+		return self._phase == _AstVistorPhase.first
+
+	def isRenamePhase(self) :
+		return self._phase == _AstVistorPhase.second
 
 class _IRenamer :
-	def __init__(
-			self,
-			removeComment = True,
-			removeDocString = True,
-			expandIndent = True,
-			addExtraSpaces = True
-		) :
-		self._removeComment = removeComment
-		self._removeDocString = removeDocString
-		self._expandIndent = expandIndent
-		self._addExtraSpaces = addExtraSpaces
+	def __init__(self) :
+		super().__init__()
 		self._documentManager = None
-		self._randomSymbolLeadLetters = 'Il'
-		self._randomSymbolAllLetters = self._randomSymbolLeadLetters + '1'
-		self._symbolMap = {}
-		self._uidTokenListMap = {}
-
-	def transform(self, documentManager) :
-		self._documentManager = documentManager
-		self.buildUidTokenListMap()
-		if self._removeComment :
-			self.removeComment()
-		if self._removeDocString :
-			self.removeDocString()
-		if self._expandIndent :
-			self.expandIndent()
-		if self._addExtraSpaces :
-			self.addExtraSpaces()
-		self.extractAllSymbols()
-		self.doFilterSymbols()
-		self.generateNewSymbols()
-		self.rename()
-		self.finalize()
-		#print(self._symbolMap)
+		self._globalScope = _Scope(_ScopeType.globalScope)
+		self._projectContext = ProjectContext()
 
 	def getDocumentList(self) :
 		return self._documentManager.getDocumentList()
 
-	def extractAllSymbols(self) :
+	def transform(self, documentManager) :
+		self._documentManager = documentManager
 		for document in self.getDocumentList() :
 			parsedAst = ast.parse(document.getContent())
-			for node in ast.walk(parsedAst) :
-				if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef) :
-					print(node.lineno, node.col_offset)
-					self._symbolMap[node.name] = None
-					if node.args.args :
-						for arg in node.args.args :
-							self._symbolMap[arg.arg] = None
-				if isinstance(node, ast.ClassDef) :
-					print(node.lineno, node.col_offset)
-					self._symbolMap[node.name] = None
-				if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load) :
-					print(node.lineno, node.col_offset, node.id)
-					self._symbolMap[node.id] = None
-				#if isinstance(node, ast.Attribute) and not isinstance(node.ctx, ast.Load) :
-				#	self._symbolMap[node.attr] = None
-
-	def doFilterSymbols(self) :
-		result = {}
-		reservedMap = {}
-		self.buildReservedSymbols(reservedMap)
-		for name in self._symbolMap :
-			if name in reservedMap :
-				continue
-			if not self.isValidSymbolName(name) :
-				continue
-			result[name] = self._symbolMap[name]
-		self._symbolMap = result
-
-	def isValidSymbolName(self, name) :
-		if re.match(r'^__.*__$', name) :
-			return False
-		return True
-
-	def generateNewSymbols(self) :
-		usedMap = {}
-		for name in self._symbolMap :
-			length = 12
-			while True :
-				newName = self.generateSingleNewSymbol(length)
-				if newName not in usedMap :
-					usedMap[newName] = True
-					self._symbolMap[name] = newName
-					break
-				length = None
-
-	def generateSingleNewSymbol(self, length = None) :
-		if length is None :
-			length = random.randint(6, 20)
-		result = random.choice(self._randomSymbolLeadLetters)
-		while len(result) < length :
-			result += random.choice(self._randomSymbolAllLetters)
-		return result
-	
-	def buildUidTokenListMap(self) :
+			visitor = _AstVistor(
+				scopeStack = _ScopeStack(self._globalScope),
+				projectContext = self._projectContext, 
+				phase = _AstVistorPhase.first
+			)
+			visitor.visit(parsedAst)
 		for document in self.getDocumentList() :
-			content = document.getContent()
-			generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
-			tokenList = []
-			for tokenType, tokenValue, start,  end, line in generator:
-				tokenList.append((tokenType, tokenValue, start, end, line))
-			self._uidTokenListMap[document.getUid()] = tokenList
-
-	def buildReservedSymbols(self, reservedMap) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				tokenValue = token.value
-				needReserve = False
-				if token.type == tokenize.STRING and len(tokenValue) > 2 and tokenValue[0] == 'f' :
-					needReserve = True
-				if enumerator.isInImportLine() :
-					needReserve = True
-				if needReserve :
-					symbols = re.findall(r'\b[\w\d_]+\b', tokenValue)
-					for name in symbols :
-						reservedMap[name] = None
-
-	def addExtraSpaces(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				if token.type == tokenize.OP :
-					tokenValue = token.value
-					extraSpaces = self.getRandomSpaces()
-					tokenValue += extraSpaces
-					if not enumerator.isPreviousTokenIndentOrNewLine() :
-						tokenValue = extraSpaces + tokenValue
-					enumerator.setCurrentValue(tokenValue)
-
-	def expandIndent(self) :
-		for document in self.getDocumentList() :
-			self.expandIndentForDocument(document)
-
-	def expandIndentForDocument(self, document) :
-		newIndent = self.getRandomSpaces()
-		minIndentLength = 0
-		tokenList = self._uidTokenListMap[document.getUid()]
-		for i in range(len(tokenList)) :
-			tokenType, tokenValue = tokenList[i]
-			if tokenType == tokenize.INDENT :
-				if minIndentLength == 0 or len(tokenValue) < minIndentLength :
-					minIndentLength = len(tokenValue)
-				if minIndentLength > 0 and len(tokenValue) % minIndentLength != 0 :
-					return
-		if minIndentLength == 0 :
-			return
-		for i in range(len(tokenList)) :
-			tokenType, tokenValue = tokenList[i]
-			if tokenType == tokenize.INDENT :
-				tokenValue = newIndent * (len(tokenValue) // minIndentLength)
-				tokenList[i] = (tokenType, tokenValue)
-
-	def getRandomSpaces(self) :
-		if random.randint(0, 1) == 0 :
-			return '\t' * random.randint(8, 16)
-		else :
-			return ' ' * random.randint(16, 32)
-		
-	def removeComment(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			for i in range(len(tokenList)) :
-				enumerator = TokenEnumerator(tokenList)
-				while True :
-					token = enumerator.nextToken()
-					if token is None :
-						break
-					if token.type == tokenize.COMMENT :
-						enumerator.setCurrentValue('')
-
-	def removeDocString(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				if token.type == tokenize.STRING :
-					if enumerator.isPreviousTokenIndentOrNewLine() :
-						enumerator.setCurrentValue('')
-
-	def rename(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				if not enumerator.isInImportLine() :
-					if token.type == tokenize.NAME :
-						if token.value in self._symbolMap :
-							print(token.value, token.start)
-							enumerator.setCurrentValue(self._symbolMap[token.value])
-
-	def finalize(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			content = tokenize.untokenize(tokenList).decode('utf-8')
-			document.setContent(content)
-
-Token = namedtuple("Token", "type value start")
-
-class TokenEnumerator :
-	def __init__(self, tokenList) :
-		self._tokenList = tokenList
-		self._previousTokenType = None
-		self._currentTokenType = None
-		self._currentTokenValue = None
-		self._currentTokenStart = None
-		self._currentTokenEnd = None
-		self._currentTokenLine = None
-		self._currentIndex = -1
-		self._inImportLine = False
-
-	def nextToken(self) :
-		self._currentIndex += 1
-		if self._currentIndex >= len(self._tokenList) :
-			self._currentIndex -= 1
-			return None
-		self._previousTokenType = self._currentTokenType
-		self._currentTokenType, self._currentTokenValue, self._currentTokenStart, self._currentTokenEnd, self._currentTokenLine = self._tokenList[self._currentIndex]
-		if self._currentTokenType == tokenize.NAME and self._currentTokenValue in [ 'import', 'from' ] :
-			if self.isPreviousTokenIndentOrNewLine() :
-				self._inImportLine = True
-		if self._currentTokenType == tokenize.NEWLINE :
-			self._inImportLine = False
-		return Token(type = self._currentTokenType, value = self._currentTokenValue, start = self._currentTokenStart)
-	
-	def isPreviousTokenIndentOrNewLine(self) :
-		return self._previousTokenType in [ tokenize.ENCODING, tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT, tokenize.NL ]
-	
-	def isInImportLine(self) :
-		return self._inImportLine
-	
-	def setCurrentValue(self, tokenValue) :
-		self._tokenList[self._currentIndex] = (self._currentTokenType, tokenValue, self._currentTokenStart, self._currentTokenEnd, self._currentTokenLine)
-	
+			parsedAst = ast.parse(document.getContent())
+			visitor = _AstVistor(
+				scopeStack = _ScopeStack(self._globalScope),
+				projectContext = self._projectContext, 
+				phase = _AstVistorPhase.second
+			)
+			visitor.visit(parsedAst)
+			document.setContent(ast.unparse(parsedAst))
