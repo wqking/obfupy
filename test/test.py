@@ -24,11 +24,11 @@ os.chdir('output')
 os.system('python main.py')
 
 def xxxprint(a) :
-	#print(a)
+	print(a)
 	pass
 
 import ast
 xxxprint(ast.dump(ast.parse('''
-if a is None and (b < 7 and d == True) :
-	print(f'this {a}')
+a = [ 1, "xx" ]
+print(a[5])
 '''), indent=4))

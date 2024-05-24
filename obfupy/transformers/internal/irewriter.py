@@ -120,35 +120,108 @@ class AutoReentryGuard :
 
 guardId_compare = 1
 guardId_boolOp = 2
+guardId_constant = 3
+
+strictValueTrue = '993FA0E09C7749DFA58A6A6BF7BE3DEB.tRue'
+strictValueFalse = '616EB37E118B4B9581837807BABE67DA.fAlse'
+
+def valueToStrict(value) :
+	if value is True :
+		return strictValueTrue
+	if value is False :
+		return strictValueFalse
+	return value
+
+def strictToValue(strict) :
+	if strict == strictValueTrue :
+		return True
+	if strict == strictValueFalse :
+		return False
+	return strict
+
+class ConstantAsVariable :
+	def __init__(self, options) :
+		self._enabled = False
+		self._candidateMap = None
+		self._strictValueIndexMap = {}
+		self._valueList = []
+		self._name = None
+		option = options['constantAsVariable']
+		if isinstance(option, list) :
+			self._enabled = True
+			for item in option :
+				self._candidateMap[valueToStrict(item)] = None
+		else :
+			self._enabled = option
+
+	def isEnabled(self) :
+		return self._enabled
+	
+	def getName(self, value) :
+		if not self._enabled :
+			return None
+		value = valueToStrict(value)
+		if self._candidateMap is not None and value not in self._candidateMap :
+			return None
+		if value not in self._valueNameMap :
+			self._valueNameMap[value] = util.getUniqueRandomSymbol()
+			self._nameValueMap[self._valueNameMap[value]] = value
+		return self._valueNameMap[value]
+	
+	def getReplacedNode(self, value) :
+		if not self._enabled :
+			return None
+		strictValue = valueToStrict(value)
+		if self._candidateMap is not None and strictValue not in self._candidateMap :
+			return None
+		if strictValue not in self._strictValueIndexMap :
+			self._strictValueIndexMap[strictValue] = len(self._valueList)
+			self._valueList.append(value)
+		if self._name is None :
+			self._name = util.getUniqueRandomSymbol()
+		index = self._strictValueIndexMap[strictValue]
+		return ast.Subscript(
+			value = ast.Name(id = self._name, ctx = ast.Load()),
+			slice = ast.Constant(value = index),
+			ctx = ast.Load()
+		)
+
+	def makeDefineNodes(self) :
+		if self._name is None :
+			return []
+		valueList = []
+		for value in self._valueList :
+			valueList.append(ast.Constant(value = value))
+		newNode = ast.Assign(
+			targets = [ ast.Name(id = self._name, ctx = ast.Store()) ],
+			value = ast.List(elts = valueList, ctx = ast.Load())
+		)
+		return [ newNode ]
 
 class _AstVistor(ast.NodeTransformer) :
-	def __init__(self, scopeStack, projectContext, phase) :
+	def __init__(self, options, globalScope, projectContext) :
 		super().__init__()
-		self._scopeStack = scopeStack
+		self._options = options
+		self._scopeStack = _ScopeStack(globalScope)
 		self._projectContext = projectContext
+		self._constantAsVariable = ConstantAsVariable(self._options)
+		self.reset(_AstVistorPhase.first)
+
+	def reset(self, phase) :
 		self._phase = phase
 		self._reentryGuard = ReentryGuard()
-		self._knownConstantNames = [
-			[ True, None ],
-			[ False, None ],
-			[ None, None ],
-			[ 0, None ],
-			[ 1, None ],
-			[ -1, None ],
-		]
-		if self.isRewritePhase() :
-			for item in self._knownConstantNames :
-				item[1] = util.getUniqueRandomSymbol()
+
+	def isPreprocessPhase(self) :
+		return self._phase == _AstVistorPhase.first
+
+	def isRewritePhase(self) :
+		return self._phase == _AstVistorPhase.second
 
 	def visit_Module(self, node) :
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
 		if self.isRewritePhase() :
-			for item in self._knownConstantNames :
-				newNode = ast.Assign(
-					targets = [ ast.Name(id = item[1], ctx = ast.Store()) ],
-					value = ast.Constant(value = item[0])
-				)
+			for newNode in self._constantAsVariable.makeDefineNodes() :
 				node.body.insert(0, newNode)
 		return node
 
@@ -197,22 +270,22 @@ class _AstVistor(ast.NodeTransformer) :
 			return self.generic_visit(node)
 
 	def visit_Constant(self, node) :
+		if self._reentryGuard.isEntered(guardId_constant) :
+			return self.generic_visit(node)
 		return self.doRewriteConstant(node)
+
+	def visit_JoinedStr(self, node) :
+		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
+		with AutoReentryGuard(self._reentryGuard, guardId_constant) :
+			return self.generic_visit(node)
 
 	def doRewriteConstant(self, node) :
 		if not self.isRewritePhase() :
 			return node
-		
-		def strictEqual(n) :
-			if node.value is True :
-				return n is True
-			if node.value is False :
-				return n is False
-			return node.value == n
-		
-		for item in self._knownConstantNames :
-			if strictEqual(item[0]) :
-				return ast.Name(id = item[1], ctx = ast.Store())
+
+		newNode = self._constantAsVariable.getReplacedNode(node.value)
+		if newNode is not None :
+			return newNode
 		return node
 
 	def doRewriteLogicalOperator(self, node) :
@@ -252,15 +325,10 @@ class _AstVistor(ast.NodeTransformer) :
 		for keyword in node.keywords :
 			self._projectContext.addKeptName(keyword.arg, funcName)
 	
-	def isPreprocessPhase(self) :
-		return self._phase == _AstVistorPhase.first
-
-	def isRewritePhase(self) :
-		return self._phase == _AstVistorPhase.second
-
 class _IRewriter :
-	def __init__(self) :
+	def __init__(self, options) :
 		super().__init__()
+		self._options = options
 		self._documentManager = None
 		self._globalScope = _Scope(_ScopeType.globalScope)
 		self._projectContext = ProjectContext()
@@ -271,21 +339,20 @@ class _IRewriter :
 	def transform(self, documentManager) :
 		self._documentManager = documentManager
 		astMap = {}
+		visitorMap = {}
 		for document in self.getDocumentList() :
 			rootNode = ast.parse(document.getContent(), document.getFileName())
 			astMap[document.getUid()] = rootNode
 			visitor = _AstVistor(
-				scopeStack = _ScopeStack(self._globalScope),
-				projectContext = self._projectContext, 
-				phase = _AstVistorPhase.first
+				options = self._options,
+				globalScope = self._globalScope,
+				projectContext = self._projectContext
 			)
+			visitorMap[document.getUid()] = visitor
 			visitor.visit(rootNode)
 		for document in self.getDocumentList() :
 			rootNode = astMap[document.getUid()]
-			visitor = _AstVistor(
-				scopeStack = _ScopeStack(self._globalScope),
-				projectContext = self._projectContext, 
-				phase = _AstVistorPhase.second
-			)
+			visitor = visitorMap[document.getUid()]
+			visitor.reset(_AstVistorPhase.second)
 			visitor.visit(rootNode)
 			document.setContent(ast.unparse(ast.fix_missing_locations(rootNode)))
