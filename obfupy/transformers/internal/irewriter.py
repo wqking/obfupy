@@ -155,7 +155,7 @@ class _AstVistor(ast.NodeTransformer) :
 	def isRewritePhase(self) :
 		return self._phase == _AstVistorPhase.second
 
-class _IRenamer :
+class _IRewriter :
 	def __init__(self) :
 		super().__init__()
 		self._documentManager = None
