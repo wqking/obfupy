@@ -3,6 +3,7 @@ import random
 
 _randomSymbolLeadLetters = 'Il'
 _randomSymbolAllLetters = _randomSymbolLeadLetters + '1'
+_uniqueSymbolMap = {}
 
 def getRandomSymbol(length = None) :
 	if length is None :
@@ -11,3 +12,15 @@ def getRandomSymbol(length = None) :
 	while len(result) < length :
 		result += random.choice(_randomSymbolAllLetters)
 	return result
+
+def getUniqueRandomSymbol(usedMap = None) :
+	if usedMap is None :
+		usedMap = _uniqueSymbolMap
+	length = 12
+	while True :
+		newName = getRandomSymbol(length)
+		if newName not in usedMap :
+			usedMap[newName] = True
+			_uniqueSymbolMap[newName] = True
+			return newName
+		length = None

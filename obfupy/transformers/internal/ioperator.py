@@ -12,10 +12,14 @@ class _IOperator :
 			self.doTransformDocument(document)
 
 	def doTransformDocument(self, document) :
-		operatorCount = random.randint(1, 5)
-		operatorList = []
+		operatorCount = len(operatorConfigList)
+		operatorList = [] + operatorConfigList
+		while len(operatorList) > operatorCount :
+			operatorList.pop()
 		while len(operatorList) < operatorCount :
 			operatorList.append(random.choice(operatorConfigList))
+		random.shuffle(operatorList)
+
 		keyList = []
 		while len(keyList) < operatorCount :
 			keyRange = (1, 255)

@@ -24,21 +24,11 @@ os.chdir('output')
 os.system('python main.py')
 
 def xxxprint(a) :
+	#print(a)
 	pass
+
 import ast
 xxxprint(ast.dump(ast.parse('''
-print("a")
-self = None
-self.a = 1
-class X :
-	@staticmethod
-	def one() :
-		return 1
-	def two(self) :
-		return 2
-x = X()
-x.two()
-'''), indent=4))
-print(ast.dump(ast.parse('''
-print("Hello world, " + self.makeMessage(abc, x = "hi"))
+if a < 5 < b and b < 7 or not not (c >= 8) :
+	print(a)
 '''), indent=4))

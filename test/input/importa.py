@@ -28,3 +28,8 @@ def anotherTest() :
 	default = 5
 	argumentParser = ArgumentParser()
 	#argumentParser.add_argument('-a', '--action', dest = 'action', default = 'service', help = 'Execute the action')
+	myMap = {
+		'abc' : 2,
+		'def' : 5,
+	}
+

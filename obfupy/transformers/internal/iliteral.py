@@ -19,8 +19,6 @@ class _ILiteral :
 		self.buildUidTokenListMap()
 		if self._options['removeComment'] :
 			self.removeComment()
-		if self._options['removeDocString'] :
-			self.removeDocString()
 		if self._options['expandIndent'] :
 			self.expandIndent()
 		if self._options['addExtraSpaces'] :
@@ -148,20 +146,24 @@ class _ILiteral :
 		newIndent = self.getRandomSpaces()
 		minIndentLength = 0
 		tokenList = self._uidTokenListMap[document.getUid()]
-		for i in range(len(tokenList)) :
-			tokenType, tokenValue = tokenList[i]
-			if tokenType == tokenize.INDENT :
-				if minIndentLength == 0 or len(tokenValue) < minIndentLength :
-					minIndentLength = len(tokenValue)
-				if minIndentLength > 0 and len(tokenValue) % minIndentLength != 0 :
+		enumerator = TokenEnumerator(tokenList)
+		while True :
+			token = enumerator.nextToken()
+			if token is None :
+				break
+			if token.type == tokenize.INDENT :
+				if minIndentLength == 0 or len(token.value) < minIndentLength :
+					minIndentLength = len(token.value)
+				if minIndentLength > 0 and len(token.value) % minIndentLength != 0 :
 					return
 		if minIndentLength == 0 :
 			return
-		for i in range(len(tokenList)) :
-			tokenType, tokenValue = tokenList[i]
-			if tokenType == tokenize.INDENT :
-				tokenValue = newIndent * (len(tokenValue) // minIndentLength)
-				tokenList[i] = (tokenType, tokenValue)
+		while True :
+			token = enumerator.nextToken()
+			if token is None :
+				break
+			if token.type == tokenize.INDENT :
+				enumerate.setCurrentValue(newIndent * (len(token.value) // minIndentLength))
 
 	def getRandomSpaces(self) :
 		if random.randint(0, 1) == 0 :
@@ -179,18 +181,6 @@ class _ILiteral :
 					if token is None :
 						break
 					if token.type == tokenize.COMMENT :
-						enumerator.setCurrentValue('')
-
-	def removeDocString(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				if token.type == tokenize.STRING :
-					if enumerator.isPreviousTokenIndentOrNewLine() :
 						enumerator.setCurrentValue('')
 
 	def rename(self) :
