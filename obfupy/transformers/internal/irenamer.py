@@ -31,14 +31,7 @@ class _Scope :
 
 	def getNewName(self, name) :
 		if name not in self._nameReplaceMap :
-			length = 12
-			while True :
-				newName = util.getRandomSymbol(length)
-				if newName not in self._usedNameSet :
-					self._usedNameSet[newName] = True
-					self._nameReplaceMap[name] = newName
-					break
-				length = None
+			self._nameReplaceMap[name] = util.getUniqueRandomSymbol(self._usedNameSet)
 		return self._nameReplaceMap[name]
 	
 	def findNewName(self, name) :
@@ -95,12 +88,21 @@ class _AstVistor(ast.NodeTransformer) :
 		self._phase = phase
 
 	def visit_ClassDef(self, node):
-		node.body = [ self.visit(n) for n in node.body if n ]
-		return node
+		self.doRemoveDocString(node)
+		return self.generic_visit(node)
+
+	def visit_AsyncFunctionDef(self, node):
+		self.doRemoveDocString(node)
+		return self.generic_visit(node)
+
+	def visit_Module(self, node):
+		self.doRemoveDocString(node)
+		return self.generic_visit(node)
 
 	def visit_FunctionDef(self, node) :
+		self.doRemoveDocString(node)
 		scope = self._scopeStack.pushScope(_ScopeType.functionScope)
-		if self.isRenamePhase() :
+		if self.isRewritePhase() :
 			funcName = node.name
 			for arg in node.args.args :
 				if not self._projectContext.shouldKeepName(arg.arg, funcName) :
@@ -110,7 +112,7 @@ class _AstVistor(ast.NodeTransformer) :
 		return node
 
 	def visit_Name(self, node) :
-		if self.isRenamePhase() :
+		if self.isRewritePhase() :
 			node.id = self._scopeStack.findNewName(node.id)
 		return node
 	
@@ -119,6 +121,21 @@ class _AstVistor(ast.NodeTransformer) :
 			self.doParseCallKeywordArguments(node)
 		return self.generic_visit(node)
 	
+	def doRemoveDocString(self, node) :
+		if not self.isRewritePhase() :
+			return
+		# https://gist.github.com/phpdude/1ae6f19de213d66286c8183e9e3b9ec1
+		if len(node.body) == 0 :
+			return
+		if not isinstance(node.body[0], ast.Expr) :
+			return
+		if not hasattr(node.body[0], 'value') or not isinstance(node.body[0].value, ast.Str) :
+			return
+		node.body = node.body[1 : ]
+		#add "pass" statement here
+		if len(node.body) == 0 :
+			node.body.append(ast.Pass())
+
 	def doParseCallKeywordArguments(self, node) :
 		funcName = None
 		if isinstance(node.func, ast.Name) :
@@ -135,7 +152,7 @@ class _AstVistor(ast.NodeTransformer) :
 	def isPreprocessPhase(self) :
 		return self._phase == _AstVistorPhase.first
 
-	def isRenamePhase(self) :
+	def isRewritePhase(self) :
 		return self._phase == _AstVistorPhase.second
 
 class _IRenamer :
@@ -150,20 +167,22 @@ class _IRenamer :
 
 	def transform(self, documentManager) :
 		self._documentManager = documentManager
+		astMap = {}
 		for document in self.getDocumentList() :
-			parsedAst = ast.parse(document.getContent())
+			rootNode = ast.parse(document.getContent(), document.getFileName())
+			astMap[document.getUid()] = rootNode
 			visitor = _AstVistor(
 				scopeStack = _ScopeStack(self._globalScope),
 				projectContext = self._projectContext, 
 				phase = _AstVistorPhase.first
 			)
-			visitor.visit(parsedAst)
+			visitor.visit(rootNode)
 		for document in self.getDocumentList() :
-			parsedAst = ast.parse(document.getContent())
+			rootNode = astMap[document.getUid()]
 			visitor = _AstVistor(
 				scopeStack = _ScopeStack(self._globalScope),
 				projectContext = self._projectContext, 
 				phase = _AstVistorPhase.second
 			)
-			visitor.visit(parsedAst)
-			document.setContent(ast.unparse(parsedAst))
+			visitor.visit(rootNode)
+			document.setContent(ast.unparse(rootNode))
