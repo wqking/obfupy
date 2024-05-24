@@ -11,6 +11,9 @@ class ClassA :
 	@staticmethod
 	def getOne() :
 		return 1
+	
+	def getTwo() :
+		return 2
 
 	def makeMessage(self, tail, x) :
 		n = 6
@@ -18,11 +21,14 @@ class ClassA :
 		return 'makeMessage: ' + self._prefix + str(n) + f' {tail}' + x
 
 	def sayHello(self) :
-		#importa = 5
+		importa = 5
 		path = 6
 		(abc) = ('good')
+		if path < 8 and abc is not None and (path == 6 or importa >= 0) or 6 or self.getTwo() :
+			abc = "very"
 		print("Hello world, " + self.makeMessage(abc, x = "hi"))
-		anotherTest()
+		if True :
+			anotherTest()
 
 def anotherTest() :
 	default = 5

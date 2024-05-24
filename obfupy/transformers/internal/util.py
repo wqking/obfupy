@@ -24,3 +24,16 @@ def getUniqueRandomSymbol(usedMap = None) :
 			_uniqueSymbolMap[newName] = True
 			return newName
 		length = None
+
+class Result :
+	def __init__(self, value = None, success = True) :
+		self._value = value
+		self._success = success
+
+	def getValue(self) :
+		return self._value
+	
+	def isSuccess(self) :
+		return self._success
+
+failedResult = Result(success = False)

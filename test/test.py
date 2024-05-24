@@ -29,6 +29,6 @@ def xxxprint(a) :
 
 import ast
 xxxprint(ast.dump(ast.parse('''
-if a < 5 < b and b < 7 or not not (c >= 8) :
-	print(a)
+if a is None and (b < 7 and d == True) :
+	print(f'this {a}')
 '''), indent=4))
