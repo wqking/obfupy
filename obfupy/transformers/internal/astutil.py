@@ -50,10 +50,12 @@ def _doMakeBoolOpNegation(node) :
 # make logoc not
 def makeNegation(node) :
 	if isinstance(node, ast.Compare) :
-		return _doMakeCompareNegation(node)
+		result = _doMakeCompareNegation(node)
+		if result.isSuccess() :
+			return result
 	if isinstance(node, ast.BoolOp) :
 		return _doMakeBoolOpNegation(node)
-	if isinstance(node, ast.Name) or isinstance(node, ast.Constant) :
+	if isinstance(node, (ast.Name, ast.Constant)) :
 		return addNot(node)
 	return addNot(node)
 

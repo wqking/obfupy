@@ -18,7 +18,10 @@ class ClassA :
 	def makeMessage(self, tail, x) :
 		n = 6
 		n = n // 3
-		return 'makeMessage: ' + self._prefix + str(n) + f' {tail}' + x
+		first = '''
+			makeMessage :
+		'''
+		return 'makeMessage : ' + self._prefix + str(n) + f' {tail} ' + x
 
 	def sayHello(self) :
 		importa = 5
@@ -26,6 +29,12 @@ class ClassA :
 		(abc) = ('good')
 		if path < 8 and abc is not None and (path == 6 or importa >= 0) or 6 or self.getTwo() :
 			abc = "very"
+		if abc is None :
+			abc = ''
+		elif path > 8 :
+			abc = ''
+		else :
+			abc = "Very"
 		print("Hello world, " + self.makeMessage(abc, x = "hi"))
 		if True :
 			anotherTest()

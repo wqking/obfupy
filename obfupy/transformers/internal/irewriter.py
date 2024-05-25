@@ -86,15 +86,23 @@ class ReentryGuard :
 		self._guardMap = {}
 
 	def enter(self, guardId) :
-		if guardId in self._guardMap :
-			self._guardMap[guardId] += 1
+		if isinstance(guardId, list) :
+			for i in guardId :
+				self.enter(i)
 		else :
-			self._guardMap[guardId] = 1
+			if guardId in self._guardMap :
+				self._guardMap[guardId] += 1
+			else :
+				self._guardMap[guardId] = 1
 
 	def leave(self, guardId) :
-		assert guardId in self._guardMap
-		assert self._guardMap[guardId] > 0
-		self._guardMap[guardId] -= 1
+		if isinstance(guardId, list) :
+			for i in guardId :
+				self.leave(i)
+		else :
+			assert guardId in self._guardMap
+			assert self._guardMap[guardId] > 0
+			self._guardMap[guardId] -= 1
 
 	def isEntered(self, guardId) :
 		if isinstance(guardId, list) :
@@ -269,6 +277,9 @@ class _AstVistor(ast.NodeTransformer) :
 			node = self.doRewriteLogicalOperator(node)
 			return self.generic_visit(node)
 
+	def visit_If(self, node) :
+		return self.doRewriteIf(node)
+
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(guardId_constant) :
 			return self.generic_visit(node)
@@ -278,6 +289,17 @@ class _AstVistor(ast.NodeTransformer) :
 		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
 		with AutoReentryGuard(self._reentryGuard, guardId_constant) :
 			return self.generic_visit(node)
+
+	def doRewriteIf(self, node) :
+		if not self.isRewritePhase() :
+			return node
+		result = astutil.makeNegation(node.test)
+		if result.isSuccess() :
+			node.test = result.getValue()
+			node.body, node.orelse = node.orelse, node.body
+			if len(node.body) == 0 :
+				node.body.append(ast.Pass())
+		return self.generic_visit(node)
 
 	def doRewriteConstant(self, node) :
 		if not self.isRewritePhase() :
