@@ -5,12 +5,14 @@ class Literal :
 			self,
 			removeComment = True,
 			expandIndent = True,
-			addExtraSpaces = True
+			addExtraSpaces = True,
+			addExtraNewLines = True
 		) :
 		self._options = {
 			'removeComment' : removeComment,
 			'expandIndent' : expandIndent,
 			'addExtraSpaces' : addExtraSpaces,
+			'addExtraNewLines' : addExtraNewLines,
 		}
 
 	def transform(self, documentManager) :

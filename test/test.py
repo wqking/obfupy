@@ -13,8 +13,8 @@ from obfupy.transformers.operator import Operator
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input')))
 
-Rewriter().transform(documentManager)
-#Literal(addExtraSpaces = True, expandIndent = not True).transform(documentManager)
+#Rewriter().transform(documentManager)
+Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 #EncodeBase64().transform(documentManager)
 #Operator().transform(documentManager)
 
@@ -24,7 +24,7 @@ os.chdir('output')
 os.system('python main.py')
 
 def xxxprint(a) :
-	print(a)
+	#print(a)
 	pass
 
 import ast
