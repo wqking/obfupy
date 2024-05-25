@@ -16,14 +16,7 @@ class _ILiteral :
 	def transform(self, documentManager) :
 		self._documentManager = documentManager
 		self.buildUidTokenListMap()
-		if self._options['removeComment'] :
-			self.removeComment()
-		if self._options['expandIndent'] :
-			self.expandIndent()
-		if self._options['addExtraSpaces'] :
-			self.addExtraSpaces()
-		if self._options['addExtraNewLines'] :
-			self.addExtraNewLines()
+		self.doLiteral()
 		self.finalize()
 
 	def getDocumentList(self) :
@@ -41,60 +34,49 @@ class _ILiteral :
 				tokenList.append((tokenType, tokenValue))
 			self._uidTokenListMap[document.getUid()] = tokenList
 
-	def addExtraSpaces(self) :
+	def doLiteral(self) :
 		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				if token.type == tokenize.OP :
-					tokenValue = token.value
-					extraSpaces = self.getRandomSpaces()
-					tokenValue += extraSpaces
-					if not enumerator.isPreviousTokenIndentOrNewLine() :
-						tokenValue = extraSpaces + tokenValue
-					enumerator.setCurrentValue(tokenValue)
+			self.doLiteralForDocument(document)
 
-	def addExtraNewLines(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			enumerator = TokenEnumerator(tokenList)
-			while True :
-				token = enumerator.nextToken()
-				if token is None :
-					break
-				if token.type == tokenize.NEWLINE :
-					enumerator.setCurrentValue(token.value * random.randint(1, 10))
-
-	def expandIndent(self) :
-		for document in self.getDocumentList() :
-			self.expandIndentForDocument(document)
-
-	def expandIndentForDocument(self, document) :
+	def doLiteralForDocument(self, document) :
 		minIndentLength = 0
+		canExpandIndent = True
 		tokenList = self._uidTokenListMap[document.getUid()]
 		enumerator = TokenEnumerator(tokenList)
 		while True :
 			token = enumerator.nextToken()
 			if token is None :
 				break
+
+			if token.type == tokenize.OP and self._options['addExtraSpaces'] :
+				tokenValue = token.value
+				extraSpaces = self.getRandomSpaces()
+				tokenValue += extraSpaces
+				if not enumerator.isPreviousTokenIndentOrNewLine() :
+					tokenValue = extraSpaces + tokenValue
+				enumerator.setCurrentValue(tokenValue)
+
+			if token.type == tokenize.NEWLINE and self._options['addExtraNewLines']:
+				enumerator.setCurrentValue(token.value * random.randint(1, 10))
+
+			if token.type == tokenize.COMMENT and self._options['removeComment']:
+				enumerator.setCurrentValue('')
+
 			if token.type == tokenize.INDENT :
 				if minIndentLength == 0 or len(token.value) < minIndentLength :
 					minIndentLength = len(token.value)
 				if minIndentLength > 0 and len(token.value) % minIndentLength != 0 :
-					return
-		if minIndentLength == 0 :
-			return
-		newIndent = self.getRandomSpaces()
-		enumerator = TokenEnumerator(tokenList)
-		while True :
-			token = enumerator.nextToken()
-			if token is None :
-				break
-			if token.type == tokenize.INDENT :
-				enumerator.setCurrentValue(newIndent * (len(token.value) // minIndentLength))
+					canExpandIndent = False
+
+		if self._options['expandIndent'] and canExpandIndent and minIndentLength > 0 :
+			newIndent = self.getRandomSpaces()
+			enumerator = TokenEnumerator(tokenList)
+			while True :
+				token = enumerator.nextToken()
+				if token is None :
+					break
+				if token.type == tokenize.INDENT :
+					enumerator.setCurrentValue(newIndent * (len(token.value) // minIndentLength))
 
 	def getRandomSpaces(self) :
 		if random.randint(0, 1) == 0 :
@@ -102,18 +84,6 @@ class _ILiteral :
 		else :
 			return ' ' * random.randint(16, 32)
 		
-	def removeComment(self) :
-		for document in self.getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			for i in range(len(tokenList)) :
-				enumerator = TokenEnumerator(tokenList)
-				while True :
-					token = enumerator.nextToken()
-					if token is None :
-						break
-					if token.type == tokenize.COMMENT :
-						enumerator.setCurrentValue('')
-
 	def finalize(self) :
 		for document in self.getDocumentList() :
 			tokenList = self._uidTokenListMap[document.getUid()]
