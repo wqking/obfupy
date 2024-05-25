@@ -3,7 +3,7 @@ import base64
 
 from . import util as util
 
-class _IOperator :
+class _IByteEncoder :
 	def __init__(self) :
 		pass
 
@@ -41,7 +41,11 @@ class _IOperator :
 		decoderCode += f"def {decoderName}({dataName}) :\n"
 		decoderCode += f"{indent}for i in range(len({dataName})) :\n"
 		for k in range(operatorCount) :
-			decoderCode += f"{indent}{indent}{dataName}[i] = " + operatorList[k]['decode'].format(data = f"{dataName}[i]", key = keyList[k]) + "\n"
+			decoderCode += f"{indent}{indent}{dataName}[i] = " + operatorList[k]['decode'].format(
+				data = f"{dataName}[i]",
+				key = keyList[k],
+				keyMinus8 = 8 - keyList[k],
+			) + "\n"
 		decoderCode += f"{indent}return {dataName}\n"
 		newContent = template.format(
 			name = util.getRandomSymbol(),
@@ -91,13 +95,13 @@ operatorConfigList = [
 
 	{
 		'encode' : ror,
-		'decode' : '(({data} << {key}) | ({data} >> (8 - {key}))) & 0xff',
+		'decode' : '(({data} << {key}) | ({data} >> {keyMinus8})) & 0xff',
 		'keyRange' : (1, 7)
 	},
 
 	{
 		'encode' : rol,
-		'decode' : '(({data} >> {key}) | ({data} << (8 - {key}))) & 0xff',
+		'decode' : '(({data} >> {key}) | ({data} << {keyMinus8})) & 0xff',
 		'keyRange' : (1, 7)
 	},
 ]

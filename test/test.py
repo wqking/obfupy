@@ -8,7 +8,7 @@ import obfupy.util as util
 from obfupy.transformers.encodebase64 import EncodeBase64
 from obfupy.transformers.rewriter import Rewriter
 from obfupy.transformers.literal import Literal
-from obfupy.transformers.operator import Operator
+from obfupy.transformers.byteencoder import ByteEncoder
 from obfupy.transformers.replacer import Replacer
 
 documentManager = DocumentManager()
@@ -17,8 +17,7 @@ documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input'))
 #Rewriter().transform(documentManager)
 Replacer(symbols = [ 'n' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
-#EncodeBase64().transform(documentManager)
-#Operator().transform(documentManager)
+#ByteEncoder().transform(documentManager)
 
 util.writeOutputFiles(documentManager, 'input', 'output')
 
