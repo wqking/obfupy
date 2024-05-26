@@ -3,6 +3,8 @@ import enum
 
 from . import util
 from . import astutil
+from .rewriter import constantmanager
+from . import reentryguard
 
 @enum.unique
 class _ScopeType(enum.IntEnum) :
@@ -81,119 +83,9 @@ class ProjectContext :
 			return False
 		return name in self._keptNameMap[scopeName]
 	
-class ReentryGuard :
-	def __init__(self) :
-		self._guardMap = {}
-
-	def enter(self, guardId) :
-		if isinstance(guardId, list) :
-			for i in guardId :
-				self.enter(i)
-		else :
-			if guardId in self._guardMap :
-				self._guardMap[guardId] += 1
-			else :
-				self._guardMap[guardId] = 1
-
-	def leave(self, guardId) :
-		if isinstance(guardId, list) :
-			for i in guardId :
-				self.leave(i)
-		else :
-			assert guardId in self._guardMap
-			assert self._guardMap[guardId] > 0
-			self._guardMap[guardId] -= 1
-
-	def isEntered(self, guardId) :
-		if isinstance(guardId, list) :
-			for i in guardId :
-				if i in self._guardMap and self._guardMap[i] > 0 :
-					return True
-		else :
-			if guardId in self._guardMap and self._guardMap[guardId] > 0 :
-				return True
-		return False
-	
-class AutoReentryGuard :
-	def __init__(self, reentryGuard, guardId) :
-		self._reentryGuard = reentryGuard
-		self._guardId = guardId
-
-	def __enter__(self) :
-		self._reentryGuard.enter(self._guardId)
-		return self
-
-	def __exit__(self, type, value, traceBack) :
-		self._reentryGuard.leave(self._guardId)
-
 guardId_compare = 1
 guardId_boolOp = 2
 guardId_constant = 3
-
-strictValueTrue = '993FA0E09C7749DFA58A6A6BF7BE3DEB.tRue'
-strictValueFalse = '616EB37E118B4B9581837807BABE67DA.fAlse'
-
-def valueToStrict(value) :
-	if value is True :
-		return strictValueTrue
-	if value is False :
-		return strictValueFalse
-	return value
-
-def strictToValue(strict) :
-	if strict == strictValueTrue :
-		return True
-	if strict == strictValueFalse :
-		return False
-	return strict
-
-class ConstantAsVariable :
-	def __init__(self, options) :
-		self._enabled = False
-		self._candidateMap = None
-		self._strictValueIndexMap = {}
-		self._valueList = []
-		self._name = None
-		option = options['constantAsVariable']
-		if isinstance(option, list) :
-			self._enabled = True
-			for item in option :
-				self._candidateMap[valueToStrict(item)] = None
-		else :
-			self._enabled = option
-
-	def isEnabled(self) :
-		return self._enabled
-	
-	def getReplacedNode(self, value) :
-		if not self._enabled :
-			return None
-		strictValue = valueToStrict(value)
-		if self._candidateMap is not None and strictValue not in self._candidateMap :
-			return None
-		if strictValue not in self._strictValueIndexMap :
-			self._strictValueIndexMap[strictValue] = len(self._valueList)
-			self._valueList.append(value)
-		if self._name is None :
-			self._name = util.getUnusedRandomSymbol()
-		index = self._strictValueIndexMap[strictValue]
-		return ast.Subscript(
-			value = ast.Name(id = self._name, ctx = ast.Load()),
-			slice = ast.Constant(value = index),
-			ctx = ast.Load()
-		)
-
-	def makeDefineNodes(self) :
-		if self._name is None :
-			return []
-		valueList = []
-		for value in self._valueList :
-			valueList.append(ast.Constant(value = value))
-		newNode = ast.Assign(
-			targets = [ ast.Name(id = self._name, ctx = ast.Store()) ],
-			value = ast.List(elts = valueList, ctx = ast.Load())
-		)
-		return [ newNode ]
 
 class _AstVistor(ast.NodeTransformer) :
 	def __init__(self, options, globalScope, projectContext) :
@@ -201,12 +93,12 @@ class _AstVistor(ast.NodeTransformer) :
 		self._options = options
 		self._scopeStack = _ScopeStack(globalScope)
 		self._projectContext = projectContext
-		self._constantAsVariable = ConstantAsVariable(self._options)
+		self._constantManager = constantmanager.ConstantManager(self._options)
 		self.reset(_AstVistorPhase.first)
 
 	def reset(self, phase) :
 		self._phase = phase
-		self._reentryGuard = ReentryGuard()
+		self._reentryGuard = reentryguard.ReentryGuard()
 
 	def isPreprocessPhase(self) :
 		return self._phase == _AstVistorPhase.first
@@ -218,7 +110,7 @@ class _AstVistor(ast.NodeTransformer) :
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
 		if self.isRewritePhase() :
-			for newNode in self._constantAsVariable.makeDefineNodes() :
+			for newNode in reversed(self._constantManager.makeDefineNodes()) :
 				node.body.insert(0, newNode)
 		return node
 
@@ -255,19 +147,20 @@ class _AstVistor(ast.NodeTransformer) :
 	def visit_Compare(self, node) :
 		if self._reentryGuard.isEntered([ guardId_compare, guardId_boolOp ]) :
 			return self.generic_visit(node)
-		with AutoReentryGuard(self._reentryGuard, guardId_compare) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_compare) :
 			node = self.doRewriteLogicalOperator(node)
 			return self.generic_visit(node)
 
 	def visit_BoolOp(self, node) :
 		if self._reentryGuard.isEntered(guardId_boolOp) :
 			return self.generic_visit(node)
-		with AutoReentryGuard(self._reentryGuard, guardId_boolOp) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_boolOp) :
 			node = self.doRewriteLogicalOperator(node)
 			return self.generic_visit(node)
 
 	def visit_If(self, node) :
-		return self.doRewriteIf(node)
+		with reentryguard.AutoReentryGuard(self._reentryGuard, [ guardId_compare, guardId_boolOp ]) :
+			return self.doRewriteIf(node)
 
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(guardId_constant) :
@@ -276,7 +169,7 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def visit_JoinedStr(self, node) :
 		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
-		with AutoReentryGuard(self._reentryGuard, guardId_constant) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
 			return self.generic_visit(node)
 
 	def doVisitNodeList(self, nodeList) :
@@ -299,23 +192,20 @@ class _AstVistor(ast.NodeTransformer) :
 		return self.generic_visit(node)
 
 	def doRewriteConstant(self, node) :
-		if not self.isRewritePhase() :
-			return node
-
-		newNode = self._constantAsVariable.getReplacedNode(node.value)
-		if newNode is not None :
-			return newNode
+		if self.isPreprocessPhase() :
+			self._constantManager.foundConstant(node.value)
+		elif self.isRewritePhase() :
+			newNode = self._constantManager.getReplacedNode(node.value)
+			if newNode is not None :
+				return newNode
 		return node
 
 	def doRewriteLogicalOperator(self, node) :
 		if not self.isRewritePhase() :
 			return node
 		newNode = astutil.makeNegation(node)
-		if newNode is not None :
-			newNode = astutil.addNot(newNode)
-			if newNode is not None :
-				return newNode
-		return node
+		newNode = astutil.addNot(newNode)
+		return newNode
 	
 	def doRemoveDocString(self, node) :
 		if not self.isRewritePhase() :
