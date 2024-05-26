@@ -6,10 +6,8 @@ import codecs
 from obfupy.documentmanager import DocumentManager
 from obfupy.document import Document
 import obfupy.util as util
-from obfupy.transformers.encodebase64 import EncodeBase64
 from obfupy.transformers.rewriter import Rewriter
 from obfupy.transformers.literal import Literal
-from obfupy.transformers.byteencoder import ByteEncoder
 from obfupy.transformers.replacer import Replacer
 from obfupy.transformers.codec import Codec
 from obfupy.transformers.codec import CodecProvider
@@ -21,7 +19,6 @@ documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input'))
 #Rewriter().transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
-#ByteEncoder().transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
 #provider = CodecProvider()
 Codec(codecproviders.zip).transform(documentManager)
