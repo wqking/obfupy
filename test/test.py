@@ -16,14 +16,14 @@ import obfupy.transformers.codecproviders as codecproviders
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input')))
 
-#Rewriter().transform(documentManager)
+Rewriter().transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
 #provider = CodecProvider()
-Codec(codecproviders.zip).transform(documentManager)
-Codec(codecproviders.bz2).transform(documentManager)
-Codec(codecproviders.byteEncryption).transform(documentManager)
+#Codec(codecproviders.zip).transform(documentManager)
+#Codec(codecproviders.bz2).transform(documentManager)
+#Codec(codecproviders.byteEncryption).transform(documentManager)
 
 util.writeOutputFiles(documentManager, 'input', 'output')
 

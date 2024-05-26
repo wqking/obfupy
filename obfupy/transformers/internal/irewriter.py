@@ -165,17 +165,6 @@ class ConstantAsVariable :
 	def isEnabled(self) :
 		return self._enabled
 	
-	def getName(self, value) :
-		if not self._enabled :
-			return None
-		value = valueToStrict(value)
-		if self._candidateMap is not None and value not in self._candidateMap :
-			return None
-		if value not in self._valueNameMap :
-			self._valueNameMap[value] = util.getUnusedRandomSymbol()
-			self._nameValueMap[self._valueNameMap[value]] = value
-		return self._valueNameMap[value]
-	
 	def getReplacedNode(self, value) :
 		if not self._enabled :
 			return None
@@ -249,10 +238,10 @@ class _AstVistor(ast.NodeTransformer) :
 			for arg in node.args.args :
 				if not self._projectContext.shouldKeepName(arg.arg, funcName) :
 					arg.arg = scope.getNewName(arg.arg)
-		node.body = [ self.visit(n) for n in node.body ]
+		node.body = self.doVisitNodeList(node.body)
 		self._scopeStack.popScope()
 		return node
-
+	
 	def visit_Name(self, node) :
 		if self.isRewritePhase() :
 			node.id = self._scopeStack.findNewName(node.id)
@@ -290,12 +279,20 @@ class _AstVistor(ast.NodeTransformer) :
 		with AutoReentryGuard(self._reentryGuard, guardId_constant) :
 			return self.generic_visit(node)
 
+	def doVisitNodeList(self, nodeList) :
+		result = []
+		for node in nodeList :
+			newNode = self.visit(node)
+			if newNode is not None :
+				result.append(newNode)
+		return result
+
 	def doRewriteIf(self, node) :
 		if not self.isRewritePhase() :
 			return node
-		result = astutil.makeNegation(node.test)
-		if result.isSuccess() :
-			node.test = result.getValue()
+		newTest = astutil.makeNegation(node.test)
+		if newTest is not None :
+			node.test = newTest
 			node.body, node.orelse = node.orelse, node.body
 			if len(node.body) == 0 :
 				node.body.append(ast.Pass())
@@ -313,11 +310,11 @@ class _AstVistor(ast.NodeTransformer) :
 	def doRewriteLogicalOperator(self, node) :
 		if not self.isRewritePhase() :
 			return node
-		result = astutil.makeNegation(node)
-		if result.isSuccess() :
-			result = astutil.addNot(result.getValue())
-			if result.isSuccess() :
-				return result.getValue()
+		newNode = astutil.makeNegation(node)
+		if newNode is not None :
+			newNode = astutil.addNot(newNode)
+			if newNode is not None :
+				return newNode
 		return node
 	
 	def doRemoveDocString(self, node) :

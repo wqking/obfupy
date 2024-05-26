@@ -37,10 +37,7 @@ def findFiles(path, recursive = True) :
 		fileList = list(p.rglob(pattern))
 	else :
 		fileList = list(p.glob(pattern))
-	result = []
-	for file in fileList :
-		result.append(str(file))
-	return result
+	return [ str(file) for file in fileList ]
 
 def listSymbols(documentManager, regexps = None) :
 	classNameSet = {}
