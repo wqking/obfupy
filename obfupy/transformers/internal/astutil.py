@@ -10,11 +10,7 @@ _negationLogicalOps = [
 	[ ast.Is, ast.IsNot ],
 ]
 
-# a < b -> a >= b
-def _doMakeCompareNegation(node) :
-	if len(node.comparators) != 1 :
-		return None
-	opType = type(node.ops[0])
+def getNegationLogicalOp(opType) :
 	newOpType = None
 	for item in _negationLogicalOps :
 		if item[0] == opType :
@@ -23,6 +19,14 @@ def _doMakeCompareNegation(node) :
 		if item[1] == opType :
 			newOpType = item[0]
 			break
+	return newOpType
+
+# a < b -> a >= b
+def _doMakeCompareNegation(node) :
+	if len(node.comparators) != 1 :
+		return None
+	opType = type(node.ops[0])
+	newOpType = getNegationLogicalOp(opType)
 	if newOpType is None :
 		return None
 	return ast.Compare(

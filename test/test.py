@@ -13,6 +13,10 @@ from obfupy.transformers.codec import Codec
 from obfupy.transformers.codec import CodecProvider
 import obfupy.transformers.codecproviders as codecproviders
 
+import obfupy.transformers.internal.rewriter.logicmaker as logicmaker
+import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
+import ast
+
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input')))
 
@@ -27,6 +31,15 @@ provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder =
 
 util.writeOutputFiles(documentManager, 'input', 'output')
 
+for _ in range(0) :
+	print(ast.unparse(logicmaker.LogicMaker(nopmaker.NopMaker()).makeTrue(None, 1)))
+	continue
+	node = nopmaker.NopWithClass().getDefineNodes()[0]
+	node = nopmaker.NopWithClass().makeReturnAsNode(ast.Constant(value = 5))
+	node = ast.fix_missing_locations(node)
+	print(ast.unparse(node))
+	pass
+
 os.chdir('output')
 os.system('python main.py')
 
@@ -34,13 +47,8 @@ def xxxprint(a) :
 	#print(a)
 	pass
 
-import ast
 xxxprint(ast.dump(ast.parse('''
-if a :
-	pass
-elif b :
-	pass
-else :
-	print(5)
-	pass
+a = lambda n : True
+b = lambda n : n
+a(5)
 '''), indent=4))

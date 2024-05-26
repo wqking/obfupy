@@ -1,6 +1,18 @@
 import string
 import random
 
+class Result :
+	def __init__(self, value = None, success = True) :
+		self._value = value
+		self._success = success
+
+	def getValue(self) :
+		return self._value
+	
+	def isSuccess(self) :
+		return self._success
+
+failedResult = Result(success = False)
 _randomSymbolLeadLetters = 'Il'
 _randomSymbolAllLetters = _randomSymbolLeadLetters + '1'
 _uniqueSymbolMap = {}
@@ -25,15 +37,5 @@ def getUnusedRandomSymbol(usedMap = None) :
 			return newName
 		length = None
 
-class Result :
-	def __init__(self, value = None, success = True) :
-		self._value = value
-		self._success = success
-
-	def getValue(self) :
-		return self._value
-	
-	def isSuccess(self) :
-		return self._success
-
-failedResult = Result(success = False)
+def hasChance(total, chance = 1) :
+	return random.randint(1, total) <= chance

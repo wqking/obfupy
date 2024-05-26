@@ -3,34 +3,36 @@ import enum
 
 from . import util
 from . import astutil
-from .rewriter import constantmanager
 from . import reentryguard
+from .rewriter import constantmanager
+from .rewriter import logicmaker
+from .rewriter import nopmaker
 
 @enum.unique
-class _ScopeType(enum.IntEnum) :
+class ScopeType(enum.IntEnum) :
 	globalScope = 1
 	functionScope = 2
 	classScope = 3
 
 @enum.unique
-class _AstVistorPhase(enum.IntEnum) :
+class AstVistorPhase(enum.IntEnum) :
 	first = 1
 	second = 2
 
-class _Scope :
+class Scope :
 	def __init__(self, type) :
 		self._type = type
 		self._nameReplaceMap = {}
 		self._usedNameSet = {}
 
 	def isGlobal(self) :
-		return self._type == _ScopeType.globalScope
+		return self._type == ScopeType.globalScope
 
 	def isFunction(self) :
-		return self._type == _ScopeType.functionScope
+		return self._type == ScopeType.functionScope
 
 	def isClass(self) :
-		return self._type == _ScopeType.classScope
+		return self._type == ScopeType.classScope
 
 	def getNewName(self, name) :
 		if name not in self._nameReplaceMap :
@@ -42,7 +44,7 @@ class _Scope :
 			return self._nameReplaceMap[name]
 		return None
 	
-class _ScopeStack :
+class ScopeStack :
 	def __init__(self, globalScope) :
 		self._localScopeStack = [ globalScope ]
 
@@ -51,7 +53,7 @@ class _ScopeStack :
 		return self._localScopeStack[-1]
 	
 	def pushScope(self, type) :
-		scope = _Scope(type)
+		scope = Scope(type)
 		self._localScopeStack.append(scope)
 		return scope
 	
@@ -91,27 +93,38 @@ class _AstVistor(ast.NodeTransformer) :
 	def __init__(self, options, globalScope, projectContext) :
 		super().__init__()
 		self._options = options
-		self._scopeStack = _ScopeStack(globalScope)
+		self._scopeStack = ScopeStack(globalScope)
 		self._projectContext = projectContext
 		self._constantManager = constantmanager.ConstantManager(self._options)
-		self.reset(_AstVistorPhase.first)
+		self._nopMaker = nopmaker.NopMaker()
+		self._logicMaker = logicmaker.LogicMaker(self._nopMaker)
+		self.reset(AstVistorPhase.first)
 
 	def reset(self, phase) :
 		self._phase = phase
 		self._reentryGuard = reentryguard.ReentryGuard()
 
 	def isPreprocessPhase(self) :
-		return self._phase == _AstVistorPhase.first
+		return self._phase == AstVistorPhase.first
 
 	def isRewritePhase(self) :
-		return self._phase == _AstVistorPhase.second
+		return self._phase == AstVistorPhase.second
+
+	def prependNodes(self, body, nodeList) :
+		if nodeList is None :
+			return
+		if isinstance(nodeList, list) :
+			for node in reversed(nodeList) :
+				self.prependNodes(body, node)
+		else :
+			body.insert(0, nodeList)
 
 	def visit_Module(self, node) :
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
 		if self.isRewritePhase() :
-			for newNode in reversed(self._constantManager.makeDefineNodes()) :
-				node.body.insert(0, newNode)
+			self.prependNodes(node.body, self._nopMaker.getDefineNodes())
+			self.prependNodes(node.body, self._constantManager.getDefineNodes())
 		return node
 
 	def visit_ClassDef(self, node):
@@ -124,7 +137,7 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def visit_FunctionDef(self, node) :
 		self.doRemoveDocString(node)
-		scope = self._scopeStack.pushScope(_ScopeType.functionScope)
+		scope = self._scopeStack.pushScope(ScopeType.functionScope)
 		if self.isRewritePhase() :
 			funcName = node.name
 			for arg in node.args.args :
@@ -185,6 +198,7 @@ class _AstVistor(ast.NodeTransformer) :
 			return node
 		newTest = astutil.makeNegation(node.test)
 		if newTest is not None :
+			newTest = self._logicMaker.makeTrue(newTest)
 			node.test = newTest
 			node.body, node.orelse = node.orelse, node.body
 			if len(node.body) == 0 :
@@ -239,7 +253,7 @@ class _IRewriter :
 		super().__init__()
 		self._options = options
 		self._documentManager = None
-		self._globalScope = _Scope(_ScopeType.globalScope)
+		self._globalScope = Scope(ScopeType.globalScope)
 		self._projectContext = ProjectContext()
 
 	def getDocumentList(self) :
@@ -262,6 +276,6 @@ class _IRewriter :
 		for document in self.getDocumentList() :
 			rootNode = astMap[document.getUid()]
 			visitor = visitorMap[document.getUid()]
-			visitor.reset(_AstVistorPhase.second)
+			visitor.reset(AstVistorPhase.second)
 			visitor.visit(rootNode)
 			document.setContent(ast.unparse(ast.fix_missing_locations(rootNode)))

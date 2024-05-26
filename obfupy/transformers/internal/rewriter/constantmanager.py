@@ -61,7 +61,7 @@ class ConstantManager :
 			ctx = ast.Load()
 		)
 
-	def makeDefineNodes(self) :
+	def getDefineNodes(self) :
 		if self._name is None :
 			return []
 		valueList = []
