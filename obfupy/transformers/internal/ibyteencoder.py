@@ -77,6 +77,9 @@ def ror(data, key) :
 def rol(data, key) :
 	return ((data << key) | (data >> (8 - key))) & 0xff
 
+def bitNot(data, key) :
+	return (~data) & 0xff
+
 operatorConfigList = [
 	{
 		'encode' : xor,
@@ -103,5 +106,10 @@ operatorConfigList = [
 		'encode' : rol,
 		'decode' : '(({data} >> {key}) | ({data} << {keyMinus8})) & 0xff',
 		'keyRange' : (1, 7)
+	},
+
+	{
+		'encode' : bitNot,
+		'decode' : '(~{data}) & 0xff',
 	},
 ]

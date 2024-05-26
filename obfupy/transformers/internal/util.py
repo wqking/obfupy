@@ -13,7 +13,7 @@ def getRandomSymbol(length = None) :
 		result += random.choice(_randomSymbolAllLetters)
 	return result
 
-def getUniqueRandomSymbol(usedMap = None) :
+def getUnusedRandomSymbol(usedMap = None) :
 	if usedMap is None :
 		usedMap = _uniqueSymbolMap
 	length = 12

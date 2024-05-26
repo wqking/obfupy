@@ -32,7 +32,7 @@ class _Scope :
 
 	def getNewName(self, name) :
 		if name not in self._nameReplaceMap :
-			self._nameReplaceMap[name] = util.getUniqueRandomSymbol(self._usedNameSet)
+			self._nameReplaceMap[name] = util.getUnusedRandomSymbol(self._usedNameSet)
 		return self._nameReplaceMap[name]
 	
 	def findNewName(self, name) :
@@ -172,7 +172,7 @@ class ConstantAsVariable :
 		if self._candidateMap is not None and value not in self._candidateMap :
 			return None
 		if value not in self._valueNameMap :
-			self._valueNameMap[value] = util.getUniqueRandomSymbol()
+			self._valueNameMap[value] = util.getUnusedRandomSymbol()
 			self._nameValueMap[self._valueNameMap[value]] = value
 		return self._valueNameMap[value]
 	
@@ -186,7 +186,7 @@ class ConstantAsVariable :
 			self._strictValueIndexMap[strictValue] = len(self._valueList)
 			self._valueList.append(value)
 		if self._name is None :
-			self._name = util.getUniqueRandomSymbol()
+			self._name = util.getUnusedRandomSymbol()
 		index = self._strictValueIndexMap[strictValue]
 		return ast.Subscript(
 			value = ast.Name(id = self._name, ctx = ast.Load()),
