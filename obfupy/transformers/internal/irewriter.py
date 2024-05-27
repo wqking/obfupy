@@ -1,5 +1,4 @@
 import ast
-import enum
 import random
 
 from . import util
@@ -8,108 +7,20 @@ from . import reentryguard
 from .rewriter import constantmanager
 from .rewriter import logicmaker
 from .rewriter import nopmaker
-
-@enum.unique
-class ScopeType(enum.IntEnum) :
-	globalScope = 1
-	functionScope = 2
-	classScope = 3
+from .rewriter import context
 
 astMaxPhaseCount = 2
 
-class Scope :
-	def __init__(self, type, name = None) :
-		self._type = type
-		self._name = name
-		self._nameReplaceMap = {}
-		self._usedNameSet = {}
-
-	def isGlobal(self) :
-		return self._type == ScopeType.globalScope
-
-	def isFunction(self) :
-		return self._type == ScopeType.functionScope
-
-	def isClass(self) :
-		return self._type == ScopeType.classScope
-	
-	def getScopeName(self) :
-		return self._name
-
-	def getNewName(self, name) :
-		if name not in self._nameReplaceMap :
-			self._nameReplaceMap[name] = util.getUnusedRandomSymbol(self._usedNameSet)
-		return self._nameReplaceMap[name]
-	
-	def findNewName(self, name, default = None) :
-		if name in self._nameReplaceMap :
-			return self._nameReplaceMap[name]
-		return default
-	
-class ScopeStack :
-	def __init__(self, globalScope) :
-		self._localScopeStack = [ globalScope ]
-
-	def getCurrentScope(self) :
-		assert len(self._localScopeStack) > 0
-		return self._localScopeStack[-1]
-	
-	def pushScope(self, type, name) :
-		scope = Scope(type, name)
-		self._localScopeStack.append(scope)
-		return scope
-	
-	def popScope(self) :
-		assert len(self._localScopeStack) > 1
-		self._localScopeStack.pop()
-
-	def findNewName(self, name, returnNameIfNotFound = True) :
-		newName = None
-		for i in range(len(self._localScopeStack) - 1, -1, -1) :
-			newName = self._localScopeStack[i].findNewName(name)
-			if newName is not None :
-				break
-		if returnNameIfNotFound and newName is None :
-			return name
-		return newName
-	
-	def getEnclosedClassScope(self) :
-		for i in range(len(self._localScopeStack) - 1, -1, -1) :
-			if self._localScopeStack[i].isClass() :
-				return self._localScopeStack[i]
-		return None
-	
-class ProjectContext :
-	def __init__(self) :
-		self._keptNameMap = {}
-		self._noneScopeKeptNameMap = {}
-
-	def addKeptName(self, name, scopeName = '') :
-		if scopeName is None :
-			self._noneScopeKeptNameMap[name] = True
-		else :
-			if scopeName not in self._keptNameMap :
-				self._keptNameMap[scopeName] = {}
-			self._keptNameMap[scopeName][name] = True
-
-	def shouldKeepName(self, name, scopeName = '') :
-		if name in self._noneScopeKeptNameMap :
-			return True
-		if scopeName not in self._keptNameMap :
-			return False
-		return name in self._keptNameMap[scopeName]
-	
 guardId_compare = 1
 guardId_boolOp = 2
 guardId_constant = 3
 
 class _AstVistor(ast.NodeTransformer) :
-	def __init__(self, options, globalScope, projectContext) :
+	def __init__(self, options) :
 		super().__init__()
 		self._options = options
 		self._renameArgument = self._options['renameArgument']
-		self._scopeStack = ScopeStack(globalScope)
-		self._projectContext = projectContext
+		self._contextStack = context.ContextStack(context.GlobalContext())
 		self._constantManager = constantmanager.ConstantManager(self._options)
 		self._nopMaker = nopmaker.NopMaker()
 		self._logicMaker = logicmaker.LogicMaker(self._nopMaker)
@@ -143,10 +54,10 @@ class _AstVistor(ast.NodeTransformer) :
 		return node
 
 	def visit_ClassDef(self, node):
-		scope = self._scopeStack.pushScope(ScopeType.classScope, node.name)
+		self._contextStack.pushContext(context.ClassContext())
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
-		self._scopeStack.popScope()
+		self._contextStack.popContext()
 		return node
 
 	def visit_AsyncFunctionDef(self, node):
@@ -155,12 +66,12 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def visit_FunctionDef(self, node) :
 		self.doRemoveDocString(node)
-		scope = self._scopeStack.pushScope(ScopeType.functionScope, node.name)
+		currentContext = self._contextStack.pushContext(context.FunctionContext())
 		renamedArgList = []
 		if self.isRewritePhase() and self._renameArgument :
 			for arg in node.args.args :
 				renamedArgList.append({
-					'newName' : scope.getNewName(arg.arg),
+					'newName' : currentContext.getNewName(arg.arg),
 					'argName' : arg.arg
 				})
 		node.body = self.doVisitNodeList(node.body)
@@ -174,22 +85,17 @@ class _AstVistor(ast.NodeTransformer) :
 			for item in renamedArgList :
 				targetList.append(ast.Name(id = item['newName'], ctx = ast.Store()))
 				valueList.append(ast.Name(id = item['argName'], ctx = ast.Load()))
-			node.body.insert(0, ast.Assign(
-					targets = [ ast.Tuple(elts = targetList, ctx = ast.Store()) ],
-					value = ast.Tuple(elts = valueList, ctx = ast.Load())
-			))
+			node.body.insert(0, astutil.makeAssignment(targetList, valueList))
 
-		self._scopeStack.popScope()
+		self._contextStack.popContext()
 		return node
 	
 	def visit_Name(self, node) :
 		if self.isRewritePhase() :
-			node.id = self._scopeStack.getCurrentScope().findNewName(node.id, node.id)
+			node.id = self._contextStack.getCurrentContext().findNewName(node.id, node.id)
 		return node
 	
 	def visit_Call(self, node) :
-		if self.isPreprocessPhase() :
-			self.doParseCallKeywordArguments(node)
 		return self.generic_visit(node)
 
 	def visit_Compare(self, node) :
@@ -277,27 +183,11 @@ class _AstVistor(ast.NodeTransformer) :
 		if len(node.body) == 0 :
 			node.body.append(ast.Pass())
 
-	def doParseCallKeywordArguments(self, node) :
-		funcName = None
-		if isinstance(node.func, ast.Name) :
-			funcName = node.func.id
-		elif isinstance(node.func, ast.Attribute) :
-			funcName = node.func.attr
-		if funcName is None :
-			return
-		if node.keywords is None or len(node.keywords) == 0 :
-			return
-	
-		for keyword in node.keywords :
-			self._projectContext.addKeptName(keyword.arg, None)
-	
 class _IRewriter :
 	def __init__(self, options) :
 		super().__init__()
 		self._options = options
 		self._documentManager = None
-		self._globalScope = Scope(ScopeType.globalScope)
-		self._projectContext = ProjectContext()
 
 	def getDocumentList(self) :
 		return self._documentManager.getDocumentList()
@@ -310,11 +200,7 @@ class _IRewriter :
 		for document in self.getDocumentList() :
 			rootNode = ast.parse(document.getContent(), document.getFileName())
 			astMap[document.getUid()] = rootNode
-			visitor = _AstVistor(
-				options = self._options,
-				globalScope = self._globalScope,
-				projectContext = self._projectContext
-			)
+			visitor = _AstVistor(options = self._options)
 			visitorMap[document.getUid()] = visitor
 
 		for document in self.getDocumentList() :

@@ -18,7 +18,7 @@ import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 import ast
 
 folders = [ 'input', 'output' ]
-folders = [ '/source/python/nodezator', '/temp/test' ]
+#folders = [ '/source/python/nodezator', '/temp/test' ]
 
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles(folders[0])))
@@ -52,4 +52,5 @@ def xxxprint(a) :
 
 xxxprint(ast.dump(ast.parse('''
 a, b = (5, 6)
+c = 6
 '''), indent=4))

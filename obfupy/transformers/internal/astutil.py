@@ -84,3 +84,13 @@ def makeNegation(node) :
 # a -> not a
 def addNot(node) :
 	return ast.UnaryOp(op = ast.Not(), operand = node)
+
+def makeAssignment(targets, values) :
+	if not isinstance(targets, list) :
+		targets = [ targets ]
+	if not isinstance(values, list) :
+		values = [ values ]
+	return ast.Assign(
+			targets = [ ast.Tuple(elts = targets, ctx = ast.Store()) ],
+			value = ast.Tuple(elts = values, ctx = ast.Load())
+	)
