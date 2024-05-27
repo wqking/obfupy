@@ -15,10 +15,7 @@ class ScopeType(enum.IntEnum) :
 	functionScope = 2
 	classScope = 3
 
-@enum.unique
-class AstVistorPhase(enum.IntEnum) :
-	first = 1
-	second = 2
+astMaxPhaseCount = 2
 
 class Scope :
 	def __init__(self, type, name = None) :
@@ -116,17 +113,17 @@ class _AstVistor(ast.NodeTransformer) :
 		self._constantManager = constantmanager.ConstantManager(self._options)
 		self._nopMaker = nopmaker.NopMaker()
 		self._logicMaker = logicmaker.LogicMaker(self._nopMaker)
-		self.reset(AstVistorPhase.first)
+		self.reset(0)
 
 	def reset(self, phase) :
 		self._phase = phase
 		self._reentryGuard = reentryguard.ReentryGuard()
 
 	def isPreprocessPhase(self) :
-		return self._phase == AstVistorPhase.first
+		return self._phase == 0
 
 	def isRewritePhase(self) :
-		return self._phase == AstVistorPhase.second
+		return self._phase == 1
 
 	def prependNodes(self, body, nodeList) :
 		if nodeList is None :
@@ -250,14 +247,17 @@ class _AstVistor(ast.NodeTransformer) :
 		return newNode
 	
 	def doRemoveDocString(self, node) :
-		if not self.isRewritePhase() :
+		# Do it in preprocess phase otherwise it will be taken out as constant
+		if not self.isPreprocessPhase() :
 			return
 		# See get_raw_docstring in Python built-in ast.py
 		if len(node.body) == 0 :
 			return
-		if not isinstance(node.body[0], ast.Expr) :
+		child = node.body[0]
+		if not isinstance(child, ast.Expr) :
 			return
-		if not isinstance(node, ast.Constant) or not isinstance(node.value, str) :
+		child = child.value
+		if not isinstance(child, ast.Constant) or not isinstance(child.value, str) :
 			return
 		node.body = node.body[1 : ]
 		if len(node.body) == 0 :
@@ -292,6 +292,7 @@ class _IRewriter :
 		self._documentManager = documentManager
 		astMap = {}
 		visitorMap = {}
+
 		for document in self.getDocumentList() :
 			rootNode = ast.parse(document.getContent(), document.getFileName())
 			astMap[document.getUid()] = rootNode
@@ -301,10 +302,12 @@ class _IRewriter :
 				projectContext = self._projectContext
 			)
 			visitorMap[document.getUid()] = visitor
-			visitor.visit(rootNode)
+
 		for document in self.getDocumentList() :
 			rootNode = astMap[document.getUid()]
 			visitor = visitorMap[document.getUid()]
-			visitor.reset(AstVistorPhase.second)
-			visitor.visit(rootNode)
-			document.setContent(ast.unparse(ast.fix_missing_locations(rootNode)))
+			for i in range(astMaxPhaseCount) :
+				visitor.reset(i)
+				visitor.visit(rootNode)
+				if i == astMaxPhaseCount - 1 :
+					document.setContent(ast.unparse(ast.fix_missing_locations(rootNode)))

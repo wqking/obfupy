@@ -26,7 +26,7 @@ class ClassA :
 	# This is comment
 	# another comment
 	def __init__(self) -> None:
-		'''This is docstring'''
+		'''This is a docstring'''
 		self._prefix = "what"
 
 	@staticmethod
