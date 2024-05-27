@@ -4,6 +4,7 @@ import random
 from . import util
 from . import astutil
 from . import reentryguard
+from . import builtinfunctions
 from .rewriter import constantmanager
 from .rewriter import logicmaker
 from .rewriter import nopmaker
@@ -21,9 +22,8 @@ class _AstVistor(ast.NodeTransformer) :
 		self._options = options
 		self._renameArgument = self._options['renameArgument']
 		self._contextStack = context.ContextStack(context.GlobalContext())
-		self._constantManager = constantmanager.ConstantManager(self._options)
+		self._constantManager = constantmanager.ConstantManager()
 		self._nopMaker = nopmaker.NopMaker()
-		self._logicMaker = logicmaker.LogicMaker(self._nopMaker)
 		self.reset(0)
 
 	def reset(self, phase) :
@@ -92,10 +92,13 @@ class _AstVistor(ast.NodeTransformer) :
 	
 	def visit_Name(self, node) :
 		if self.isRewritePhase() :
-			node.id = self._contextStack.getCurrentContext().findNewName(node.id, node.id)
+			node.id = self._contextStack.getCurrentContext().findNewName(node.id)
 		return node
 	
 	def visit_Call(self, node) :
+		if self.isRewritePhase() :
+			if isinstance(node.func, ast.Name) and node.func.id in builtinfunctions.builtinFunctionMap :
+				node.func = self._constantManager.getNameReplacedNode(node.func.id)
 		return self.generic_visit(node)
 
 	def visit_Compare(self, node) :
@@ -141,7 +144,7 @@ class _AstVistor(ast.NodeTransformer) :
 			return self.generic_visit(node)
 		newTest = astutil.makeNegation(node.test)
 		if newTest is not None :
-			newTest = self._logicMaker.makeTrue(newTest)
+			newTest = self.createLogicMaker().makeTrue(newTest)
 			node.test = newTest
 			node.body, node.orelse = node.orelse, node.body
 			if len(node.body) == 0 :
@@ -152,7 +155,7 @@ class _AstVistor(ast.NodeTransformer) :
 		if self.isPreprocessPhase() :
 			self._constantManager.foundConstant(node.value)
 		elif self.isRewritePhase() :
-			newNode = self._constantManager.getReplacedNode(node.value)
+			newNode = self._constantManager.getConstantReplacedNode(node.value)
 			if newNode is not None :
 				return newNode
 		return node
@@ -182,6 +185,9 @@ class _AstVistor(ast.NodeTransformer) :
 		node.body = node.body[1 : ]
 		if len(node.body) == 0 :
 			node.body.append(ast.Pass())
+
+	def createLogicMaker(self) :
+		return logicmaker.LogicMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
 
 class _IRewriter :
 	def __init__(self, options) :

@@ -28,10 +28,15 @@ class Context :
 			self._nameReplaceMap[name] = util.getUnusedRandomSymbol(self._usedNameSet)
 		return self._nameReplaceMap[name]
 	
-	def findNewName(self, name, default = None) :
+	def findNewName(self, name, returnOriginIfNotFound = True) :
 		if name in self._nameReplaceMap :
 			return self._nameReplaceMap[name]
-		return default
+		if returnOriginIfNotFound :
+			return name
+		return None
+
+	def isRenamed(self, name) :
+		return name in self._nameReplaceMap
 	
 class GlobalContext(Context) :
 	def __init__(self) :

@@ -22,11 +22,16 @@ class ClassB :
 		test2(**x)
 		return self._value
 
-class ClassA :
+class ClassX :
+	def __init__(self) -> None:
+		pass
+
+class ClassA(ClassX) :
 	# This is comment
 	# another comment
 	def __init__(self) -> None:
 		'''This is a docstring'''
+		super().__init__()
 		self._prefix = "what"
 
 	@staticmethod

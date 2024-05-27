@@ -24,7 +24,7 @@ class NopWithClass :
 				bases = [],
 				keywords = [],
 				body=[
-					self.doMakeFunctionDef(self._trueMethodName, ast.Constant(value = True)),
+					self.doMakeFunctionDef(self._trueMethodName, astutil.makeConstant(True)),
 					self.doMakeFunctionDef(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
 				],
 				decorator_list = []
@@ -75,7 +75,7 @@ class NopWithFunction :
 	
 	def getDefineNodes(self) :
 		result = [
-			self.doMakeFunctionDef(self._trueMethodName, ast.Constant(value = True)),
+			self.doMakeFunctionDef(self._trueMethodName, astutil.makeConstant(True)),
 			self.doMakeFunctionDef(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
 		]
 		return result
@@ -118,7 +118,7 @@ class NopWithLambda :
 	
 	def getDefineNodes(self) :
 		result = [
-			self.doMakeAssign(self._trueMethodName, ast.Constant(value = True)),
+			self.doMakeAssign(self._trueMethodName, astutil.makeConstant(True)),
 			self.doMakeAssign(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
 		]
 		return result

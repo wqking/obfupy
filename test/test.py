@@ -51,6 +51,6 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-a, b = (5, 6)
-c = 6
+for i in range(5) :
+	pass
 '''), indent=4))

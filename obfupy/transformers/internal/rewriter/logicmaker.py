@@ -5,10 +5,10 @@ import random
 import ast
 
 class LogicMaker :
-	def __init__(self, nopMaker = None, symbols = [], strings = []) :
+	def __init__(self, nopMaker = None, symbols = [], constants = []) :
 		self._nopMaker = nopMaker
 		self._symbols = symbols
-		self._strings = strings
+		self._constants = constants
 
 	def makeTrue(self, node, depth = 3) :
 		return self._doMakeTrue(node, depth)
@@ -35,14 +35,16 @@ class LogicMaker :
 
 	def _doMakePrimaryTrue(self) :
 		callbackList = []
-		callbackList.append(self._doMakePrimaryTrueFromConstantCompare)
-		callbackList.append(self._doMakePrimaryTrueFromConstant)
+		callbackList.append(self._doMakePrimaryTrueFromIntCompare)
+		callbackList.append(self._doMakePrimaryTrueFromInt)
 		if self._nopMaker is not None :
-			callbackList.append(self._doMakePrimaryTrueFromNopMaker)
+			callbackList.append(self._doMakePrimaryTrueFromNopMakerByInt)
+			if len(self._constants) > 0 :
+				callbackList.append(self._doMakePrimaryTrueFromNopMakerByConstant)
 		callback = random.choice(callbackList)
 		return callback()
 
-	def _doMakePrimaryTrueFromConstantCompare(self) :
+	def _doMakePrimaryTrueFromIntCompare(self) :
 		operatorList = [
 			[ ast.Lt, 0, 1 ],
 			[ ast.LtE, 0, 1 ],
@@ -66,13 +68,16 @@ class LogicMaker :
 			values[0], values[1] = values[1], values[0]
 
 		return ast.Compare(
-			left = ast.Constant(value = values[0]),
+			left = astutil.makeConstant(values[0]),
 			ops = [ opType() ],
-			comparators = [ ast.Constant(value = values[1]) ]
+			comparators = [ astutil.makeConstant(values[1]) ]
 		)
 
-	def _doMakePrimaryTrueFromConstant(self) :
-		return ast.Constant(value = random.randint(1, 50))
+	def _doMakePrimaryTrueFromInt(self) :
+		return astutil.makeConstant(random.randint(1, 50))
 
-	def _doMakePrimaryTrueFromNopMaker(self) :
-		return self._nopMaker.makeTrueNode(ast.Constant(value = random.randint(1, 50)))
+	def _doMakePrimaryTrueFromNopMakerByInt(self) :
+		return self._nopMaker.makeTrueNode(astutil.makeConstant(random.randint(1, 50)))
+
+	def _doMakePrimaryTrueFromNopMakerByConstant(self) :
+		return self._nopMaker.makeTrueNode(astutil.makeConstant(random.choice(self._constants)))

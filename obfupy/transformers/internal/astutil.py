@@ -77,8 +77,11 @@ def makeNegation(node) :
 			return newNode
 	if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not) :
 		return node.operand
-	if isinstance(node, (ast.Name, ast.Constant)) :
-		return addNot(node)
+	if isinstance(node, ast.Constant) :
+		if node.value is True :
+			return makeConstant(False)
+		elif node.value is False :
+			return makeConstant(True)
 	return addNot(node)
 
 # a -> not a
@@ -94,3 +97,6 @@ def makeAssignment(targets, values) :
 			targets = [ ast.Tuple(elts = targets, ctx = ast.Store()) ],
 			value = ast.Tuple(elts = values, ctx = ast.Load())
 	)
+
+def makeConstant(value) :
+	return ast.Constant(value = value)
