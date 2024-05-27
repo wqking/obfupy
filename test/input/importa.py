@@ -1,6 +1,27 @@
 import os.path
 from argparse import ArgumentParser
 
+from functools import wraps
+
+def testInnerWraps(a) :
+    @wraps(a)
+    def b(*args, **kwargs):
+        return a()
+    return b
+
+def test2(a, b) :
+	return a + b
+
+class ClassB :
+	def __init__(self, value = 1) :
+		self._value = value
+
+	def getValue(self) :
+		testInnerWraps(print)
+		x = { "a": 1, "b": 2 }
+		test2(**x)
+		return self._value
+
 class ClassA :
 	# This is comment
 	# another comment
@@ -16,7 +37,8 @@ class ClassA :
 		return 2
 
 	def makeMessage(self, tail, x) :
-		n = 6
+		b = ClassB(value = 6)
+		n = b.getValue()
 		n = n // 3
 		first = '''
 			makeMessage :
@@ -48,3 +70,5 @@ def anotherTest() :
 		'def' : 5,
 	}
 
+a = 0 or 10
+assert a == 10

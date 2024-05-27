@@ -1,9 +1,10 @@
 from .internal.irewriter import _IRewriter
 
 class Rewriter :
-	def __init__(self) :
+	def __init__(self, constantAsVariable = True) :
 		self._options = {
-			'constantAsVariable' : True
+			'constantAsVariable' : constantAsVariable,
+			'renameArgument' : False
 		}
 
 	def transform(self, documentManager) :

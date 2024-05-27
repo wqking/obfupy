@@ -1,5 +1,6 @@
 import ast
 import enum
+import re
 
 from . import util
 from . import astutil
@@ -20,8 +21,9 @@ class AstVistorPhase(enum.IntEnum) :
 	second = 2
 
 class Scope :
-	def __init__(self, type) :
+	def __init__(self, type, name = None) :
 		self._type = type
+		self._name = name
 		self._nameReplaceMap = {}
 		self._usedNameSet = {}
 
@@ -33,6 +35,9 @@ class Scope :
 
 	def isClass(self) :
 		return self._type == ScopeType.classScope
+	
+	def getScopeName(self) :
+		return self._name
 
 	def getNewName(self, name) :
 		if name not in self._nameReplaceMap :
@@ -52,8 +57,8 @@ class ScopeStack :
 		assert len(self._localScopeStack) > 0
 		return self._localScopeStack[-1]
 	
-	def pushScope(self, type) :
-		scope = Scope(type)
+	def pushScope(self, type, name) :
+		scope = Scope(type, name)
 		self._localScopeStack.append(scope)
 		return scope
 	
@@ -71,16 +76,28 @@ class ScopeStack :
 			return name
 		return newName
 	
+	def getEnclosedClassScope(self) :
+		for i in range(len(self._localScopeStack) - 1, -1, -1) :
+			if self._localScopeStack[i].isClass() :
+				return self._localScopeStack[i]
+		return None
+	
 class ProjectContext :
 	def __init__(self) :
 		self._keptNameMap = {}
+		self._noneScopeKeptNameMap = {}
 
 	def addKeptName(self, name, scopeName = '') :
-		if scopeName not in self._keptNameMap :
-			self._keptNameMap[scopeName] = {}
-		self._keptNameMap[scopeName][name] = True
+		if scopeName is None :
+			self._noneScopeKeptNameMap[name] = True
+		else :
+			if scopeName not in self._keptNameMap :
+				self._keptNameMap[scopeName] = {}
+			self._keptNameMap[scopeName][name] = True
 
 	def shouldKeepName(self, name, scopeName = '') :
+		if name in self._noneScopeKeptNameMap :
+			return True
 		if scopeName not in self._keptNameMap :
 			return False
 		return name in self._keptNameMap[scopeName]
@@ -93,6 +110,7 @@ class _AstVistor(ast.NodeTransformer) :
 	def __init__(self, options, globalScope, projectContext) :
 		super().__init__()
 		self._options = options
+		self._renameArgument = self._options['renameArgument']
 		self._scopeStack = ScopeStack(globalScope)
 		self._projectContext = projectContext
 		self._constantManager = constantmanager.ConstantManager(self._options)
@@ -128,8 +146,11 @@ class _AstVistor(ast.NodeTransformer) :
 		return node
 
 	def visit_ClassDef(self, node):
+		scope = self._scopeStack.pushScope(ScopeType.classScope, node.name)
 		self.doRemoveDocString(node)
-		return self.generic_visit(node)
+		node = self.generic_visit(node)
+		self._scopeStack.popScope()
+		return node
 
 	def visit_AsyncFunctionDef(self, node):
 		self.doRemoveDocString(node)
@@ -137,13 +158,16 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def visit_FunctionDef(self, node) :
 		self.doRemoveDocString(node)
-		scope = self._scopeStack.pushScope(ScopeType.functionScope)
-		if self.isRewritePhase() :
+		scope = self._scopeStack.pushScope(ScopeType.functionScope, node.name)
+		if self.isRewritePhase() and self._renameArgument :
 			funcName = node.name
-			for arg in node.args.args :
-				if not self._projectContext.shouldKeepName(arg.arg, funcName) :
-					arg.arg = scope.getNewName(arg.arg)
+			# Don't rename arguments in __init__, __call__, etc
+			if re.match(r'__\w+__', funcName) is None :
+				for arg in node.args.args :
+					if not self._projectContext.shouldKeepName(arg.arg, funcName) :
+						arg.arg = scope.getNewName(arg.arg)
 		node.body = self.doVisitNodeList(node.body)
+		node.decorator_list = self.doVisitNodeList(node.decorator_list)
 		self._scopeStack.popScope()
 		return node
 	
@@ -195,7 +219,9 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def doRewriteIf(self, node) :
 		if not self.isRewritePhase() :
-			return node
+			return self.generic_visit(node)
+		if not astutil.isLogicalNode(node.test) :
+			return self.generic_visit(node)
 		newTest = astutil.makeNegation(node.test)
 		if newTest is not None :
 			newTest = self._logicMaker.makeTrue(newTest)
@@ -216,6 +242,8 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def doRewriteLogicalOperator(self, node) :
 		if not self.isRewritePhase() :
+			return node
+		if not astutil.isLogicalNode(node) :
 			return node
 		newNode = astutil.makeNegation(node)
 		newNode = astutil.addNot(newNode)
@@ -245,8 +273,9 @@ class _AstVistor(ast.NodeTransformer) :
 			return
 		if node.keywords is None or len(node.keywords) == 0 :
 			return
+	
 		for keyword in node.keywords :
-			self._projectContext.addKeptName(keyword.arg, funcName)
+			self._projectContext.addKeptName(keyword.arg, None)
 	
 class _IRewriter :
 	def __init__(self, options) :

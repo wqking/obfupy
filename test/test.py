@@ -17,10 +17,13 @@ import obfupy.transformers.internal.rewriter.logicmaker as logicmaker
 import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 import ast
 
-documentManager = DocumentManager()
-documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles('input')))
+folders = [ 'input', 'output' ]
+folders = [ '/source/python/nodezator', '/temp/test' ]
 
-Rewriter().transform(documentManager)
+documentManager = DocumentManager()
+documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles(folders[0])))
+
+Rewriter(constantAsVariable = True).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
@@ -29,7 +32,7 @@ provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder =
 #Codec(codecproviders.bz2).transform(documentManager)
 #Codec(codecproviders.byteEncryption).transform(documentManager)
 
-util.writeOutputFiles(documentManager, 'input', 'output')
+util.writeOutputFiles(documentManager, folders[0], folders[1])
 
 for _ in range(0) :
 	print(ast.unparse(logicmaker.LogicMaker(nopmaker.NopMaker()).makeTrue(None, 1)))
@@ -48,7 +51,6 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-a = lambda n : True
-b = lambda n : n
-a(5)
+print(a = 1, **b)
+print(a = 1, **{ "a": 1, "b": 2 })
 '''), indent=4))

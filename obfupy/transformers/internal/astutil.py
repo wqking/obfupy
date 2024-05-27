@@ -51,6 +51,20 @@ def _doMakeBoolOpNegation(node) :
 		values = newValues
 	)
 
+def isLogicalNode(node) :
+	if isinstance(node, ast.Compare) :
+		return True
+	if isinstance(node, ast.BoolOp) :
+		for value in node.values :
+			if not isLogicalNode(value) :
+				return False
+		return True
+	if isinstance(node, ast.Constant) :
+		return node.value is True or node.value is False
+	if isinstance(node, ast.UnaryOp) :
+		return isinstance(node.op, ast.Not)
+	return False
+
 # make logoc not
 def makeNegation(node) :
 	if isinstance(node, ast.Compare) :
@@ -61,6 +75,8 @@ def makeNegation(node) :
 		newNode = _doMakeBoolOpNegation(node)
 		if newNode is not None :
 			return newNode
+	if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not) :
+		return node.operand
 	if isinstance(node, (ast.Name, ast.Constant)) :
 		return addNot(node)
 	return addNot(node)
