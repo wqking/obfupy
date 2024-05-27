@@ -4,7 +4,7 @@ class Rewriter :
 	def __init__(self, constantAsVariable = True) :
 		self._options = {
 			'constantAsVariable' : constantAsVariable,
-			'renameArgument' : False
+			'renameArgument' : True
 		}
 
 	def transform(self, documentManager) :

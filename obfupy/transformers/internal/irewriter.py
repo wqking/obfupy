@@ -1,6 +1,6 @@
 import ast
 import enum
-import re
+import random
 
 from . import util
 from . import astutil
@@ -41,10 +41,10 @@ class Scope :
 			self._nameReplaceMap[name] = util.getUnusedRandomSymbol(self._usedNameSet)
 		return self._nameReplaceMap[name]
 	
-	def findNewName(self, name) :
+	def findNewName(self, name, default = None) :
 		if name in self._nameReplaceMap :
 			return self._nameReplaceMap[name]
-		return None
+		return default
 	
 class ScopeStack :
 	def __init__(self, globalScope) :
@@ -156,21 +156,35 @@ class _AstVistor(ast.NodeTransformer) :
 	def visit_FunctionDef(self, node) :
 		self.doRemoveDocString(node)
 		scope = self._scopeStack.pushScope(ScopeType.functionScope, node.name)
+		renamedArgList = []
 		if self.isRewritePhase() and self._renameArgument :
-			funcName = node.name
-			# Don't rename arguments in __init__, __call__, etc
-			if re.match(r'__\w+__', funcName) is None :
-				for arg in node.args.args :
-					if not self._projectContext.shouldKeepName(arg.arg, funcName) :
-						arg.arg = scope.getNewName(arg.arg)
+			for arg in node.args.args :
+				renamedArgList.append({
+					'newName' : scope.getNewName(arg.arg),
+					'argName' : arg.arg
+				})
 		node.body = self.doVisitNodeList(node.body)
-		node.decorator_list = self.doVisitNodeList(node.decorator_list)
+		# Don't visit decorator_list, don't rename anything in decorator_list
+		#node.decorator_list = self.doVisitNodeList(node.decorator_list)
+
+		if len(renamedArgList) > 0 :
+			random.shuffle(renamedArgList)
+			targetList = []
+			valueList = []
+			for item in renamedArgList :
+				targetList.append(ast.Name(id = item['newName'], ctx = ast.Store()))
+				valueList.append(ast.Name(id = item['argName'], ctx = ast.Load()))
+			node.body.insert(0, ast.Assign(
+					targets = [ ast.Tuple(elts = targetList, ctx = ast.Store()) ],
+					value = ast.Tuple(elts = valueList, ctx = ast.Load())
+			))
+
 		self._scopeStack.popScope()
 		return node
 	
 	def visit_Name(self, node) :
 		if self.isRewritePhase() :
-			node.id = self._scopeStack.findNewName(node.id)
+			node.id = self._scopeStack.getCurrentScope().findNewName(node.id, node.id)
 		return node
 	
 	def visit_Call(self, node) :
