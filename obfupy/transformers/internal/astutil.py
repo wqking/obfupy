@@ -93,10 +93,33 @@ def makeAssignment(targets, values) :
 		targets = [ targets ]
 	if not isinstance(values, list) :
 		values = [ values ]
-	return ast.Assign(
-			targets = [ ast.Tuple(elts = targets, ctx = ast.Store()) ],
-			value = ast.Tuple(elts = values, ctx = ast.Load())
-	)
+	if len(targets) == 1 :
+		return ast.Assign(
+				targets = targets,
+				value = values
+		)
+	else :
+		return ast.Assign(
+				targets = [ ast.Tuple(elts = targets, ctx = ast.Store()) ],
+				value = ast.Tuple(elts = values, ctx = ast.Load())
+		)
 
 def makeConstant(value) :
 	return ast.Constant(value = value)
+
+def _doGetNodeListFromAssignTargets(targetList, result) :
+	if targetList is None :
+		return
+	if isinstance(targetList, list) :
+		for target in targetList :
+			_doGetNodeListFromAssignTargets(target, result)
+	elif isinstance(targetList, ast.Tuple) :
+		for target in targetList.elts :
+			_doGetNodeListFromAssignTargets(target, result)
+	else :
+		result.append(targetList)
+
+def getNodeListFromAssignTargets(targets) :
+	result = []
+	_doGetNodeListFromAssignTargets(targets, result)
+	return result

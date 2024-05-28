@@ -1,5 +1,6 @@
 import ast
 import random
+import copy
 
 from . import util
 from . import astutil
@@ -21,7 +22,7 @@ class _AstVistor(ast.NodeTransformer) :
 		super().__init__()
 		self._options = options
 		self._renameArgument = self._options['renameArgument']
-		self._contextStack = context.ContextStack(context.GlobalContext())
+		self._contextStack = context.ContextStack()
 		self._constantManager = constantmanager.ConstantManager()
 		self._nopMaker = nopmaker.NopMaker()
 		self.reset(0)
@@ -46,18 +47,20 @@ class _AstVistor(ast.NodeTransformer) :
 			body.insert(0, nodeList)
 
 	def visit_Module(self, node) :
+		self._contextStack.pushContext(context.GlobalContext())
+
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
 		if self.isRewritePhase() :
 			self.prependNodes(node.body, self._nopMaker.getDefineNodes())
 			self.prependNodes(node.body, self._constantManager.getDefineNodes())
+
+		self._contextStack.popContext()
 		return node
 
 	def visit_ClassDef(self, node):
-		self._contextStack.pushContext(context.ClassContext())
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
-		self._contextStack.popContext()
 		return node
 
 	def visit_AsyncFunctionDef(self, node):
@@ -69,11 +72,16 @@ class _AstVistor(ast.NodeTransformer) :
 		currentContext = self._contextStack.pushContext(context.FunctionContext())
 		renamedArgList = []
 		if self.isRewritePhase() and self._renameArgument :
-			for arg in node.args.args :
-				renamedArgList.append({
-					'newName' : currentContext.getNewName(arg.arg),
-					'argName' : arg.arg
-				})
+			argList = [ node.args.args, node.args.posonlyargs, node.args.kwonlyargs, [ node.args.vararg, node.args.kwarg ] ]
+			for item in argList :
+				for arg in item :
+					if arg is None :
+						continue
+					currentContext.addArgument(arg.arg)
+					renamedArgList.append({
+						'newName' : currentContext.getNewName(arg.arg),
+						'argName' : arg.arg
+					})
 		node.body = self.doVisitNodeList(node.body)
 		# Don't visit decorator_list, don't rename anything in decorator_list
 		#node.decorator_list = self.doVisitNodeList(node.decorator_list)
@@ -89,10 +97,11 @@ class _AstVistor(ast.NodeTransformer) :
 
 		self._contextStack.popContext()
 		return node
-	
+
 	def visit_Name(self, node) :
+		self._contextStack.getCurrentContext().seeName(node.id)
 		if self.isRewritePhase() :
-			node.id = self._contextStack.getCurrentContext().findNewName(node.id)
+			node.id = self._contextStack.findNewName(node.id)
 		return node
 	
 	def visit_Call(self, node) :
@@ -128,6 +137,57 @@ class _AstVistor(ast.NodeTransformer) :
 		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
 		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
 			return self.generic_visit(node)
+
+	def visit_Assign(self, node) :
+		return self.doRewriteLocalVariable(node)
+
+	def visit_AugAssign(self, node) :
+		return self.doRewriteLocalVariable(node)
+
+	# walrus operator
+	def visit_NamedExpr(self, node) :
+		return self.doRewriteLocalVariable(node)
+
+	def doRewriteLocalVariable(self, node) :
+		if self.isRewritePhase() and self._contextStack.isWithinFunction() :
+			currentContext = self._contextStack.getCurrentContext()
+			targetList = []
+			if hasattr(node, 'targets') :
+				targetList = node.targets
+			elif hasattr(node, 'target') :
+				targetList = node.target
+			targetNodeList = astutil.getNodeListFromAssignTargets(targetList)
+			for target in targetNodeList :
+				if not isinstance(target, ast.Name) :
+					continue
+				name = target.id
+				if currentContext.isArgument(name) :
+					continue
+				if util.isUsedRandomSymbol(name) :
+					continue
+				# Leave it to visit_Name to rename
+				if currentContext.isGlobalOrNonlocal(name) :
+					continue
+				if currentContext.isRenamed(name) :
+					continue
+				# Symbol is used before assignment, just don't rename it
+				if currentContext.isNameSeen(name) :
+					continue
+				target.id = currentContext.getNewName(name)
+		return self.generic_visit(node)
+
+	def visit_Global(self, node) :
+		for name in node.names :
+			self._contextStack.getCurrentContext().addGlobalName(name)
+		return self.generic_visit(node)
+
+	def visit_Nonlocal(self, node) :
+		currentContext = self._contextStack.getCurrentContext()
+		for i in range(len(node.names)) :
+			name = node.names[i]
+			currentContext.addNonlocal(name)
+			node.names[i] = self._contextStack.findNewName(name)
+		return self.generic_visit(node)
 
 	def doVisitNodeList(self, nodeList) :
 		result = []

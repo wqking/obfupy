@@ -25,12 +25,13 @@ documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles(folders[0
 
 Rewriter(constantAsVariable = True).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
-#Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
+Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
 #provider = CodecProvider()
+#Codec(codecproviders.byteEncryption).transform(documentManager)
 #Codec(codecproviders.zip).transform(documentManager)
 #Codec(codecproviders.bz2).transform(documentManager)
-#Codec(codecproviders.byteEncryption).transform(documentManager)
+#Codec(codecproviders.base64).transform(documentManager)
 
 util.writeOutputFiles(documentManager, folders[0], folders[1])
 
@@ -45,12 +46,13 @@ for _ in range(0) :
 
 os.chdir('output')
 os.system('python main.py')
+os.system('python -m pytest -s')
 
 def xxxprint(a) :
 	#print(a)
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-for i in range(5) :
+def x(a, b = 0, *, c = 9) :
 	pass
 '''), indent=4))

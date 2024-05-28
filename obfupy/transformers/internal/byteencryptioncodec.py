@@ -1,4 +1,7 @@
+from . import util
+
 import random
+
 class ByteEncryptionCodec :
 	def __init__(self) :
 		pass
@@ -20,7 +23,7 @@ class ByteEncryptionCodec :
 				keyRange = self._operatorList[k]['keyRange']
 			self._keyList.append(random.randint(keyRange[0], keyRange[1]))
 
-		self._decoderName = 'abcdefg'
+		self._decoderName = util.getUnusedRandomSymbol()
 
 	def encode(self, data) :
 		for i in range(len(data)) :

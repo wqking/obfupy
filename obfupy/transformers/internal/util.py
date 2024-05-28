@@ -37,5 +37,8 @@ def getUnusedRandomSymbol(usedMap = None) :
 			return newName
 		length = None
 
+def isUsedRandomSymbol(symbol) :
+	return symbol in _uniqueSymbolMap
+
 def hasChance(total, chance = 1) :
 	return random.randint(1, total) <= chance

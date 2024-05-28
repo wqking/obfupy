@@ -3,6 +3,8 @@ from argparse import ArgumentParser
 
 from functools import wraps
 
+globalInt = 38
+
 def testInnerWraps(a) :
     @wraps(a)
     def b(*args, **kwargs):
@@ -42,7 +44,16 @@ class ClassA(ClassX) :
 		return 2
 
 	def makeMessage(self, tail, x) :
-		b = ClassB(value = 6)
+		x = ' hello'
+		global globalInt
+		globalInt = 90
+		(globalInt, a) = (3, 5)
+		assert globalInt == 3
+		assert a == 5
+		#globalInt = 9
+		(globalInt, a) = (9, 5)
+		d = globalInt - 3
+		b = ClassB(value = d)
 		n = b.getValue()
 		n = n // 3
 		first = '''
@@ -65,6 +76,7 @@ class ClassA(ClassX) :
 		print("Hello world, " + self.makeMessage(abc, x = "hi"))
 		if True :
 			anotherTest()
+		assert globalInt == 9
 
 def anotherTest() :
 	default = 5
