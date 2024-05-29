@@ -18,14 +18,14 @@ import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 import ast
 
 folders = [ 'input', 'output' ]
-#folders = [ '/source/python/nodezator', '/temp/test' ]
+folders = [ '/source/python/nodezator', '/temp/test' ]
 
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles(folders[0])))
 
 Rewriter(constantAsVariable = True).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
-Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
+#Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
 #provider = CodecProvider()
 #Codec(codecproviders.byteEncryption).transform(documentManager)
@@ -45,7 +45,6 @@ for _ in range(0) :
 	pass
 
 os.chdir('output')
-os.system('python main.py')
 os.system('python -m pytest -s')
 
 def xxxprint(a) :
@@ -53,6 +52,8 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-def x(a, b = 0, *, c = 9) :
+for i in [5] :
+	pass
+for i in range(5, 6) :
 	pass
 '''), indent=4))

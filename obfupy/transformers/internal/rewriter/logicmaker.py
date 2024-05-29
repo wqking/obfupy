@@ -10,13 +10,13 @@ class LogicMaker :
 		self._symbols = symbols
 		self._constants = constants
 
-	def makeTrue(self, node, depth = 3) :
+	def makeTrue(self, node, depth = 4) :
 		return self._doMakeTrue(node, depth)
 
 	def _doMakeTrue(self, node, depth) :
 		if node is None :
 			node = self._doMakePrimaryTrue()
-		if depth <= 0 :
+		if depth <= 1 :
 			return node
 		operatorList = [ ast.And, ast.Or ]
 		opType = random.choice(operatorList)

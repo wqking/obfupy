@@ -10,12 +10,14 @@ from .rewriter import constantmanager
 from .rewriter import logicmaker
 from .rewriter import nopmaker
 from .rewriter import context
+from .rewriter import codeblockmaker
 
 astMaxPhaseCount = 2
 
 guardId_compare = 1
 guardId_boolOp = 2
 guardId_constant = 3
+guardId_makeCodeBlock = 4
 
 class _AstVistor(ast.NodeTransformer) :
 	def __init__(self, options) :
@@ -82,6 +84,7 @@ class _AstVistor(ast.NodeTransformer) :
 						'newName' : currentContext.getNewName(arg.arg),
 						'argName' : arg.arg
 					})
+		#node = self.doMakeCodeBlock(node, visitChildren = False, allowOuterBlock = False)
 		node.body = self.doVisitNodeList(node.body)
 		# Don't visit decorator_list, don't rename anything in decorator_list
 		#node.decorator_list = self.doVisitNodeList(node.decorator_list)
@@ -97,13 +100,21 @@ class _AstVistor(ast.NodeTransformer) :
 
 		self._contextStack.popContext()
 		return node
-
+	
 	def visit_Name(self, node) :
 		self._contextStack.getCurrentContext().seeName(node.id)
 		if self.isRewritePhase() :
 			node.id = self._contextStack.findNewName(node.id)
 		return node
 	
+	def visit_For(self, node):
+		node = self.doMakeCodeBlock(node, visitChildren =True, allowOuterBlock = True)
+		return node
+
+	def visit_While(self, node):
+		node = self.doMakeCodeBlock(node, visitChildren =True, allowOuterBlock = True)
+		return node
+
 	def visit_Call(self, node) :
 		if self.isRewritePhase() :
 			if isinstance(node.func, ast.Name) and node.func.id in builtinfunctions.builtinFunctionMap :
@@ -148,6 +159,31 @@ class _AstVistor(ast.NodeTransformer) :
 	def visit_NamedExpr(self, node) :
 		return self.doRewriteLocalVariable(node)
 
+	def visit_Global(self, node) :
+		for name in node.names :
+			self._contextStack.getCurrentContext().addGlobalName(name)
+		return self.generic_visit(node)
+
+	def visit_Nonlocal(self, node) :
+		currentContext = self._contextStack.getCurrentContext()
+		for i in range(len(node.names)) :
+			name = node.names[i]
+			currentContext.addNonlocal(name)
+			node.names[i] = self._contextStack.findNewName(name)
+		return self.generic_visit(node)
+
+	def doMakeCodeBlock(self, node, visitChildren, allowOuterBlock) :
+		if self.isRewritePhase() :
+			if not self._reentryGuard.isEntered(guardId_makeCodeBlock) :
+				with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_makeCodeBlock) :
+					node = self.createCodeBlockMaker().makeCodeBlock(node, allowOuterBlock)
+					if visitChildren :
+						node = self.generic_visit(node)
+					return node
+		if visitChildren :
+			node = self.generic_visit(node)
+		return node
+
 	def doRewriteLocalVariable(self, node) :
 		if self.isRewritePhase() and self._contextStack.isWithinFunction() :
 			currentContext = self._contextStack.getCurrentContext()
@@ -174,19 +210,6 @@ class _AstVistor(ast.NodeTransformer) :
 				if currentContext.isNameSeen(name) :
 					continue
 				target.id = currentContext.getNewName(name)
-		return self.generic_visit(node)
-
-	def visit_Global(self, node) :
-		for name in node.names :
-			self._contextStack.getCurrentContext().addGlobalName(name)
-		return self.generic_visit(node)
-
-	def visit_Nonlocal(self, node) :
-		currentContext = self._contextStack.getCurrentContext()
-		for i in range(len(node.names)) :
-			name = node.names[i]
-			currentContext.addNonlocal(name)
-			node.names[i] = self._contextStack.findNewName(name)
 		return self.generic_visit(node)
 
 	def doVisitNodeList(self, nodeList) :
@@ -248,6 +271,9 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def createLogicMaker(self) :
 		return logicmaker.LogicMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
+
+	def createCodeBlockMaker(self) :
+		return codeblockmaker.CodeBlockMaker(self.createLogicMaker())
 
 class _IRewriter :
 	def __init__(self, options) :
