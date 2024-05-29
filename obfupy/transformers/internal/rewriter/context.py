@@ -38,10 +38,10 @@ class Context :
 	def isRenamed(self, name) :
 		return name in self._nameReplaceMap
 	
-	def addGlobalName(self, name) :
+	def useGlobalName(self, name) :
 		self._globalNonlocalSet[name] = True
 
-	def addNonlocal(self, name) :
+	def useNonlocalName(self, name) :
 		self._globalNonlocalSet[name] = True
 
 	def isGlobalOrNonlocal(self, name) :

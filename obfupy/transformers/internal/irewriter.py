@@ -166,15 +166,16 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def visit_Global(self, node) :
 		for name in node.names :
-			self._contextStack.getCurrentContext().addGlobalName(name)
+			self._contextStack.getCurrentContext().useGlobalName(name)
 		return self.generic_visit(node)
 
 	def visit_Nonlocal(self, node) :
 		currentContext = self._contextStack.getCurrentContext()
 		for i in range(len(node.names)) :
 			name = node.names[i]
-			currentContext.addNonlocal(name)
-			node.names[i] = self._contextStack.findNewName(name)
+			currentContext.useNonlocalName(name)
+			if self.isRewritePhase() :
+				node.names[i] = self._contextStack.findNewName(name)
 		return self.generic_visit(node)
 
 	def doMakeCodeBlock(self, node, visitChildren, allowOuterBlock) :

@@ -5,9 +5,8 @@ import random
 import ast
 
 class LogicMaker :
-	def __init__(self, nopMaker = None, symbols = [], constants = []) :
+	def __init__(self, nopMaker = None, constants = []) :
 		self._nopMaker = nopMaker
-		self._symbols = symbols
 		self._constants = constants
 
 	def makeTrue(self, node, depth = 4) :

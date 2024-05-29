@@ -65,6 +65,15 @@ def isLogicalNode(node) :
 		return isinstance(node.op, ast.Not)
 	return False
 
+def ensureLogicalNode(node) :
+	if not isLogicalNode(node) :
+		node = ast.Call(
+			func = ast.Name(id = 'bool', ctx = ast.Load()),
+			args = [ node ],
+			keywords = []
+		)
+	return node
+
 # make logoc not
 def makeNegation(node) :
 	if isinstance(node, ast.Compare) :

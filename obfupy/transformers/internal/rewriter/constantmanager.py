@@ -1,9 +1,11 @@
 from .. import util
 from .. import astutil
+from . import logicmaker
 
 import ast
 import random
 import enum
+import sys
 
 class StringEncoderManager :
 	def __init__(self, stringEncoder) :
@@ -138,5 +140,61 @@ class ConstantManager :
 	def doMakeConstantNode(self, value) :
 		if isinstance(value, str) :
 			return self._stringEncoderManager.encode(value)
+		if value is True or value is False :
+			return self.doMakeBoolNode(value)
+		if isinstance(value, int) :
+			return self.doMakeIntNode(value)
 		return astutil.makeConstant(value)
 	
+	def doMakeBoolNode(self, value) :
+		node = logicmaker.LogicMaker().makeTrue(None, 1)
+		if not value :
+			node = astutil.makeNegation(node)
+		return astutil.ensureLogicalNode(node)
+
+	def doMakeIntNode(self, value, depth = 3) :
+		minValue = 1000000
+		maxValue = 100000000
+		if value < -sys.maxsize + maxValue or value > sys.maxsize - maxValue :
+			return astutil.makeConstant(value)
+		if depth <= 1 :
+			return astutil.makeConstant(value)
+		opTypeList = [
+			ast.Add, ast.Sub,
+			ast.BitXor, ast.BitXor, ast.BitXor, # more chance
+			ast.Invert,
+		]
+		opType = random.choice(opTypeList)
+		isUnaryOp = (opType == ast.Invert)
+		requirePositive = (opType == ast.BitXor or opType == ast.Invert)
+		needUnarySub = requirePositive and (value < 0)
+		a = random.randint(minValue, maxValue)
+		b = 0
+		if opType == ast.Add :
+			b = value - a
+		elif opType == ast.Sub :
+			b = a - value
+		elif opType == ast.BitXor :
+			b = a ^ abs(value)
+		elif opType == ast.Invert :
+			a = ~abs(value)
+		else :
+			raise Exception("Unknown operator")
+		node = None
+		if isUnaryOp :
+			node = ast.UnaryOp(
+				op = opType(),
+				operand = self.doMakeIntNode(a, depth - 1)
+			)
+		else :
+			node = ast.BinOp(
+				left = self.doMakeIntNode(a, depth - 1),
+				op = opType(),
+				right = self.doMakeIntNode(b, depth - 1),
+			)
+		if needUnarySub :
+			node = ast.UnaryOp(
+				op = ast.USub(),
+				operand = node
+			)
+		return node
