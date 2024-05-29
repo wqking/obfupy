@@ -1,5 +1,5 @@
-from . import codec
-from .internal import byteencryptioncodec
+from .. import codec
+from ..internal import byteencryptioncodec
 
 import codecs
 

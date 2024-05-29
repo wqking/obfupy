@@ -123,3 +123,6 @@ def getNodeListFromAssignTargets(targets) :
 	result = []
 	_doGetNodeListFromAssignTargets(targets, result)
 	return result
+
+def astToSource(node) :
+	return ast.unparse(ast.fix_missing_locations(node))

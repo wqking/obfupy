@@ -5,7 +5,7 @@ import enum
 @enum.unique
 class ContextType(enum.IntEnum) :
 	functionContext = 1
-	globalContext = 2
+	moduleContext = 2
 
 class Context :
 	def __init__(self, type) :
@@ -17,8 +17,8 @@ class Context :
 		self._seenNameSet = {}
 		self._argumentNameSet = {}
 
-	def isGlobal(self) :
-		return self._type == ContextType.globalContext
+	def isModule(self) :
+		return self._type == ContextType.moduleContext
 
 	def isFunction(self) :
 		return self._type == ContextType.functionContext
@@ -46,7 +46,7 @@ class Context :
 
 	def isGlobalOrNonlocal(self, name) :
 		return name in self._globalNonlocalSet
-	
+
 	def seeName(self, name) :
 		self._seenNameSet[name] = True
 
@@ -73,9 +73,9 @@ class Context :
 	def isNameDisabled(self, name) :
 		return name in self._disabledNameSet and self._disabledNameSet[name] > 0
 	
-class GlobalContext(Context) :
+class ModuleContext(Context) :
 	def __init__(self) :
-		super().__init__(ContextType.globalContext)
+		super().__init__(ContextType.moduleContext)
 
 class FunctionContext(Context) :
 	def __init__(self) :

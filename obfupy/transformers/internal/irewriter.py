@@ -11,6 +11,7 @@ from .rewriter import logicmaker
 from .rewriter import nopmaker
 from .rewriter import context
 from .rewriter import codeblockmaker
+from .rewriter import extranodemanager
 
 astMaxPhaseCount = 2
 
@@ -25,7 +26,7 @@ class _AstVistor(ast.NodeTransformer) :
 		self._options = options
 		self._renameArgument = self._options['renameArgument']
 		self._contextStack = context.ContextStack()
-		self._constantManager = constantmanager.ConstantManager()
+		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
 		self._nopMaker = nopmaker.NopMaker()
 		self.reset(0)
 
@@ -49,13 +50,15 @@ class _AstVistor(ast.NodeTransformer) :
 			body.insert(0, nodeList)
 
 	def visit_Module(self, node) :
-		self._contextStack.pushContext(context.GlobalContext())
+		self._contextStack.pushContext(context.ModuleContext())
 
 		self.doRemoveDocString(node)
 		node = self.generic_visit(node)
 		if self.isRewritePhase() :
-			self.prependNodes(node.body, self._nopMaker.getDefineNodes())
-			self.prependNodes(node.body, self._constantManager.getDefineNodes())
+			extraNodeManager = extranodemanager.ExtraNodeManager()
+			self._constantManager.loadExtraNode(extraNodeManager)
+			self._nopMaker.loadExtraNode(extraNodeManager)
+			self.prependNodes(node.body, extraNodeManager.getNodeList())
 
 		self._contextStack.popContext()
 		return node
@@ -66,10 +69,12 @@ class _AstVistor(ast.NodeTransformer) :
 		return node
 
 	def visit_AsyncFunctionDef(self, node):
-		self.doRemoveDocString(node)
-		return self.generic_visit(node)
+		return self.doRewriteFunction(node)
 
 	def visit_FunctionDef(self, node) :
+		return self.doRewriteFunction(node)
+
+	def doRewriteFunction(self, node) :
 		self.doRemoveDocString(node)
 		currentContext = self._contextStack.pushContext(context.FunctionContext())
 		renamedArgList = []
@@ -197,20 +202,26 @@ class _AstVistor(ast.NodeTransformer) :
 				if not isinstance(target, ast.Name) :
 					continue
 				name = target.id
-				if currentContext.isArgument(name) :
-					continue
-				if util.isUsedRandomSymbol(name) :
-					continue
-				# Leave it to visit_Name to rename
-				if currentContext.isGlobalOrNonlocal(name) :
-					continue
-				if currentContext.isRenamed(name) :
-					continue
-				# Symbol is used before assignment, just don't rename it
-				if currentContext.isNameSeen(name) :
+				if not self.canNameBeLocalVariable(name) :
 					continue
 				target.id = currentContext.getNewName(name)
 		return self.generic_visit(node)
+	
+	def canNameBeLocalVariable(self, name) :
+		currentContext = self._contextStack.getCurrentContext()
+		if currentContext.isArgument(name) :
+			return False
+		if util.isUsedRandomSymbol(name) :
+			return False
+		# Leave it to visit_Name to rename
+		if currentContext.isGlobalOrNonlocal(name) :
+			return False
+		if currentContext.isRenamed(name) :
+			return False
+		# Symbol is used before assignment, just don't rename it
+		if currentContext.isNameSeen(name) :
+			return False
+		return True
 
 	def doVisitNodeList(self, nodeList) :
 		result = []
@@ -301,5 +312,7 @@ class _IRewriter :
 			for i in range(astMaxPhaseCount) :
 				visitor.reset(i)
 				visitor.visit(rootNode)
-				if i == astMaxPhaseCount - 1 :
-					document.setContent(ast.unparse(ast.fix_missing_locations(rootNode)))
+
+		for document in self.getDocumentList() :
+			rootNode = astMap[document.getUid()]
+			document.setContent(astutil.astToSource(rootNode))

@@ -1,10 +1,13 @@
 from .internal.irewriter import _IRewriter
+from .utils import stringencoders
 
 class Rewriter :
-	def __init__(self, constantAsVariable = True) :
+	def __init__(self,
+			  stringEncoders = stringencoders.defaultEncoders
+		) :
 		self._options = {
-			'constantAsVariable' : constantAsVariable,
-			'renameArgument' : True
+			'renameArgument' : True,
+			'stringEncoders' : stringEncoders
 		}
 
 	def transform(self, documentManager) :

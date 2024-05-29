@@ -5,6 +5,56 @@ import ast
 import random
 import enum
 
+class StringEncoderManager :
+	def __init__(self, stringEncoder) :
+		self._stringEncoderList = []
+		self.doParseStringEncoder(stringEncoder)
+		self._encoderIndexList = [ i for i in range(len(self._stringEncoderList)) ]
+
+	def encode(self, string) :
+		random.shuffle(self._encoderIndexList)
+		for i in self._encoderIndexList :
+			encoder = self._stringEncoderList[i]
+			node = encoder['encode'](string)
+			if node is None :
+				continue
+			if encoder['extraNode'] is False and encoder['extraNodeGetter'] is not None :
+				extraNode = encoder['extraNodeGetter']
+				if callable(extraNode) :
+					extraNode = extraNode()
+				encoder['extraNode'] = extraNode
+			return node
+		return astutil.makeConstant(string)
+
+	def loadExtraNode(self, extraNodeManager) :
+		for encoder in self._stringEncoderList :
+			if not encoder['extraNode'] :
+				continue
+			extraNodeManager.addNode(encoder['extraNode'])
+
+	def doParseStringEncoder(self, stringEncoder) :
+		if stringEncoder is None :
+			return
+		if isinstance(stringEncoder, list) :
+			for item in stringEncoder :
+				self.doParseStringEncoder(item)
+			return
+		extraNodeGetter = None
+		encode = None
+		if callable(stringEncoder) :
+			encode = stringEncoder
+		elif hasattr(stringEncoder, 'encode') :
+			encode = stringEncoder.encode
+		if encode is None :
+			return
+		if hasattr(stringEncoder, 'extraNode') :
+			extraNodeGetter = stringEncoder.extraNode
+		self._stringEncoderList.append({
+			'encode' : encode,
+			'extraNodeGetter' : extraNodeGetter,
+			'extraNode' : False
+		})
+
 @enum.unique
 class ItemType(enum.IntEnum) :
 	constant = 1
@@ -28,10 +78,11 @@ def strictToValue(strict) :
 	return strict
 
 class ConstantManager :
-	def __init__(self) :
+	def __init__(self, stringEncoders) :
 		self._strictValueMap = {}
 		self._nameMap = {}
 		self._constantValueList = []
+		self._stringEncoderManager = StringEncoderManager(stringEncoders)
 
 	def getConstantValueList(self) :
 		return self._constantValueList
@@ -68,7 +119,7 @@ class ConstantManager :
 			return None
 		return ast.Name(id = item['newName'], ctx = ast.Load())
 
-	def getDefineNodes(self) :
+	def loadExtraNode(self, extraNodeManager) :
 		itemList = list(self._strictValueMap.values()) + list(self._nameMap.values())
 		random.shuffle(itemList)
 		targetList = []
@@ -77,9 +128,15 @@ class ConstantManager :
 			targetList.append(ast.Name(id = item['newName'], ctx = ast.Store()))
 			valueNode = None
 			if item['type'] == ItemType.constant :
-				valueNode = astutil.makeConstant(item['value'])
+				valueNode = self.doMakeConstantNode(item['value'])
 			else :
 				valueNode = ast.Name(id = item['value'], ctx = ast.Load())
 			valueList.append(valueNode)
-		return [ astutil.makeAssignment(targetList, valueList) ]
+		self._stringEncoderManager.loadExtraNode(extraNodeManager)
+		extraNodeManager.addNode(astutil.makeAssignment(targetList, valueList))
+
+	def doMakeConstantNode(self, value) :
+		if isinstance(value, str) :
+			return self._stringEncoderManager.encode(value)
+		return astutil.makeConstant(value)
 	

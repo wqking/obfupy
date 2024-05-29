@@ -162,13 +162,13 @@ class NopMaker :
 	def makeReturnAsNode(self, argNode) :
 		return self.doGetMaker().makeReturnAsNode(argNode)
 	
-	def getDefineNodes(self) :
+	def loadExtraNode(self, extraNodeManager) :
 		result = []
 		for maker in self._makerList :
 			if maker is None :
 				continue
 			result += maker.getDefineNodes()
-		return result
+		extraNodeManager.addNode(result)
 
 	def doGetMaker(self) :
 		index = random.randint(0, self._makerCount - 1)

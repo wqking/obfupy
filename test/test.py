@@ -11,19 +11,19 @@ from obfupy.transformers.literal import Literal
 from obfupy.transformers.replacer import Replacer
 from obfupy.transformers.codec import Codec
 from obfupy.transformers.codec import CodecProvider
-import obfupy.transformers.codecproviders as codecproviders
+import obfupy.transformers.utils.codecproviders as codecproviders
 
 import obfupy.transformers.internal.rewriter.logicmaker as logicmaker
 import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 import ast
 
 folders = [ 'input', 'output' ]
-folders = [ '/source/python/nodezator', '/temp/test' ]
+#folders = [ '/source/python/nodezator', '/temp/test' ]
 
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles(folders[0])))
 
-Rewriter(constantAsVariable = True).transform(documentManager)
+Rewriter().transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
@@ -52,8 +52,5 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-for i in [5] :
-	pass
-for i in range(5, 6) :
-	pass
+codecs.decode(string, "hex").decode('utf-8')
 '''), indent=4))
