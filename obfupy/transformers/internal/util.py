@@ -42,3 +42,11 @@ def isUsedRandomSymbol(symbol) :
 
 def hasChance(total, chance = 1) :
 	return random.randint(1, total) <= chance
+
+def makeShuffledIndexList(len) :
+	result = [ i for i in range(len) ]
+	random.shuffle(result)
+	return result
+
+def makeListByIndexList(itemList, indexList) :
+	return [ itemList[index] for index in indexList ]

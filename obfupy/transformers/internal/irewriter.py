@@ -19,6 +19,7 @@ guardId_compare = 1
 guardId_boolOp = 2
 guardId_constant = 3
 guardId_makeCodeBlock = 4
+guardId_extactFunction = 5
 
 class _AstVistor(ast.NodeTransformer) :
 	def __init__(self, options) :
@@ -49,24 +50,28 @@ class _AstVistor(ast.NodeTransformer) :
 		else :
 			body.insert(0, nodeList)
 
+	def makeResultNode(self, node) :
+		siblingList = self._contextStack.getCurrentContext().getSiblingNodeList()
+		if len(siblingList)  == 0 :
+			return node
+		return siblingList + [ node ]
+
 	def visit_Module(self, node) :
-		self._contextStack.pushContext(context.ModuleContext())
-
-		self.doRemoveDocString(node)
-		node = self.generic_visit(node)
-		if self.isRewritePhase() :
-			extraNodeManager = extranodemanager.ExtraNodeManager()
-			self._constantManager.loadExtraNode(extraNodeManager)
-			self._nopMaker.loadExtraNode(extraNodeManager)
-			self.prependNodes(node.body, extraNodeManager.getNodeList())
-
-		self._contextStack.popContext()
-		return node
+		with context.ContextGuard(self._contextStack, context.ModuleContext()) as currentContext :
+			self.doRemoveDocString(node)
+			node = self.generic_visit(node)
+			if self.isRewritePhase() :
+				extraNodeManager = extranodemanager.ExtraNodeManager()
+				self._constantManager.loadExtraNode(extraNodeManager)
+				self._nopMaker.loadExtraNode(extraNodeManager)
+				self.prependNodes(node.body, extraNodeManager.getNodeList())
+			return node
 
 	def visit_ClassDef(self, node):
-		self.doRemoveDocString(node)
-		node = self.generic_visit(node)
-		return node
+		with context.ContextGuard(self._contextStack, context.ClassContext(node.name)) :
+			self.doRemoveDocString(node)
+			node = self.generic_visit(node)
+			return self.makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):
 		return self.doRewriteFunction(node)
@@ -76,24 +81,37 @@ class _AstVistor(ast.NodeTransformer) :
 
 	def doRewriteFunction(self, node) :
 		self.doRemoveDocString(node)
-		currentContext = self._contextStack.pushContext(context.FunctionContext())
-		renamedArgList = []
-		if self.isRewritePhase() and self._renameArgument :
-			argList = [ node.args.args, node.args.posonlyargs, node.args.kwonlyargs, [ node.args.vararg, node.args.kwarg ] ]
-			for item in argList :
-				for arg in item :
-					if arg is None :
-						continue
-					currentContext.addArgument(arg.arg)
-					renamedArgList.append({
-						'newName' : currentContext.getNewName(arg.arg),
-						'argName' : arg.arg
-					})
-		#node = self.doMakeCodeBlock(node, visitChildren = False, allowOuterBlock = False)
-		node.body = self.doVisitNodeList(node.body)
-		# Don't visit decorator_list, don't rename anything in decorator_list
-		#node.decorator_list = self.doVisitNodeList(node.decorator_list)
+		newNode = self.doExtractFunction(node)
+		if newNode is not None :
+			return newNode
+		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext :
+			renamedArgsListNode = None
+			if self.isRewritePhase() and self._renameArgument :
+				renamedArgsListNode = self.doCreateRenamedArgsList(node)
 
+			node.body = self.doVisitNodeList(node.body)
+			# Only visit decorator_list in nested function
+			if currentContext.getParentContext().isFunction() :
+				node.decorator_list = self.doVisitNodeList(node.decorator_list)
+
+			if renamedArgsListNode is not None :
+				node.body.insert(0, renamedArgsListNode)
+
+			return node
+		
+	def doCreateRenamedArgsList(self, node) :
+		renamedArgList = []
+		currentContext = self._contextStack.getCurrentContext()
+		argList = [ node.args.args, node.args.posonlyargs, node.args.kwonlyargs, [ node.args.vararg, node.args.kwarg ] ]
+		for item in argList :
+			for argItem in item :
+				if argItem is None :
+					continue
+				currentContext.addArgument(argItem.arg)
+				renamedArgList.append({
+					'newName' : currentContext.getNewName(argItem.arg),
+					'argName' : argItem.arg
+				})
 		if len(renamedArgList) > 0 :
 			random.shuffle(renamedArgList)
 			targetList = []
@@ -101,12 +119,83 @@ class _AstVistor(ast.NodeTransformer) :
 			for item in renamedArgList :
 				targetList.append(ast.Name(id = item['newName'], ctx = ast.Store()))
 				valueList.append(ast.Name(id = item['argName'], ctx = ast.Load()))
-			node.body.insert(0, astutil.makeAssignment(targetList, valueList))
+			return astutil.makeAssignment(targetList, valueList)
+		return None
 
-		self._contextStack.popContext()
-		return node
+	def doExtractFunction(self, node) :
+		if not self.isRewritePhase() :
+			return None
+		if self._reentryGuard.isEntered(guardId_extactFunction) :
+			return None
+		with (reentryguard.AutoReentryGuard(self._reentryGuard, guardId_extactFunction),
+			context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext) :
+			parentContext = currentContext.getParentContext()
+			if not (parentContext.isModule() or parentContext.isClass()) :
+				return None
+			if currentContext.getPersistentContext().isNameSeen('super') :
+				return None
+			newFuncNode = copy.deepcopy(node)
+			newFuncNode.decorator_list = []
+			newFuncNode.args.defaults = []
+			# Don't set it, it's used by bare *
+			#newFuncNode.args.kw_defaults = []
+			newFuncNode.name = currentContext.getNewName(newFuncNode.name)
+			# Don't shuffle parameter order, it will cause recursive calling failure
+			argList = [ newFuncNode.args.posonlyargs, newFuncNode.args.args, newFuncNode.args.kwonlyargs, [ newFuncNode.args.vararg, newFuncNode.args.kwarg ] ]
+			for item in argList :
+				for argItem in item :
+					if argItem is None :
+						continue
+					argItem.arg = currentContext.getNewName(argItem.arg)
+			# The variables in renamedArgsListNode is not used by function body because the body uses the new arg names
+			renamedArgsListNode = self.doCreateRenamedArgsList(newFuncNode)
+			newFuncNode.body = self.doVisitNodeList(newFuncNode.body)
+			if renamedArgsListNode is not None :
+				newFuncNode.body.insert(0, renamedArgsListNode)
+			callArgs = []
+			callKeywords = []
+			argList = [ node.args.posonlyargs, node.args.args ]
+			for i in range(len(argList)) :
+				itemList = argList[i]
+				for argItem in itemList :
+					if argItem is None :
+						continue
+					callArgs.append(ast.Name(id = argItem.arg, ctx = ast.Load()))
+			if node.args.vararg :
+				callArgs.append(ast.Starred(
+					value = ast.Name(id = node.args.vararg.arg, ctx = ast.Load()),
+					ctx = ast.Load()
+				))
+			argList = node.args.kwonlyargs
+			for argItem in argList :
+				if argItem is None :
+					continue
+				callKeywords.append(
+					ast.keyword(
+						arg = currentContext.findNewName(argItem.arg),
+						value = ast.Name(id = argItem.arg, ctx = ast.Load())
+					)
+				)
+			if node.args.kwarg :
+				callKeywords.append(ast.keyword(value = ast.Name(id = node.args.kwarg.arg, ctx = ast.Load())))
+			newBody = ast.Return(
+				value = ast.Call(
+					func = ast.Name(newFuncNode.name, ctx = ast.Load()),
+					args = callArgs,
+					keywords = callKeywords
+				)
+			)
+			node.body = [ newBody ]
+			if parentContext.isModule() :
+				return [ newFuncNode, node ]
+			else :
+				parentContext.addSiblingNode(newFuncNode)
+				return node
+		return None
 	
 	def visit_Name(self, node) :
+		if node.id in [ 'super' ] :
+			self._contextStack.getCurrentContext().getPersistentContext().seeName(node.id)
 		self._contextStack.getCurrentContext().seeName(node.id)
 		if self.isRewritePhase() :
 			node.id = self._contextStack.findNewName(node.id)
@@ -191,8 +280,8 @@ class _AstVistor(ast.NodeTransformer) :
 		return node
 
 	def doRewriteLocalVariable(self, node) :
-		if self.isRewritePhase() and self._contextStack.isWithinFunction() :
-			currentContext = self._contextStack.getCurrentContext()
+		currentContext = self._contextStack.getCurrentContext()
+		if self.isRewritePhase() and currentContext.isFunction() :
 			targetList = []
 			if hasattr(node, 'targets') :
 				targetList = node.targets
