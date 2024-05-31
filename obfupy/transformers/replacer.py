@@ -26,11 +26,11 @@ class Replacer :
 			if self._nameMap[name]['replacement'] is None :
 				self._nameMap[name]['replacement'] = util.getUnusedRandomSymbol()
 		for document in documentManager.getDocumentList() :
-			self.doReplaceDocument(document)
+			self._doReplaceDocument(document)
 			if self._reportIfReplacedInString :
-				self.doReportIfReplacedInString(document)
+				self._doReportIfReplacedInString(document)
 
-	def doReplaceDocument(self, document) :
+	def _doReplaceDocument(self, document) :
 		def callback(match) :
 			symbol = match.group(0)
 			if symbol in self._nameMap :
@@ -41,7 +41,7 @@ class Replacer :
 		content = pattern.sub(callback, content)
 		document.setContent(content)
 
-	def doReportIfReplacedInString(self, document) :
+	def _doReportIfReplacedInString(self, document) :
 		fileName = document.getFileName()
 		content = document.getContent()
 		generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)

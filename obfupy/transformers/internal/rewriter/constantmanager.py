@@ -130,29 +130,29 @@ class ConstantManager :
 			targetList.append(ast.Name(id = item['newName'], ctx = ast.Store()))
 			valueNode = None
 			if item['type'] == ItemType.constant :
-				valueNode = self.doMakeConstantNode(item['value'])
+				valueNode = self._doMakeConstantNode(item['value'])
 			else :
 				valueNode = ast.Name(id = item['value'], ctx = ast.Load())
 			valueList.append(valueNode)
 		self._stringEncoderManager.loadExtraNode(extraNodeManager)
 		extraNodeManager.addNode(astutil.makeAssignment(targetList, valueList))
 
-	def doMakeConstantNode(self, value) :
+	def _doMakeConstantNode(self, value) :
 		if isinstance(value, str) :
 			return self._stringEncoderManager.encode(value)
 		if value is True or value is False :
-			return self.doMakeBoolNode(value)
+			return self._doMakeBoolNode(value)
 		if isinstance(value, int) :
-			return self.doMakeIntNode(value)
+			return self._doMakeIntNode(value)
 		return astutil.makeConstant(value)
 	
-	def doMakeBoolNode(self, value) :
+	def _doMakeBoolNode(self, value) :
 		node = logicmaker.LogicMaker().makeTrue(None, 1)
 		if not value :
 			node = astutil.makeNegation(node)
 		return astutil.ensureLogicalNode(node)
 
-	def doMakeIntNode(self, value, depth = 3) :
+	def _doMakeIntNode(self, value, depth = 3) :
 		minValue = 1000000
 		maxValue = 100000000
 		if value < -sys.maxsize + maxValue or value > sys.maxsize - maxValue :
@@ -184,13 +184,13 @@ class ConstantManager :
 		if isUnaryOp :
 			node = ast.UnaryOp(
 				op = opType(),
-				operand = self.doMakeIntNode(a, depth - 1)
+				operand = self._doMakeIntNode(a, depth - 1)
 			)
 		else :
 			node = ast.BinOp(
-				left = self.doMakeIntNode(a, depth - 1),
+				left = self._doMakeIntNode(a, depth - 1),
 				op = opType(),
-				right = self.doMakeIntNode(b, depth - 1),
+				right = self._doMakeIntNode(b, depth - 1),
 			)
 		if needUnarySub :
 			node = ast.UnaryOp(

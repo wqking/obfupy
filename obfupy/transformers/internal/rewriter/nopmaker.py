@@ -12,10 +12,10 @@ class NopWithClass :
 		self._argName = util.getUnusedRandomSymbol()
 
 	def makeTrueNode(self, argNode) :
-		return self.doGetUseNode(self._trueMethodName, argNode)
+		return self._doGetUseNode(self._trueMethodName, argNode)
 
 	def makeReturnAsNode(self, argNode) :
-		return self.doGetUseNode(self._returnAsMethodName, argNode)
+		return self._doGetUseNode(self._returnAsMethodName, argNode)
 	
 	def getDefineNodes(self) :
 		result = [
@@ -24,15 +24,15 @@ class NopWithClass :
 				bases = [],
 				keywords = [],
 				body=[
-					self.doMakeFunctionDef(self._trueMethodName, astutil.makeConstant(True)),
-					self.doMakeFunctionDef(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
+					self._doMakeFunctionDef(self._trueMethodName, astutil.makeConstant(True)),
+					self._doMakeFunctionDef(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
 				],
 				decorator_list = []
 			)
 		]
 		return result
 	
-	def doMakeFunctionDef(self, funcName, returnValueNode) :
+	def _doMakeFunctionDef(self, funcName, returnValueNode) :
 		return ast.FunctionDef(
 			name = funcName,
 			args = ast.arguments(
@@ -51,7 +51,7 @@ class NopWithClass :
 			]
 		)
 
-	def doGetUseNode(self, funcName, argNode) :
+	def _doGetUseNode(self, funcName, argNode) :
 		return ast.Call(
 			func = ast.Attribute(
 				value = ast.Name(id = self._className, ctx = ast.Load()),
@@ -68,19 +68,19 @@ class NopWithFunction :
 		self._argName = util.getUnusedRandomSymbol()
 
 	def makeTrueNode(self, argNode) :
-		return self.doGetUseNode(self._trueMethodName, argNode)
+		return self._doGetUseNode(self._trueMethodName, argNode)
 
 	def makeReturnAsNode(self, argNode) :
-		return self.doGetUseNode(self._returnAsMethodName, argNode)
+		return self._doGetUseNode(self._returnAsMethodName, argNode)
 	
 	def getDefineNodes(self) :
 		result = [
-			self.doMakeFunctionDef(self._trueMethodName, astutil.makeConstant(True)),
-			self.doMakeFunctionDef(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
+			self._doMakeFunctionDef(self._trueMethodName, astutil.makeConstant(True)),
+			self._doMakeFunctionDef(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
 		]
 		return result
 	
-	def doMakeFunctionDef(self, funcName, returnValueNode) :
+	def _doMakeFunctionDef(self, funcName, returnValueNode) :
 		return ast.FunctionDef(
 			name = funcName,
 			args = ast.arguments(
@@ -97,7 +97,7 @@ class NopWithFunction :
 			decorator_list = []
 		)
 
-	def doGetUseNode(self, funcName, argNode) :
+	def _doGetUseNode(self, funcName, argNode) :
 		return ast.Call(
 			func = ast.Name(id = funcName, ctx = ast.Load()),
 			args = [ argNode ],
@@ -111,24 +111,24 @@ class NopWithLambda :
 		self._argName = util.getUnusedRandomSymbol()
 
 	def makeTrueNode(self, argNode) :
-		return self.doGetUseNode(self._trueMethodName, argNode)
+		return self._doGetUseNode(self._trueMethodName, argNode)
 
 	def makeReturnAsNode(self, argNode) :
-		return self.doGetUseNode(self._returnAsMethodName, argNode)
+		return self._doGetUseNode(self._returnAsMethodName, argNode)
 	
 	def getDefineNodes(self) :
 		result = [
-			self.doMakeAssign(self._trueMethodName, astutil.makeConstant(True)),
-			self.doMakeAssign(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
+			self._doMakeAssign(self._trueMethodName, astutil.makeConstant(True)),
+			self._doMakeAssign(self._returnAsMethodName, ast.Name(id = self._argName, ctx = ast.Load()))
 		]
 		return result
 	
-	def doMakeAssign(self, varName, returnValueNode) :
+	def _doMakeAssign(self, varName, returnValueNode) :
 		return ast.Assign(
 			targets = [ ast.Name(id = varName, ctx = ast.Store) ],
-			value = self.doMakeLambda(returnValueNode)
+			value = self._doMakeLambda(returnValueNode)
 		)
-	def doMakeLambda(self, returnValueNode) :
+	def _doMakeLambda(self, returnValueNode) :
 		return ast.Lambda(
 			args = ast.arguments(
 				posonlyargs=[],
@@ -142,7 +142,7 @@ class NopWithLambda :
 			body = returnValueNode
 		)
 
-	def doGetUseNode(self, funcName, argNode) :
+	def _doGetUseNode(self, funcName, argNode) :
 		return ast.Call(
 			func = ast.Name(id = funcName, ctx = ast.Load()),
 			args = [ argNode ],
@@ -157,10 +157,10 @@ class NopMaker :
 		self._makerList = [ None for _ in range(self._makerCount) ]
 
 	def makeTrueNode(self, argNode) :
-		return self.doGetMaker().makeTrueNode(argNode)
+		return self._doGetMaker().makeTrueNode(argNode)
 
 	def makeReturnAsNode(self, argNode) :
-		return self.doGetMaker().makeReturnAsNode(argNode)
+		return self._doGetMaker().makeReturnAsNode(argNode)
 	
 	def loadExtraNode(self, extraNodeManager) :
 		result = []
@@ -170,7 +170,7 @@ class NopMaker :
 			result += maker.getDefineNodes()
 		extraNodeManager.addNode(result)
 
-	def doGetMaker(self) :
+	def _doGetMaker(self) :
 		index = random.randint(0, self._makerCount - 1)
 		if self._makerList[index] is None :
 			self._makerList[index] = self._makerClassList[index]()

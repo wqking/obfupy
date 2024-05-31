@@ -15,18 +15,15 @@ class _ILiteral :
 
 	def transform(self, documentManager) :
 		self._documentManager = documentManager
-		self.buildUidTokenListMap()
-		self.doLiteral()
-		self.finalize()
+		self._buildUidTokenListMap()
+		self._doLiteral()
+		self._finalize()
 
-	def getDocumentList(self) :
+	def _getDocumentList(self) :
 		return self._documentManager.getDocumentList()
 	
-	def hashSymbolPosition(self, document, line, column) :
-		return f"{document.getUid()}_{line}_{column}"
-
-	def buildUidTokenListMap(self) :
-		for document in self.getDocumentList() :
+	def _buildUidTokenListMap(self) :
+		for document in self._getDocumentList() :
 			content = document.getContent()
 			generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
 			tokenList = []
@@ -34,11 +31,11 @@ class _ILiteral :
 				tokenList.append((tokenType, tokenValue))
 			self._uidTokenListMap[document.getUid()] = tokenList
 
-	def doLiteral(self) :
-		for document in self.getDocumentList() :
-			self.doLiteralForDocument(document)
+	def _doLiteral(self) :
+		for document in self._getDocumentList() :
+			self._doLiteralForDocument(document)
 
-	def doLiteralForDocument(self, document) :
+	def _doLiteralForDocument(self, document) :
 		minIndentLength = 0
 		canExpandIndent = True
 		tokenList = self._uidTokenListMap[document.getUid()]
@@ -50,7 +47,7 @@ class _ILiteral :
 
 			if token.type == tokenize.OP and self._options['addExtraSpaces'] :
 				tokenValue = token.value
-				extraSpaces = self.getRandomSpaces()
+				extraSpaces = self._getRandomSpaces()
 				tokenValue += extraSpaces
 				if not enumerator.isPreviousTokenIndentOrNewLine() :
 					tokenValue = extraSpaces + tokenValue
@@ -69,7 +66,7 @@ class _ILiteral :
 					canExpandIndent = False
 
 		if self._options['expandIndent'] and canExpandIndent and minIndentLength > 0 :
-			newIndent = self.getRandomSpaces()
+			newIndent = self._getRandomSpaces()
 			enumerator = TokenEnumerator(tokenList)
 			while True :
 				token = enumerator.nextToken()
@@ -78,14 +75,14 @@ class _ILiteral :
 				if token.type == tokenize.INDENT :
 					enumerator.setCurrentValue(newIndent * (len(token.value) // minIndentLength))
 
-	def getRandomSpaces(self) :
+	def _getRandomSpaces(self) :
 		if random.randint(0, 1) == 0 :
 			return '\t' * random.randint(8, 16)
 		else :
 			return ' ' * random.randint(16, 32)
 		
-	def finalize(self) :
-		for document in self.getDocumentList() :
+	def _finalize(self) :
+		for document in self._getDocumentList() :
 			tokenList = self._uidTokenListMap[document.getUid()]
 			content = tokenize.untokenize(tokenList).decode('utf-8')
 			document.setContent(content)

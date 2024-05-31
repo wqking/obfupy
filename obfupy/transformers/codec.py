@@ -34,9 +34,9 @@ class Codec :
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
-			self.doTransformDocument(document)
+			self._doTransformDocument(document)
 
-	def doTransformDocument(self, document) :
+	def _doTransformDocument(self, document) :
 		if hasattr(self._provider, 'reset') :
 			self._provider.reset()
 		content = document.getContent()
