@@ -202,6 +202,7 @@ class _AstVistor(ast.NodeTransformer) :
 		return node
 	
 	def visit_For(self, node):
+		node = self.doRewriteLocalVariable(node)
 		node = self.doMakeCodeBlock(node, visitChildren =True, allowOuterBlock = True)
 		return node
 
@@ -244,14 +245,14 @@ class _AstVistor(ast.NodeTransformer) :
 			return self.generic_visit(node)
 
 	def visit_Assign(self, node) :
-		return self.doRewriteLocalVariable(node)
+		return self.generic_visit(self.doRewriteLocalVariable(node))
 
 	def visit_AugAssign(self, node) :
-		return self.doRewriteLocalVariable(node)
+		return self.generic_visit(self.doRewriteLocalVariable(node))
 
 	# walrus operator
 	def visit_NamedExpr(self, node) :
-		return self.doRewriteLocalVariable(node)
+		return self.generic_visit(self.doRewriteLocalVariable(node))
 
 	def visit_Global(self, node) :
 		for name in node.names :
@@ -295,7 +296,7 @@ class _AstVistor(ast.NodeTransformer) :
 				if not self.canNameBeLocalVariable(name) :
 					continue
 				target.id = currentContext.getNewName(name)
-		return self.generic_visit(node)
+		return node
 	
 	def canNameBeLocalVariable(self, name) :
 		currentContext = self._contextStack.getCurrentContext()
