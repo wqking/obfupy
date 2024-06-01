@@ -93,6 +93,9 @@ class _AstVistor(ast.NodeTransformer) :
 			# Only visit decorator_list in nested function
 			if currentContext.getParentContext().isFunction() :
 				node.decorator_list = self._doVisitNodeList(node.decorator_list)
+				if self._isRewritePhase() :
+					# Rename innner function and put the new name into outer function context
+					node.name = currentContext.getParentContext().getNewName(node.name)
 
 			if renamedArgsListNode is not None :
 				node.body.insert(0, renamedArgsListNode)
@@ -141,7 +144,12 @@ class _AstVistor(ast.NodeTransformer) :
 			#newFuncNode.args.kw_defaults = []
 			newFuncNode.name = currentContext.getNewName(newFuncNode.name)
 			# Don't shuffle parameter order, it will cause recursive calling failure
-			argList = [ newFuncNode.args.posonlyargs, newFuncNode.args.args, newFuncNode.args.kwonlyargs, [ newFuncNode.args.vararg, newFuncNode.args.kwarg ] ]
+			argList = [
+				newFuncNode.args.posonlyargs,
+				newFuncNode.args.args,
+				newFuncNode.args.kwonlyargs,
+				[ newFuncNode.args.vararg, newFuncNode.args.kwarg ]
+			]
 			for item in argList :
 				for argItem in item :
 					if argItem is None :
@@ -186,6 +194,7 @@ class _AstVistor(ast.NodeTransformer) :
 				)
 			)
 			node.body = [ newBody ]
+			node = self._convertFunctionToLambda(node) or node
 			if parentContext.isModule() :
 				return [ newFuncNode, node ]
 			else :
@@ -193,6 +202,42 @@ class _AstVistor(ast.NodeTransformer) :
 				return node
 		return None
 	
+	def _convertFunctionToLambda(self, node) :
+		if type(node) != ast.FunctionDef :
+			return None
+		if len(node.decorator_list) > 0 :
+			return None
+		if len(node.body) != 1 :
+			return None
+		if util.isSpecialFunctionName(node.name) :
+			return None
+		bodyNode = node.body[0]
+		lambdaBody = None
+		if isinstance(bodyNode, ast.Pass) :
+			lambdaBody = bodyNode
+		elif isinstance(bodyNode, ast.Return) :
+			lambdaBody = bodyNode.value
+		else :
+			return None
+		arguments = copy.deepcopy(node.args)
+		argList = [
+			arguments.posonlyargs,
+			arguments.args,
+			arguments.kwonlyargs,
+			[ arguments.vararg, arguments.kwarg ]
+		]
+		for item in argList :
+			for argItem in item :
+				if argItem is None :
+					continue
+				argItem.annotation = None
+				argItem.type_comment = None
+		lambdaNode = ast.Lambda(
+			args = arguments,
+			body = lambdaBody
+		)
+		return astutil.makeAssignment(ast.Name(id = node.name, ctx = ast.Store()), lambdaNode)
+
 	def visit_Name(self, node) :
 		if node.id in [ 'super' ] :
 			self._contextStack.getCurrentContext().getPersistentContext().seeName(node.id)
