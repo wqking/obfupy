@@ -45,7 +45,7 @@ class _ILiteral :
 			if token is None :
 				break
 
-			if token.type == tokenize.OP and self._options['addExtraSpaces'] :
+			if token.type == tokenize.OP and self._options['addExtraSpaces'] and token.value not in [ '!' ] :
 				tokenValue = token.value
 				extraSpaces = self._getRandomSpaces()
 				tokenValue += extraSpaces
