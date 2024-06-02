@@ -37,7 +37,7 @@ class Replacer :
 				return self._nameMap[symbol]['replacement']
 			return symbol
 		content = document.getContent()
-		pattern = re.compile('\w+')
+		pattern = re.compile(r'\w+')
 		content = pattern.sub(callback, content)
 		document.setContent(content)
 
