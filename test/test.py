@@ -19,7 +19,8 @@ import ast
 
 folders = [ 'input', 'output' ]
 #folders = [ '/source/python/nodezator', '/temp/test' ]
-folders = [ '/source/python/django', '/test/django' ]
+#folders = [ '/source/python/django', '/test/django' ]
+#folders = [ '/source/python/algorithms', '/test/algorithms' ]
 
 fileList = util.findFiles(folders[0])
 fileList = list(filter(lambda s : 'error' not in s, fileList))

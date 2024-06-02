@@ -25,12 +25,14 @@ def getRandomSymbol(length = None) :
 		result += random.choice(_randomSymbolAllLetters)
 	return result
 
-def getUnusedRandomSymbol(usedMap = None) :
+def getUnusedRandomSymbol(usedMap = None, originalName = None) :
 	if usedMap is None :
 		usedMap = _uniqueSymbolMap
 	length = 12
 	while True :
 		newName = getRandomSymbol(length)
+		if originalName is not None :
+			newName = newName + '_' + originalName + '_' + str(random.randint(1, 100000))
 		if newName not in usedMap :
 			usedMap[newName] = True
 			_uniqueSymbolMap[newName] = True

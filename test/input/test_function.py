@@ -52,7 +52,10 @@ def funcDefaultArgFromLocal() :
 	b = 3
 	def innerA(x, y = a + b) :
 		assert innerA.z is None
-		return x + y
+		return x + y + innerB()
+	
+	def innerB() :
+		return 0
 	innerA.z = None
 	return innerA(1)
 
@@ -86,3 +89,39 @@ def funcNestedNested(f) :
 
 def test_funcNestedNested() :
 	assert funcNestedNested(None)()() == 38
+
+def funcDeepNested(a, b, c) :
+	def level1(x) :
+		def level2(y) :
+			def level3(z) :
+				return x + y + z
+			return level3(c)
+		return level2(b)
+	return level1(a)
+
+def test_funcDeepNested() :
+	assert funcDeepNested(1, 2, 3) == 6
+
+def funcInnerClass(x, y) :
+	def innerFunc(a, b) :
+		class InnerClass :
+			def __init__(self, value) :
+				self._value = value
+			
+			def add(self, n) :
+				return self._value + n
+		obj = InnerClass(a)
+		return obj.add(b)
+	return innerFunc(x, y)
+
+def test_funcInnerClass() :
+	assert funcInnerClass(1, 2) == 3
+
+def funcNestFunctionUseLaterDefinedVar(x) :
+	def add(n) :
+		return n + value
+	value = 5
+	return add(x)
+
+def test_funcNestFunctionUseLaterDefinedVar() :
+	assert funcNestFunctionUseLaterDefinedVar(3) == 8

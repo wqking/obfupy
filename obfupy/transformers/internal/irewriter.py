@@ -96,10 +96,15 @@ class _AstVistor(ast.NodeTransformer) :
 		newNode = self._doExtractFunction(node)
 		if newNode is not None :
 			return newNode
+		newNode = self._doRenameArguments(node)
+		if newNode is not None :
+			return newNode
+		return node
 
+	def _doRenameArguments(self, node) :
 		currentContext = self._contextStack.getCurrentContext()
 		renamedArgsListNode = None
-		if self._isRewritePhase() and self._renameArgument :
+		if self._isRewritePhase() :
 			renamedArgsListNode = self._doCreateRenamedArgsList(node)
 
 		# Only visit decorator_list in nested function
@@ -108,10 +113,12 @@ class _AstVistor(ast.NodeTransformer) :
 			if self._isRewritePhase() :
 				# Rename innner function and put the new name into outer function context
 				if currentContext.getParentContext().isGlobalOrNonlocal(node.name) :
-					node.name = self._contextStack.findRenamedName(node.name, context.RenameType.name)
+					node.name = self._contextStack.getCurrentContext().findRenamedNameInChain(node.name) or node.name
+			'''
+			# Don't rename nested function
 				else :
-					node.name = currentContext.getParentContext().renameSymbol(node.name, context.RenameType.name)
-
+					node.name = currentContext.getParentContext().renameSymbol(node.name)
+			'''
 		# This visit must be after previous block, after node.name is renamed.
 		node.body = self._doVisitNodeList(node.body)
 
@@ -130,7 +137,7 @@ class _AstVistor(ast.NodeTransformer) :
 					continue
 				currentContext.addArgument(argItem.arg)
 				renamedArgList.append({
-					'newName' : currentContext.renameSymbol(argItem.arg, context.RenameType.name),
+					'newName' : currentContext.renameSymbol(argItem.arg),
 					'argName' : argItem.arg
 				})
 		if len(renamedArgList) > 0 :
@@ -170,7 +177,7 @@ class _AstVistor(ast.NodeTransformer) :
 			#newFuncNode.args.kw_defaults = []
 			# Don't put the new name to context, not only it's unnecessary, but also it will cause trouble
 			# such as the member method call another global function of the same name
-			newName = self._contextStack.findRenamedName(newFuncNode.name, context.RenameType.name, False)
+			newName = self._contextStack.getCurrentContext().findRenamedNameInChain(newFuncNode.name)
 			newFuncNode.name = newName or util.getUnusedRandomSymbol()
 			# Don't shuffle parameter order, it will cause recursive calling failure
 			argList = [
@@ -183,7 +190,7 @@ class _AstVistor(ast.NodeTransformer) :
 				for argItem in item :
 					if argItem is None :
 						continue
-					argItem.arg = currentContext.renameSymbol(argItem.arg, context.RenameType.name)
+					argItem.arg = currentContext.renameSymbol(argItem.arg)
 			# The variables in renamedArgsListNode is not used by function body because the body uses the new arg names
 			renamedArgsListNode = self._doCreateRenamedArgsList(newFuncNode)
 			newFuncNode.body = self._doVisitNodeList(newFuncNode.body)
@@ -209,7 +216,7 @@ class _AstVistor(ast.NodeTransformer) :
 					continue
 				callKeywords.append(
 					ast.keyword(
-						arg = currentContext.findRenamedName(argItem.arg, context.RenameType.name),
+						arg = currentContext.findRenamedName(argItem.arg) or argItem.arg,
 						value = ast.Name(id = argItem.arg, ctx = ast.Load())
 					)
 				)
@@ -273,13 +280,11 @@ class _AstVistor(ast.NodeTransformer) :
 		self._contextStack.getCurrentContext().getPersistentContext().seeName(node.id)
 		self._contextStack.getCurrentContext().seeName(node.id)
 		if self._isRewritePhase() :
-			node.id = self._contextStack.findRenamedName(node.id, context.RenameType.name)
+			node.id = self._contextStack.getCurrentContext().findRenamedNameInChain(node.id) or node.id
 		return node
 	
 	def visit_Attribute(self, node) :
 		self._contextStack.getCurrentContext().getPersistentContext().seeAttribute(node.attr)
-		if self._isRewritePhase() :
-			node.attr = self._contextStack.findRenamedName(node.attr, context.RenameType.attr)
 		return self.generic_visit(node)
 
 	def visit_For(self, node):
@@ -350,7 +355,7 @@ class _AstVistor(ast.NodeTransformer) :
 	def _doRenameImport(self, node) :
 		for alias in node.names :
 			if alias.asname is not None :
-				alias.asname = self._contextStack.findRenamedName(alias.asname, context.RenameType.name)
+				alias.asname = self._contextStack.getCurrentContext().findRenamedNameInChain(alias.asname) or alias.asname
 		return node
 
 	def visit_Global(self, node) :
@@ -364,7 +369,22 @@ class _AstVistor(ast.NodeTransformer) :
 			name = node.names[i]
 			currentContext.useNonlocalName(name)
 			if self._isRewritePhase() :
-				node.names[i] = self._contextStack.findRenamedName(name, context.RenameType.name)
+				node.names[i] = self._contextStack.getCurrentContext().findRenamedNameInChain(name) or name
+		return self.generic_visit(node)
+
+	def visit_Lambda(self, node) :
+		if self._isRewritePhase() :
+			with context.ContextGuard(self._contextStack, context.FunctionContext('lambda')) :
+				currentContext = self._contextStack.getCurrentContext()
+				argList = [ node.args.args, node.args.posonlyargs, node.args.kwonlyargs, [ node.args.vararg, node.args.kwarg ] ]
+				for item in argList :
+					for argItem in item :
+						if argItem is None :
+							continue
+						argItem.arg = currentContext.renameSymbol(argItem.arg)
+				node.args = self.visit(node.args)
+				node.body = self.visit(node.body)
+				return node
 		return self.generic_visit(node)
 
 	def _doMakeCodeBlock(self, node, visitChildren, allowOuterBlock) :
@@ -394,7 +414,7 @@ class _AstVistor(ast.NodeTransformer) :
 				name = target.id
 				if not self._canNameBeLocalVariable(name) :
 					continue
-				target.id = currentContext.renameSymbol(name, context.RenameType.name)
+				target.id = currentContext.renameSymbol(name)
 		return node
 	
 	def _canNameBeLocalVariable(self, name) :
@@ -406,7 +426,7 @@ class _AstVistor(ast.NodeTransformer) :
 		# Leave it to visit_Name to rename
 		if currentContext.isGlobalOrNonlocal(name) :
 			return False
-		if currentContext.isRenamed(name, context.RenameType.name) :
+		if currentContext.isRenamed(name) :
 			return False
 		# Symbol is used before assignment, just don't rename it
 		if currentContext.isNameSeen(name) :
