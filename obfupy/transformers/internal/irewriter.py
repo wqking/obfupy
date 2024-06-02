@@ -20,6 +20,7 @@ guardId_boolOp = 2
 guardId_constant = 3
 guardId_makeCodeBlock = 4
 guardId_extactFunction = 5
+guardId_inCase = 6
 
 class _AstVistor(ast.NodeTransformer) :
 	def __init__(self, options) :
@@ -74,33 +75,50 @@ class _AstVistor(ast.NodeTransformer) :
 			return self._makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):
-		return self._doRewriteFunction(node)
+		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) :
+			node = self._doRewriteFunction(node)
+			return self._makeResultNode(node)
 
 	def visit_FunctionDef(self, node) :
-		return self._doRewriteFunction(node)
+		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) :
+			node = self._doRewriteFunction(node)
+			return self._makeResultNode(node)
 
 	def _doRewriteFunction(self, node) :
+		for argNode in node.args.defaults :
+			if argNode is not None :
+				self.visit(argNode)
+		for argNode in node.args.kw_defaults :
+			if argNode is not None :
+				self.visit(argNode)
+
 		self._doRemoveDocString(node)
 		newNode = self._doExtractFunction(node)
 		if newNode is not None :
 			return newNode
-		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext :
-			renamedArgsListNode = None
-			if self._isRewritePhase() and self._renameArgument :
-				renamedArgsListNode = self._doCreateRenamedArgsList(node)
 
-			node.body = self._doVisitNodeList(node.body)
-			# Only visit decorator_list in nested function
-			if currentContext.getParentContext().isFunction() :
-				node.decorator_list = self._doVisitNodeList(node.decorator_list)
-				if self._isRewritePhase() :
-					# Rename innner function and put the new name into outer function context
-					node.name = currentContext.getParentContext().getNewName(node.name)
+		currentContext = self._contextStack.getCurrentContext()
+		renamedArgsListNode = None
+		if self._isRewritePhase() and self._renameArgument :
+			renamedArgsListNode = self._doCreateRenamedArgsList(node)
 
-			if renamedArgsListNode is not None :
-				node.body.insert(0, renamedArgsListNode)
+		# Only visit decorator_list in nested function
+		if currentContext.getParentContext().isFunction() :
+			node.decorator_list = self._doVisitNodeList(node.decorator_list)
+			if self._isRewritePhase() :
+				# Rename innner function and put the new name into outer function context
+				if currentContext.getParentContext().isGlobalOrNonlocal(node.name) :
+					node.name = self._contextStack.findRenamedName(node.name, context.RenameType.name)
+				else :
+					node.name = currentContext.getParentContext().renameSymbol(node.name, context.RenameType.name)
 
-			return node
+		# This visit must be after previous block, after node.name is renamed.
+		node.body = self._doVisitNodeList(node.body)
+
+		if renamedArgsListNode is not None :
+			node.body.insert(0, renamedArgsListNode)
+
+		return node
 		
 	def _doCreateRenamedArgsList(self, node) :
 		renamedArgList = []
@@ -112,7 +130,7 @@ class _AstVistor(ast.NodeTransformer) :
 					continue
 				currentContext.addArgument(argItem.arg)
 				renamedArgList.append({
-					'newName' : currentContext.getNewName(argItem.arg),
+					'newName' : currentContext.renameSymbol(argItem.arg, context.RenameType.name),
 					'argName' : argItem.arg
 				})
 		if len(renamedArgList) > 0 :
@@ -128,10 +146,18 @@ class _AstVistor(ast.NodeTransformer) :
 	def _doExtractFunction(self, node) :
 		if not self._isRewritePhase() :
 			return None
-		if self._reentryGuard.isEntered(guardId_extactFunction) :
+		# Don't extract special names such as __cast, which name is mangled.
+		if util.isNameMangling(node.name) :
 			return None
-		with (reentryguard.AutoReentryGuard(self._reentryGuard, guardId_extactFunction),
-			context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext) :
+		currentContext = self._contextStack.getCurrentContext()
+		# If the function contains any managed names, don't extract because the names are not accessible outside of the class
+		for name in currentContext.getPersistentContext().getSeenNameSet() :
+			if util.isNameMangling(name) :
+				return None
+		for name in currentContext.getPersistentContext().getSeenAttributeSet() :
+			if util.isNameMangling(name) :
+				return None
+		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_extactFunction) :
 			parentContext = currentContext.getParentContext()
 			if not (parentContext.isModule() or parentContext.isClass()) :
 				return None
@@ -142,7 +168,10 @@ class _AstVistor(ast.NodeTransformer) :
 			newFuncNode.args.defaults = []
 			# Don't set it, it's used by bare *
 			#newFuncNode.args.kw_defaults = []
-			newFuncNode.name = currentContext.getNewName(newFuncNode.name)
+			# Don't put the new name to context, not only it's unnecessary, but also it will cause trouble
+			# such as the member method call another global function of the same name
+			newName = self._contextStack.findRenamedName(newFuncNode.name, context.RenameType.name, False)
+			newFuncNode.name = newName or util.getUnusedRandomSymbol()
 			# Don't shuffle parameter order, it will cause recursive calling failure
 			argList = [
 				newFuncNode.args.posonlyargs,
@@ -154,7 +183,7 @@ class _AstVistor(ast.NodeTransformer) :
 				for argItem in item :
 					if argItem is None :
 						continue
-					argItem.arg = currentContext.getNewName(argItem.arg)
+					argItem.arg = currentContext.renameSymbol(argItem.arg, context.RenameType.name)
 			# The variables in renamedArgsListNode is not used by function body because the body uses the new arg names
 			renamedArgsListNode = self._doCreateRenamedArgsList(newFuncNode)
 			newFuncNode.body = self._doVisitNodeList(newFuncNode.body)
@@ -180,7 +209,7 @@ class _AstVistor(ast.NodeTransformer) :
 					continue
 				callKeywords.append(
 					ast.keyword(
-						arg = currentContext.findNewName(argItem.arg),
+						arg = currentContext.findRenamedName(argItem.arg, context.RenameType.name),
 						value = ast.Name(id = argItem.arg, ctx = ast.Load())
 					)
 				)
@@ -195,6 +224,8 @@ class _AstVistor(ast.NodeTransformer) :
 			)
 			node.body = [ newBody ]
 			node = self._convertFunctionToLambda(node) or node
+			self._contextStack.getTopScopedContext().addSiblingNode(newFuncNode)
+			return node
 			if parentContext.isModule() :
 				return [ newFuncNode, node ]
 			else :
@@ -239,13 +270,18 @@ class _AstVistor(ast.NodeTransformer) :
 		return astutil.makeAssignment(ast.Name(id = node.name, ctx = ast.Store()), lambdaNode)
 
 	def visit_Name(self, node) :
-		if node.id in [ 'super' ] :
-			self._contextStack.getCurrentContext().getPersistentContext().seeName(node.id)
+		self._contextStack.getCurrentContext().getPersistentContext().seeName(node.id)
 		self._contextStack.getCurrentContext().seeName(node.id)
 		if self._isRewritePhase() :
-			node.id = self._contextStack.findNewName(node.id)
+			node.id = self._contextStack.findRenamedName(node.id, context.RenameType.name)
 		return node
 	
+	def visit_Attribute(self, node) :
+		self._contextStack.getCurrentContext().getPersistentContext().seeAttribute(node.attr)
+		if self._isRewritePhase() :
+			node.attr = self._contextStack.findRenamedName(node.attr, context.RenameType.attr)
+		return self.generic_visit(node)
+
 	def visit_For(self, node):
 		node = self._doRewriteLocalVariable(node)
 		node = self._doMakeCodeBlock(node, visitChildren =True, allowOuterBlock = True)
@@ -284,6 +320,10 @@ class _AstVistor(ast.NodeTransformer) :
 			return self.generic_visit(node)
 		return self._doRewriteConstant(node)
 
+	def visit_Case(self, node):
+		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_inCase) :
+			return self.generic_visit(node)
+
 	def visit_JoinedStr(self, node) :
 		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
 		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
@@ -299,6 +339,20 @@ class _AstVistor(ast.NodeTransformer) :
 	def visit_NamedExpr(self, node) :
 		return self.generic_visit(self._doRewriteLocalVariable(node))
 
+	def visit_Import(self, node) :
+		node = self._doRenameImport(node)
+		return self.generic_visit(node)
+	
+	def visit_ImportFrom(self, node) :
+		node = self._doRenameImport(node)
+		return self.generic_visit(node)
+	
+	def _doRenameImport(self, node) :
+		for alias in node.names :
+			if alias.asname is not None :
+				alias.asname = self._contextStack.findRenamedName(alias.asname, context.RenameType.name)
+		return node
+
 	def visit_Global(self, node) :
 		for name in node.names :
 			self._contextStack.getCurrentContext().useGlobalName(name)
@@ -310,7 +364,7 @@ class _AstVistor(ast.NodeTransformer) :
 			name = node.names[i]
 			currentContext.useNonlocalName(name)
 			if self._isRewritePhase() :
-				node.names[i] = self._contextStack.findNewName(name)
+				node.names[i] = self._contextStack.findRenamedName(name, context.RenameType.name)
 		return self.generic_visit(node)
 
 	def _doMakeCodeBlock(self, node, visitChildren, allowOuterBlock) :
@@ -340,7 +394,7 @@ class _AstVistor(ast.NodeTransformer) :
 				name = target.id
 				if not self._canNameBeLocalVariable(name) :
 					continue
-				target.id = currentContext.getNewName(name)
+				target.id = currentContext.renameSymbol(name, context.RenameType.name)
 		return node
 	
 	def _canNameBeLocalVariable(self, name) :
@@ -352,7 +406,7 @@ class _AstVistor(ast.NodeTransformer) :
 		# Leave it to visit_Name to rename
 		if currentContext.isGlobalOrNonlocal(name) :
 			return False
-		if currentContext.isRenamed(name) :
+		if currentContext.isRenamed(name, context.RenameType.name) :
 			return False
 		# Symbol is used before assignment, just don't rename it
 		if currentContext.isNameSeen(name) :
@@ -382,6 +436,8 @@ class _AstVistor(ast.NodeTransformer) :
 		return self.generic_visit(node)
 
 	def _doRewriteConstant(self, node) :
+		if self._reentryGuard.isEntered(guardId_boolOp) :
+			return node
 		if self._isPreprocessPhase() :
 			self._constantManager.foundConstant(node.value)
 		elif self._isRewritePhase() :
@@ -431,7 +487,7 @@ class _IRewriter :
 	def _getDocumentList(self) :
 		return self._documentManager.getDocumentList()
 
-	def transform(self, documentManager) :
+	def XXXtransform(self, documentManager) :
 		self._documentManager = documentManager
 		astMap = {}
 		visitorMap = {}
@@ -451,4 +507,14 @@ class _IRewriter :
 
 		for document in self._getDocumentList() :
 			rootNode = astMap[document.getUid()]
+			document.setContent(astutil.astToSource(rootNode))
+
+	def transform(self, documentManager) :
+		self._documentManager = documentManager
+		for document in self._getDocumentList() :
+			rootNode = ast.parse(document.getContent(), document.getFileName())
+			visitor = _AstVistor(options = self._options)
+			for i in range(astMaxPhaseCount) :
+				visitor.reset(i)
+				visitor.visit(rootNode)
 			document.setContent(astutil.astToSource(rootNode))

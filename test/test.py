@@ -19,9 +19,12 @@ import ast
 
 folders = [ 'input', 'output' ]
 #folders = [ '/source/python/nodezator', '/temp/test' ]
+folders = [ '/source/python/django', '/test/django' ]
 
+fileList = util.findFiles(folders[0])
+fileList = list(filter(lambda s : 'error' not in s, fileList))
 documentManager = DocumentManager()
-documentManager.addDocument(util.loadDocumentsFromFiles(util.findFiles(folders[0])))
+documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
 Rewriter().transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
@@ -47,11 +50,16 @@ for _ in range(0) :
 os.chdir('output')
 os.system('python -m pytest -s')
 
+class Xxx :
+	def __init__(self) :
+		self._value = 5
+
+	add = (lambda self, a : self._value + a)
+
 def xxxprint(a) :
 	#print(a)
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-for _ in range(5) :
-	pass
+from os import chdir as n
 '''), indent=4))

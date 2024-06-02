@@ -50,3 +50,17 @@ def makeShuffledIndexList(len) :
 
 def makeListByIndexList(itemList, indexList) :
 	return [ itemList[index] for index in indexList ]
+
+def isSpecialFunctionName(name) :
+	return (
+		len(name) > 4
+		and name[0] == '_' and name[1] == '_'
+		and name[-1] == '_' and name[-2] == '_'
+	)
+
+def isNameMangling(name) :
+	if not (len(name) > 2 and name[0] == '_' and name[1] == '_') :
+		return False
+	if len(name) > 3 and name[-1] == '_' :
+		return name[-2] != '_'
+	return True

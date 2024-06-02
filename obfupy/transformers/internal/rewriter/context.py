@@ -8,15 +8,33 @@ class ContextType(enum.IntEnum) :
 	classContext = 2
 	moduleContext = 3
 
+@enum.unique
+class RenameType(enum.IntEnum) :
+	name = 0
+	attr = 1
+
 class BaseContext :
 	def __init__(self) :
 		self._seenNameSet = {}
+		self._seenAttributeSet = {}
 
 	def seeName(self, name) :
 		self._seenNameSet[name] = True
 
 	def isNameSeen(self, name) :
 		return name in self._seenNameSet
+	
+	def getSeenNameSet(self) :
+		return self._seenNameSet
+	
+	def seeAttribute(self, attribute) :
+		self._seenAttributeSet[attribute] = True
+
+	def isAttributeSeen(self, attribute) :
+		return attribute in self._seenAttributeSet
+	
+	def getSeenAttributeSet(self) :
+		return self._seenAttributeSet
 	
 class PersistentContext(BaseContext) :
 	def __init__(self):
@@ -30,12 +48,10 @@ class Context(BaseContext) :
 		self._parent = None
 		self._owner = None
 		self._persistentContext = None
-		self._nameReplaceMap = {}
 		self._usedNewNameSet = {}
-		self._disabledNameSet = {}
 		self._globalNonlocalSet = {}
-		self._argumentNameSet = {}
 		self._siblingNodeList = []
+		self._renameMap = [ {}, {} ]
 
 	def initialize(self, parent, owner) :
 		self._parent = parent
@@ -69,20 +85,27 @@ class Context(BaseContext) :
 	def getParentContext(self) :
 		return self._parent
 
-	def getNewName(self, name) :
-		if name not in self._nameReplaceMap :
-			self._nameReplaceMap[name] = util.getUnusedRandomSymbol(self._usedNewNameSet)
-		return self._nameReplaceMap[name]
-
-	def findNewName(self, name, returnOriginIfNotFound = True) :
-		if name in self._nameReplaceMap and not self.isNameDisabled(name) :
-			return self._nameReplaceMap[name]
+	def renameSymbol(self, name, renameType) :
+		map = self._getRenameMap(renameType)
+		if name not in map :
+			map[name] = util.getUnusedRandomSymbol(self._usedNewNameSet)
+		return map[name]
+	
+	def findRenamedName(self, name, renameType, returnOriginIfNotFound = True) :
+		map = self._getRenameMap(renameType)
+		if name in map :
+			return map[name]
 		if returnOriginIfNotFound :
 			return name
 		return None
 
-	def isRenamed(self, name) :
-		return name in self._nameReplaceMap
+	def isRenamed(self, name, renameType) :
+		return name in self._getRenameMap(renameType)
+	
+	def _getRenameMap(self, renameType) :
+		if renameType == RenameType.name :
+			return self._renameMap[0]
+		return self._renameMap[1]
 	
 	def useGlobalName(self, name) :
 		self._globalNonlocalSet[name] = True
@@ -93,26 +116,6 @@ class Context(BaseContext) :
 	def isGlobalOrNonlocal(self, name) :
 		return name in self._globalNonlocalSet
 
-	def addArgument(self, name) :
-		self._argumentNameSet[name] = True
-	
-	def isArgument(self, name) :
-		return name in self._argumentNameSet
-	
-	def disableName(self, name) :
-		if name not in self._disabledNameSet :
-			self._disabledNameSet[name] = 0
-		self._disabledNameSet[name] += 1
-	
-	def enableName(self, name) :
-		if name in self._disabledNameSet :
-			self._disabledNameSet[name] -= 1
-			if self._disabledNameSet[name] < 0 :
-				self._disabledNameSet[name] = 0
-	
-	def isNameDisabled(self, name) :
-		return name in self._disabledNameSet and self._disabledNameSet[name] > 0
-	
 	def addSiblingNode(self, node) :
 		self._siblingNodeList.append(node)
 
@@ -126,7 +129,14 @@ class ModuleContext(Context) :
 class FunctionContext(Context) :
 	def __init__(self, funcName) :
 		super().__init__(ContextType.functionContext, funcName)
+		self._argumentNameSet = {}
 
+	def addArgument(self, name) :
+		self._argumentNameSet[name] = True
+
+	def isArgument(self, name) :
+		return name in self._argumentNameSet
+	
 class ClassContext(Context) :
 	def __init__(self, className) :
 		super().__init__(ContextType.classContext, className)
@@ -144,6 +154,11 @@ class ContextStack :
 		assert len(self._contextList) > 0
 		return self._contextList[0]
 	
+	def getTopScopedContext(self) :
+		if len(self._contextList) > 1 :
+			return self._contextList[1]
+		return None
+	
 	def pushContext(self, context) :
 		parent = None
 		if len(self._contextList) > 0 :
@@ -160,9 +175,9 @@ class ContextStack :
 	def isWithinFunction(self) :
 		return self.getCurrentContext().isFunction()
 
-	def findNewName(self, name, returnOriginIfNotFound = True) :
+	def findRenamedName(self, name, renameType, returnOriginIfNotFound = True) :
 		for i in range(len(self._contextList) - 1, -1, -1) :
-			newName = self._contextList[i].findNewName(name, False)
+			newName = self._contextList[i].findRenamedName(name, renameType, False)
 			if newName is not None :
 				return newName
 		if returnOriginIfNotFound :
