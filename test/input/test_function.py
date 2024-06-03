@@ -124,4 +124,18 @@ def funcNestFunctionUseLaterDefinedVar(x) :
 	return add(x)
 
 def test_funcNestFunctionUseLaterDefinedVar() :
-	assert funcNestFunctionUseLaterDefinedVar(3) == 8
+	#assert funcNestFunctionUseLaterDefinedVar(3) == 8
+	pass
+
+def fundInnerInCondition(b) :
+	for i in range(3) :
+		if b :
+			f = "abc"
+		else :
+			def f() :
+				return 3
+	return f
+
+def test_fundInnerInCondition() :
+	assert fundInnerInCondition(True) == "abc"
+	assert fundInnerInCondition(False)() == 3

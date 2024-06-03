@@ -143,3 +143,17 @@ def lazystr(text):
 
 def test_temp() :
     assert lazystr("abc") == "abc"
+
+def make_style(config_string=""):
+    color_settings = 1
+    for role in [ "aaa" ] :
+        if color_settings:
+            style_func = 5
+        else:
+
+            def style_func(x):
+                return x
+
+        setattr(make_style, role, style_func)
+
+    return None

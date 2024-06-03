@@ -62,22 +62,10 @@ class ItemType(enum.IntEnum) :
 	constant = 1
 	name = 2
 
-strictValueTrue = '993FA0E09C7749DFA58A6A6BF7BE3DEB.tRue'
-strictValueFalse = '616EB37E118B4B9581837807BABE67DA.fAlse'
+strictValuePrefix = '616EB37E118B4B9581837807BABE67DA'
 
 def valueToStrict(value) :
-	if value is True :
-		return strictValueTrue
-	if value is False :
-		return strictValueFalse
-	return value
-
-def strictToValue(strict) :
-	if strict == strictValueTrue :
-		return True
-	if strict == strictValueFalse :
-		return False
-	return strict
+	return strictValuePrefix + type(value).__name__ + str(value)
 
 class ConstantManager :
 	def __init__(self, stringEncoders) :

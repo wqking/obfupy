@@ -1,18 +1,16 @@
 import string
 import random
 
-class Result :
-	def __init__(self, value = None, success = True) :
-		self._value = value
-		self._success = success
+class ExitGuard :
+	def __init__(self, callback) :
+		self._callback = callback
 
-	def getValue(self) :
-		return self._value
-	
-	def isSuccess(self) :
-		return self._success
+	def __enter__(self) :
+		pass
 
-failedResult = Result(success = False)
+	def __exit__(self, type, value, traceBack) :
+		self._callback()
+
 _randomSymbolLeadLetters = 'Il'
 _randomSymbolAllLetters = _randomSymbolLeadLetters + '1'
 _uniqueSymbolMap = {}
@@ -66,3 +64,10 @@ def isNameMangling(name) :
 	if len(name) > 3 and name[-1] == '_' :
 		return name[-2] != '_'
 	return True
+
+# list.index may raise exception, this function won't
+def findItemIndexInList(itemList, item) :
+	for i in range(len(itemList)) :
+		if itemList[i] == item :
+			return i
+	return -1

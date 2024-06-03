@@ -18,12 +18,14 @@ import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 import ast
 
 folders = [ 'input', 'output' ]
-#folders = [ '/source/python/nodezator', '/temp/test' ]
+#folders = [ '/source/python/nodezator', '/test' ]
 #folders = [ '/source/python/django', '/test/django' ]
 #folders = [ '/source/python/algorithms', '/test/algorithms' ]
+#folders = [ '/source/python/flask', '/test/flask' ]
 
+print(folders[0])
 fileList = util.findFiles(folders[0])
-fileList = list(filter(lambda s : 'error' not in s, fileList))
+fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conftest' not in s, fileList))
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
@@ -62,5 +64,6 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-from os import chdir as n
+class A(b) :
+							pass
 '''), indent=4))

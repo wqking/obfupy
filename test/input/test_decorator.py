@@ -19,3 +19,23 @@ def test_a() :
 def test_inner() :
 	test_inner.wrapper = decoratorPrependAbc
 	assert funcB(test_inner, 8) == "abc_7"
+
+class DecoratorClass :
+	def __init__(self, v = 0) :
+		self._value = v
+
+	@property
+	def value(self):
+		return self._value
+
+	@value.setter
+	def value(self, v):
+		value = v
+		self._value = value
+
+def test_DecoratorClass() :
+	obj = DecoratorClass(3)
+	assert obj.value == 3
+	obj.value = 5
+	assert obj.value == 5
+	assert obj._value == 5

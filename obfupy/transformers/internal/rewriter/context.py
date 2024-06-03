@@ -12,6 +12,7 @@ class BaseContext :
 	def __init__(self) :
 		self._seenNameSet = {}
 		self._seenAttributeSet = {}
+		self._seenFeatureSet = {}
 
 	def seeName(self, name) :
 		self._seenNameSet[name] = True
@@ -30,28 +31,35 @@ class BaseContext :
 	
 	def getSeenAttributeSet(self) :
 		return self._seenAttributeSet
+	
+	def seeFeature(self, feature) :
+		self._seenFeatureSet[feature] = True
 
-class PersistentContext(BaseContext) :
-	def __init__(self):
-		super().__init__()
+	def isFeatureSeen(self, feature) :
+		return feature in self._seenFeatureSet
 
 class _RenameMixin :
-	def renameSymbol(self, name) :
-		if name not in self._renameMap :
-			self._renameMap[name] = util.getUnusedRandomSymbol(self._usedNewNameSet, originalName = name)
-		return self._renameMap[name]
-
 	def findRenamedName(self, name) :
+		return self._doFindRenamedName(name)
+
+	def _doFindRenamedName(self, name) :
 		if name in self._renameMap :
 			return self._renameMap[name]
 		return None
+
+	def renameSymbol(self, name, newName = None) :
+		if name not in self._renameMap :
+			if newName is None :
+				newName = self.createNewName(name)
+			self._renameMap[name] = newName
+		return self._renameMap[name]
 	
-	def findRenamedNameInChain(self, name) :
+	def createNewName(self, name = None) :
+		return util.getUnusedRandomSymbol(self._usedNewNameSet, originalName = name)
+
+	def cancelRename(self, name) :
 		if name in self._renameMap :
-			return self._renameMap[name]
-		if self._parent is not None :
-			return self._parent.findRenamedNameInChain(name)
-		return None
+			del self._renameMap[name]
 
 	def isRenamed(self, name) :
 		return name in self._renameMap
@@ -64,7 +72,6 @@ class Context(BaseContext, _RenameMixin) :
 		self._contextName = contextName
 		self._parent = None
 		self._owner = None
-		self._persistentContext = None
 		self._globalNonlocalSet = {}
 		self._siblingNodeList = []
 
@@ -72,7 +79,7 @@ class Context(BaseContext, _RenameMixin) :
 		self._renameMap = {}
 		self._usedNewNameSet = {}
 
-	def initialize(self, parent, owner) :
+	def reset(self, parent = None, owner = None) :
 		self._parent = parent
 		self._owner = owner
 
@@ -87,19 +94,6 @@ class Context(BaseContext, _RenameMixin) :
 
 	def isFunction(self) :
 		return self._type == ContextType.functionContext
-
-	def getPersistentContext(self) :
-		if self._persistentContext is None :
-			self._persistentContext = self._owner._doGetPersistentContext(self.getQualifiedName())
-		return self._persistentContext
-	
-	def getQualifiedName(self) :
-		nameList = []
-		currentContext = self
-		while currentContext is not None :
-			nameList.insert(0, currentContext.getContextName())
-			currentContext = currentContext._parent
-		return ".".join(nameList)
 	
 	def getParentContext(self) :
 		return self._parent
@@ -120,7 +114,7 @@ class Context(BaseContext, _RenameMixin) :
 		return self._siblingNodeList
 	
 class ModuleContext(Context) :
-	def __init__(self) :
+	def __init__(self, _ = None) :
 		super().__init__(ContextType.moduleContext, "module")
 
 class FunctionContext(Context) :
@@ -133,15 +127,50 @@ class FunctionContext(Context) :
 
 	def isArgument(self, name) :
 		return name in self._argumentNameSet
-	
+
+	def findRenamedName(self, name) :
+		newName = self._doFindRenamedName(name)
+		if newName is not None :
+			return newName
+		if self.isArgument(name) :
+			return None
+		parent = self._parent
+		while parent is not None :
+			if parent.isFunction() or parent.isModule() :
+				return parent.findRenamedName(name)
+			parent = parent._parent
+		return None
+
 class ClassContext(Context) :
 	def __init__(self, className) :
 		super().__init__(ContextType.classContext, className)
 
+	def findRenamedName(self, name) :
+		newName = self._doFindRenamedName(name)
+		if newName is not None :
+			return newName
+		parent = self._parent
+		while parent is not None :
+			if parent.isFunction() or parent.isModule() :
+				return parent.findRenamedName(name)
+			parent = parent._parent
+		return None
+
 class ContextStack :
 	def __init__(self) :
 		self._contextList = []
-		self._persistentContextMap = {}
+		self._savedContextList = []
+
+	def saveAndReset(self) :
+		assert len(self._contextList) > 0
+		moduleContext = self._contextList[0]
+		self._savedContextList.append(self._contextList)
+		self._contextList = [ moduleContext ]
+	
+	def restore(self) :
+		assert len(self._savedContextList) > 0
+		self._contextList = self._savedContextList[-1]
+		self._savedContextList.pop()
 
 	def getCurrentContext(self) :
 		assert len(self._contextList) > 0
@@ -160,22 +189,27 @@ class ContextStack :
 		parent = None
 		if len(self._contextList) > 0 :
 			parent = self._contextList[-1]
-		context.initialize(parent, self)
+		context.reset(parent, self)
 		self._contextList.append(context)
 		return context
-	
-	def popContext(self) :
+
+	def pushContextAfter(self, context, after) :
+		index =  util.findItemIndexInList(self._contextList, after)
+		assert index >= 0
+		index += 1
+		parent = after
+		context.reset(parent, self)
+		self._contextList.insert(index, context)
+		return context
+
+	def popContext(self, context = None) :
 		assert len(self._contextList) > 0
-		self._contextList[-1].initialize(None, None)
-		self._contextList.pop()
-
-	def isWithinFunction(self) :
-		return self.getCurrentContext().isFunction()
-
-	def _doGetPersistentContext(self, qualifiedName) :
-		if qualifiedName not in self._persistentContextMap :
-			self._persistentContextMap[qualifiedName] = PersistentContext()
-		return self._persistentContextMap[qualifiedName]
+		if context is None :
+			self._contextList.pop()
+		else :
+			index =  util.findItemIndexInList(self._contextList, context)
+			assert index >= 0
+			self._contextList.pop(index)
 
 class ContextGuard :
 	def __init__(self, contextStack, context) :

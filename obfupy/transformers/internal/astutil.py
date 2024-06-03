@@ -135,3 +135,16 @@ def getNodeListFromAssignTargets(targets) :
 
 def astToSource(node) :
 	return ast.unparse(ast.fix_missing_locations(node))
+
+def enumerateArguments(arguments, callback) :
+	argList = [
+		arguments.args,
+		arguments.posonlyargs,
+		arguments.kwonlyargs,
+		[ arguments.vararg, arguments.kwarg ]
+	]
+	for item in argList :
+		for argItem in item :
+			if argItem is None :
+				continue
+			callback(argItem)
