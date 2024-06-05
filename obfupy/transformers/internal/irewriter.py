@@ -263,6 +263,13 @@ class _AstVistorSecond(_BaseAstVistor) :
 		newContext = getNodeContext(node)
 		setNodeContext(newFuncNode, newContext)
 
+		posonlyargsIndexList = util.makeShuffledIndexList(len(newFuncNode.args.posonlyargs))
+		argsIndexList = util.makeShuffledIndexList(len(newFuncNode.args.args))
+		kwonlyargsIndexList = util.makeShuffledIndexList(len(newFuncNode.args.kwonlyargs))
+		newFuncNode.args.posonlyargs = util.makeListByIndexList(newFuncNode.args.posonlyargs, posonlyargsIndexList)
+		newFuncNode.args.args = util.makeListByIndexList(newFuncNode.args.args, argsIndexList)
+		newFuncNode.args.kwonlyargs = util.makeListByIndexList(newFuncNode.args.kwonlyargs, kwonlyargsIndexList)
+
 		def callback(argItem) :
 			argItem.arg = newContext.renameSymbol(argItem.arg)
 			argItem.annotation = None
@@ -273,30 +280,46 @@ class _AstVistorSecond(_BaseAstVistor) :
 			newFuncNode.body = self._doVisitNodeList(newFuncNode.body)
 		self._contextStack.restore()
 
+		newCall = self._doCreateForwardCall(
+			newFuncNode.name,
+			newContext,
+			util.makeListByIndexList(node.args.posonlyargs, posonlyargsIndexList),
+			util.makeListByIndexList(node.args.args, argsIndexList),
+			node.args.vararg,
+			util.makeListByIndexList(node.args.kwonlyargs, kwonlyargsIndexList),
+			node.args.kwarg
+		)
 		newBody = ast.Return(
-			value = self._doCreateForwardCall(node, newFuncNode.name, newContext)
+			value = newCall
 		)
 		node.body = [ newBody ]
-		#node = self._convertFunctionToLambda(node) or node
-		topScopedContext = self._contextStack.getTopScopedContext()
-		topScopedContext.addSiblingNode(newFuncNode)
+		self._contextStack.getTopScopedContext().addSiblingNode(newFuncNode)
 		return node
 	
-	def _doCreateForwardCall(self, node, newFuncName, newContext) :
+	def _doCreateForwardCall(
+			self,
+			newFuncName,
+			newContext,
+			posonlyargs,
+			args,
+			vararg,
+			kwonlyargs,
+			kwarg
+		) :
 		callArgs = []
 		callKeywords = []
-		argList = [ node.args.posonlyargs, node.args.args ]
+		argList = [ posonlyargs, args ]
 		for itemList in argList :
 			for argItem in itemList :
 				if argItem is None :
 					continue
 				callArgs.append(ast.Name(id = argItem.arg, ctx = ast.Load()))
-		if node.args.vararg :
+		if vararg :
 			callArgs.append(ast.Starred(
-				value = ast.Name(id = node.args.vararg.arg, ctx = ast.Load()),
+				value = ast.Name(id = vararg.arg, ctx = ast.Load()),
 				ctx = ast.Load()
 			))
-		for argItem in node.args.kwonlyargs :
+		for argItem in kwonlyargs :
 			if argItem is None :
 				continue
 			callKeywords.append(
@@ -305,8 +328,8 @@ class _AstVistorSecond(_BaseAstVistor) :
 					value = ast.Name(id = argItem.arg, ctx = ast.Load())
 				)
 			)
-		if node.args.kwarg :
-			callKeywords.append(ast.keyword(value = ast.Name(id = node.args.kwarg.arg, ctx = ast.Load())))
+		if kwarg :
+			callKeywords.append(ast.keyword(value = ast.Name(id = kwarg.arg, ctx = ast.Load())))
 		return ast.Call(
 			func = ast.Name(newFuncName, ctx = ast.Load()),
 			args = callArgs,
