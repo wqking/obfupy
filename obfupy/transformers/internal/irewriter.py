@@ -63,13 +63,11 @@ class _AstVistorFirst(_BaseAstVistor) :
 	def visit_Module(self, node) :
 		with context.ContextGuard(self._contextStack, context.ModuleContext()) as currentContext :
 			setNodeContext(node, currentContext)
-			node = self._doRemoveDocString(node)
 			return self.generic_visit(node)
 
 	def visit_ClassDef(self, node):
 		with context.ContextGuard(self._contextStack, context.ClassContext(node.name)) as currentContext :
 			setNodeContext(node, currentContext)
-			node = self._doRemoveDocString(node)
 			return self.generic_visit(node)
 
 	def visit_AsyncFunctionDef(self, node):
@@ -82,8 +80,6 @@ class _AstVistorFirst(_BaseAstVistor) :
 		node.decorator_list = self._doVisitNodeList(node.decorator_list)
 		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext :
 			setNodeContext(node, currentContext)
-			node = self._doRemoveDocString(node)
-			currentContext = self.getCurrentContext()
 			currentContext.seeName(node.name)
 			self._doVisitArguments(node.args)
 			node.body = self._doVisitNodeList(node.body)
@@ -147,22 +143,6 @@ class _AstVistorFirst(_BaseAstVistor) :
 			return False
 		return True
 	
-	def _doRemoveDocString(self, node) :
-		# Do it in preprocess phase otherwise it will be taken out as constant
-		# See get_raw_docstring in Python built-in ast.py
-		if len(node.body) == 0 :
-			return node
-		child = node.body[0]
-		if not isinstance(child, ast.Expr) :
-			return node
-		child = child.value
-		if not isinstance(child, ast.Constant) or not isinstance(child.value, str) :
-			return node
-		node.body = node.body[1 : ]
-		if len(node.body) == 0 :
-			node.body.append(ast.Pass())
-		return node
-
 class _AstVistorSecond(_BaseAstVistor) :
 	def __init__(self, contextStack, options) :
 		super().__init__(contextStack, options)
@@ -170,6 +150,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 		self._nopMaker = nopmaker.NopMaker()
 
 	def visit_Module(self, node) :
+		node = astutil.removeDocString(node)
 		with context.ContextGuard(self._contextStack, getNodeContext(node)) :
 			node = self.generic_visit(node)
 			extraNodeManager = extranodemanager.ExtraNodeManager()
@@ -201,6 +182,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 		return siblingList + [ node ]
 
 	def visit_ClassDef(self, node):
+		node = astutil.removeDocString(node)
 		node.bases = self._doVisitNodeList(node.bases)
 		node.keywords = self._doVisitNodeList(node.keywords)
 		node.decorator_list = self._doVisitNodeList(node.decorator_list)
@@ -217,6 +199,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 		return self._makeResultNode(node)
 		
 	def _doRewriteFunction(self, node) :
+		node = astutil.removeDocString(node)
 		# Visiting decorator_list must be outside of the function context
 		node.decorator_list = self._doVisitNodeList(node.decorator_list)
 		with context.ContextGuard(self._contextStack, getNodeContext(node)) as currentContext :
@@ -272,31 +255,38 @@ class _AstVistorSecond(_BaseAstVistor) :
 			returns = copy.deepcopy(node.returns),
 		)
 		newFuncNode.args.defaults = []
-		# Don't set it, it's used by bare *
-		#newFuncNode.args.kw_defaults = []
-		# Don't deep copy to newContext, otherwise the nested functions won't work
+		newFuncNode.returns = None
+		# The default has to be there but it may contain symbols not known in the new function.
+		# So we just change the default to 0. It's fine since the value is always provided by the forward call.
+		newFuncNode.args.kw_defaults = [0] * len(newFuncNode.args.kw_defaults)
+		# Don't deep copy to newContext, otherwise the nested functions won't work because the 'parent' context has issue.
 		newContext = getNodeContext(node)
 		setNodeContext(newFuncNode, newContext)
-		topScopedContext = self._contextStack.getTopScopedContext()
 
 		def callback(argItem) :
 			argItem.arg = newContext.renameSymbol(argItem.arg)
+			argItem.annotation = None
 		astutil.enumerateArguments(newFuncNode.args, callback)
 
 		self._contextStack.saveAndReset()
-		with context.ContextGuard(self._contextStack, newContext) as currentContext :
+		with context.ContextGuard(self._contextStack, newContext) :
 			newFuncNode.body = self._doVisitNodeList(newFuncNode.body)
 		self._contextStack.restore()
 
-		# The variables in renamedArgsListNode is not used by function body because the body uses the new arg names
-		renamedArgsListNode = None # self._doCreateRenamedArgsList(newFuncNode)
-		if renamedArgsListNode is not None :
-			newFuncNode.body.insert(0, renamedArgsListNode)
+		newBody = ast.Return(
+			value = self._doCreateForwardCall(node, newFuncNode.name, newContext)
+		)
+		node.body = [ newBody ]
+		#node = self._convertFunctionToLambda(node) or node
+		topScopedContext = self._contextStack.getTopScopedContext()
+		topScopedContext.addSiblingNode(newFuncNode)
+		return node
+	
+	def _doCreateForwardCall(self, node, newFuncName, newContext) :
 		callArgs = []
 		callKeywords = []
 		argList = [ node.args.posonlyargs, node.args.args ]
-		for i in range(len(argList)) :
-			itemList = argList[i]
+		for itemList in argList :
 			for argItem in itemList :
 				if argItem is None :
 					continue
@@ -306,8 +296,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 				value = ast.Name(id = node.args.vararg.arg, ctx = ast.Load()),
 				ctx = ast.Load()
 			))
-		argList = node.args.kwonlyargs
-		for argItem in argList :
+		for argItem in node.args.kwonlyargs :
 			if argItem is None :
 				continue
 			callKeywords.append(
@@ -318,17 +307,11 @@ class _AstVistorSecond(_BaseAstVistor) :
 			)
 		if node.args.kwarg :
 			callKeywords.append(ast.keyword(value = ast.Name(id = node.args.kwarg.arg, ctx = ast.Load())))
-		newBody = ast.Return(
-			value = ast.Call(
-				func = ast.Name(newFuncNode.name, ctx = ast.Load()),
-				args = callArgs,
-				keywords = callKeywords
-			)
+		return ast.Call(
+			func = ast.Name(newFuncName, ctx = ast.Load()),
+			args = callArgs,
+			keywords = callKeywords
 		)
-		node.body = [ newBody ]
-		#node = self._convertFunctionToLambda(node) or node
-		topScopedContext.addSiblingNode(newFuncNode)
-		return node
 
 	def _doCreateRenamedArgs(self, node) :
 		renamedArgList = []
@@ -394,7 +377,6 @@ class _AstVistorSecond(_BaseAstVistor) :
 		if self._reentryGuard.isEntered(guardId_constant) :
 			return self.generic_visit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
-			self._constantManager.foundConstant(node.value)
 			newNode = self._constantManager.getConstantReplacedNode(node.value)
 			if newNode is not None :
 				return newNode

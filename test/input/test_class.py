@@ -23,7 +23,9 @@ class ClassA :
 			return 0
 		return n + self.recursive(n - 1)
 	
-	def getValue(self) :
+	class X :
+		pass
+	def getValue(self, unused : X = None, *args, unused2 = staticA) -> X :
 		return self._value
 	
 def test_a() :

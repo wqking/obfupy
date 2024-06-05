@@ -64,6 +64,6 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-class A(b) :
-							pass
+def getValue(self, unused : X = None, *args, unused2 = staticA) -> X :
+	return self._value
 '''), indent=4))

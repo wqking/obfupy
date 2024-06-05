@@ -114,7 +114,7 @@ class Context(BaseContext, _RenameMixin) :
 		return self._siblingNodeList
 	
 class ModuleContext(Context) :
-	def __init__(self, _ = None) :
+	def __init__(self) :
 		super().__init__(ContextType.moduleContext, "module")
 
 class FunctionContext(Context) :
@@ -193,23 +193,9 @@ class ContextStack :
 		self._contextList.append(context)
 		return context
 
-	def pushContextAfter(self, context, after) :
-		index =  util.findItemIndexInList(self._contextList, after)
-		assert index >= 0
-		index += 1
-		parent = after
-		context.reset(parent, self)
-		self._contextList.insert(index, context)
-		return context
-
-	def popContext(self, context = None) :
+	def popContext(self) :
 		assert len(self._contextList) > 0
-		if context is None :
-			self._contextList.pop()
-		else :
-			index =  util.findItemIndexInList(self._contextList, context)
-			assert index >= 0
-			self._contextList.pop(index)
+		self._contextList.pop()
 
 class ContextGuard :
 	def __init__(self, contextStack, context) :
