@@ -4,7 +4,7 @@ from .. import util
 import random
 import ast
 
-class LogicMaker :
+class TrueMaker :
 	def __init__(self, nopMaker = None, constants = []) :
 		self._nopMaker = nopMaker
 		self._constants = constants

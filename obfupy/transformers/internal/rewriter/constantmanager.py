@@ -1,6 +1,6 @@
 from .. import util
 from .. import astutil
-from . import logicmaker
+from . import truemaker
 
 import ast
 import random
@@ -32,7 +32,7 @@ class StringEncoderManager :
 		for encoder in self._stringEncoderList :
 			if not encoder['extraNode'] :
 				continue
-			extraNodeManager.addNode(encoder['extraNode'])
+			extraNodeManager.addNode(encoder['extraNode'], True)
 
 	def doParseStringEncoder(self, stringEncoder) :
 		if stringEncoder is None :
@@ -80,28 +80,42 @@ class ConstantManager :
 	def foundConstant(self, value) :
 		strictValue = valueToStrict(value)
 		if strictValue not in self._strictValueMap :
-			self._strictValueMap[strictValue] = {
-				'value' : value,
-				'newName' : util.getUnusedRandomSymbol(),
-				'type' : ItemType.constant
-			}
+			self._strictValueMap[strictValue] = []
 			self._constantValueList.append(value)
-		return self._strictValueMap[strictValue]
+		return self._chooseItem(self._strictValueMap[strictValue], value, ItemType.constant)
 
 	def getConstantReplacedNode(self, value) :
 		item = self.foundConstant(value)
 		if item is None :
 			return None
 		return ast.Name(id = item['newName'], ctx = ast.Load())
+	
+	def _chooseItem(self, itemList, value, type) :
+		needToAdd = False
+		if len(itemList) == 0 :
+			needToAdd = True
+		elif len(itemList) < 3 :
+			if util.hasChance(2) :
+				needToAdd = True
+		elif len(itemList) < 6 :
+			if util.hasChance(4) :
+				needToAdd = True
+		item = None
+		if needToAdd :
+			item = {
+				'value' : value,
+				'newName' : util.getUnusedRandomSymbol(),
+				'type' : type
+			}
+			itemList.append(item)
+		else :
+			item = random.choice(itemList)
+		return item
 
 	def foundName(self, name) :
 		if name not in self._nameMap :
-			self._nameMap[name] = {
-				'value' : name,
-				'newName' : util.getUnusedRandomSymbol(),
-				'type' : ItemType.name
-			}
-		return self._nameMap[name]
+			self._nameMap[name] = []
+		return self._chooseItem(self._nameMap[name], name, ItemType.name)
 
 	def getNameReplacedNode(self, name) :
 		item = self.foundName(name)
@@ -110,7 +124,13 @@ class ConstantManager :
 		return ast.Name(id = item['newName'], ctx = ast.Load())
 
 	def loadExtraNode(self, extraNodeManager) :
-		itemList = list(self._strictValueMap.values()) + list(self._nameMap.values())
+		itemList = []
+		def loadList(map) :
+			for key in map :
+				for item in map[key] :
+					itemList.append(item)
+		loadList(self._strictValueMap)
+		loadList(self._nameMap)
 		random.shuffle(itemList)
 		targetList = []
 		valueList = []
@@ -135,14 +155,14 @@ class ConstantManager :
 		return astutil.makeConstant(value)
 	
 	def _doMakeBoolNode(self, value) :
-		node = logicmaker.LogicMaker().makeTrue(None, 1)
+		node = truemaker.TrueMaker().makeTrue(None, 1)
 		if not value :
 			node = astutil.makeNegation(node)
 		return astutil.ensureLogicalNode(node)
 
 	def _doMakeIntNode(self, value, depth = 3) :
 		minValue = 1000000
-		maxValue = 100000000
+		maxValue = 1000000000
 		if value < -sys.maxsize + maxValue or value > sys.maxsize - maxValue :
 			return astutil.makeConstant(value)
 		if depth <= 1 :

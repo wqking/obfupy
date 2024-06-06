@@ -7,7 +7,7 @@ from . import astutil
 from . import reentryguard
 from . import builtinfunctions
 from .rewriter import constantmanager
-from .rewriter import logicmaker
+from .rewriter import truemaker
 from .rewriter import nopmaker
 from .rewriter import context
 from .rewriter import codeblockmaker
@@ -500,7 +500,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 			body.insert(index, nodeList)
 
 	def _createLogicMaker(self) :
-		return logicmaker.LogicMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
+		return truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
 
 	def _createCodeBlockMaker(self) :
 		return codeblockmaker.CodeBlockMaker(self._createLogicMaker())

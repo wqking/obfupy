@@ -13,7 +13,7 @@ from obfupy.transformers.codec import Codec
 from obfupy.transformers.codec import CodecProvider
 import obfupy.transformers.utils.codecproviders as codecproviders
 
-import obfupy.transformers.internal.rewriter.logicmaker as logicmaker
+import obfupy.transformers.internal.rewriter.truemaker as truemaker
 import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 import ast
 
@@ -42,7 +42,7 @@ provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder =
 util.writeOutputFiles(documentManager, folders[0], folders[1])
 
 for _ in range(0) :
-	print(ast.unparse(logicmaker.LogicMaker(nopmaker.NopMaker()).makeTrue(None, 1)))
+	print(ast.unparse(truemaker.TrueMaker(nopmaker.NopMaker()).makeTrue(None, 1)))
 	continue
 	node = nopmaker.NopWithClass().getDefineNodes()[0]
 	node = nopmaker.NopWithClass().makeReturnAsNode(ast.Constant(value = 5))
