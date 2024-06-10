@@ -7,6 +7,7 @@ from obfupy.documentmanager import DocumentManager
 from obfupy.document import Document
 import obfupy.util as util
 from obfupy.transformers.rewriter import Rewriter
+import obfupy.transformers.rewriter as rewriter
 from obfupy.transformers.literal import Literal
 from obfupy.transformers.replacer import Replacer
 from obfupy.transformers.codec import Codec
@@ -29,7 +30,17 @@ fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conf
 documentManager = DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
-Rewriter().transform(documentManager)
+allowRewrite = True
+rewriterOptions = {
+	rewriter.OptionNames.extractFunction : True and allowRewrite,
+	rewriter.OptionNames.extractConstant : True and allowRewrite,
+	rewriter.OptionNames.extractBuiltinFunction : True and allowRewrite,
+	rewriter.OptionNames.renameLocalVariable : True and allowRewrite,
+	rewriter.OptionNames.addNopControlFlow : True and allowRewrite,
+	rewriter.OptionNames.reverseIfElse : True and allowRewrite,
+	rewriter.OptionNames.rewriteConditionalExpression : True and allowRewrite,
+}
+Rewriter(rewriterOptions).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')

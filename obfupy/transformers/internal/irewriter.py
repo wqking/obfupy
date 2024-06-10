@@ -12,6 +12,7 @@ from .rewriter import nopmaker
 from .rewriter import context
 from .rewriter import codeblockmaker
 from .rewriter import extranodemanager
+from .. import rewriter
 
 guardId_compare = 1
 guardId_boolOp = 2
@@ -30,6 +31,9 @@ class _BaseAstVistor(ast.NodeTransformer) :
 
 	def getCurrentContext(self) :
 		return self._contextStack.getCurrentContext()
+	
+	def _getOption(self, name) :
+		return self._options[name]
 
 	def _doVisitNodeList(self, nodeList) :
 		result = []
@@ -56,7 +60,7 @@ def setNodeContext(node, context) :
 	assert not hasattr(node, 'visitorContext')
 	node.visitorContext = context
 
-class _AstVistorFirst(_BaseAstVistor) :
+class _AstVistorPreprocess(_BaseAstVistor) :
 	def __init__(self, contextStack, options) :
 		super().__init__(contextStack, options)
 
@@ -101,7 +105,7 @@ class _AstVistorFirst(_BaseAstVistor) :
 
 	def visit_Name(self, node) :
 		self.getCurrentContext().seeName(node.id)
-		if self._canRenameNameNode(node) :
+		if self._getOption(rewriter.OptionNames.renameLocalVariable) and self._canRenameNameNode(node) :
 			self.getCurrentContext().renameSymbol(node.id)
 		return node
 	
@@ -142,12 +146,14 @@ class _AstVistorFirst(_BaseAstVistor) :
 		if currentContext.isArgument(node.id) :
 			return False
 		return True
-	
-class _AstVistorSecond(_BaseAstVistor) :
+
+class _AstVistorRewrite(_BaseAstVistor) :
 	def __init__(self, contextStack, options) :
 		super().__init__(contextStack, options)
 		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
 		self._nopMaker = nopmaker.NopMaker()
+		self._trueMaker = truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
+		self._codeBlockMaker = codeblockmaker.CodeBlockMaker(self._trueMaker)
 
 	def visit_Module(self, node) :
 		node = astutil.removeDocString(node)
@@ -158,7 +164,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 			self._nopMaker.loadExtraNode(extraNodeManager)
 			self._prependNodes(node.body, extraNodeManager.getNodeList(), self._findIndexNotImport(node.body))
 			return node
-	
+
 	# This is to avoid SyntaxError: from __future__ imports must occur at the beginning of the file
 	def _findIndexNotImport(self, nodeList) :
 		index = 0
@@ -244,6 +250,8 @@ class _AstVistorSecond(_BaseAstVistor) :
 		return True
 
 	def _doExtractFunction(self, node) :
+		if not self._getOption(rewriter.OptionNames.extractFunction) :
+			return None
 		if not self._canExtractFunction(node) :
 			return None
 		newName = util.getUnusedRandomSymbol()
@@ -393,16 +401,16 @@ class _AstVistorSecond(_BaseAstVistor) :
 	
 	def visit_Call(self, node) :
 		if isinstance(node.func, ast.Name) and node.func.id in builtinfunctions.builtinFunctionMap :
-			node.func = self._constantManager.getNameReplacedNode(node.func.id)
+			if self._getOption(rewriter.OptionNames.extractBuiltinFunction) :
+				node.func = self._constantManager.getNameReplacedNode(node.func.id) or node.func
 		return self.generic_visit(node)
 
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(guardId_constant) :
 			return self.generic_visit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
-			newNode = self._constantManager.getConstantReplacedNode(node.value)
-			if newNode is not None :
-				return newNode
+			if self._getOption(rewriter.OptionNames.extractConstant) :
+				node = self._constantManager.getConstantReplacedNode(node.value) or node
 			return node
 
 	def visit_Match(self, node):
@@ -438,7 +446,7 @@ class _AstVistorSecond(_BaseAstVistor) :
 
 	def visit_If(self, node) :
 		with reentryguard.AutoReentryGuard(self._reentryGuard, [ guardId_compare, guardId_boolOp ]) :
-			node = self._doRewriteIf(node)
+			node = self._doReverseIfElse(node)
 			return self.generic_visit(node)
 	
 	def visit_Try(self, node) :
@@ -456,12 +464,14 @@ class _AstVistorSecond(_BaseAstVistor) :
 				handler.name = currentContext.findRenamedName(handler.name) or handler.name
 		return node
 
-	def _doRewriteIf(self, node) :
+	def _doReverseIfElse(self, node) :
+		if not self._getOption(rewriter.OptionNames.reverseIfElse) :
+			return node
 		if not astutil.isLogicalNode(node.test) :
 			return node
 		newTest = astutil.makeNegation(node.test)
 		if newTest is not None :
-			newTest = self._createLogicMaker().makeTrue(newTest)
+			newTest = self._trueMaker.makeTrue(newTest)
 			node.test = newTest
 			node.body, node.orelse = node.orelse, node.body
 			if len(node.body) == 0 :
@@ -469,12 +479,16 @@ class _AstVistorSecond(_BaseAstVistor) :
 		return node
 
 	def _doMakeCodeBlock(self, node, allowOuterBlock) :
+		if not self._getOption(rewriter.OptionNames.addNopControlFlow) :
+			return node
 		if not self._reentryGuard.isEntered(guardId_makeCodeBlock) :
 			with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_makeCodeBlock) :
-				return self._createCodeBlockMaker().makeCodeBlock(node, allowOuterBlock)
+				return self._codeBlockMaker.makeCodeBlock(node, allowOuterBlock)
 		return node
 
 	def _doRewriteLogicalOperator(self, node) :
+		if not self._getOption(rewriter.OptionNames.rewriteConditionalExpression) :
+			return node
 		if not astutil.isLogicalNode(node) :
 			return node
 		newNode = astutil.makeNegation(node)
@@ -498,12 +512,6 @@ class _AstVistorSecond(_BaseAstVistor) :
 				self._prependNodes(body, node, index)
 		else :
 			body.insert(index, nodeList)
-
-	def _createLogicMaker(self) :
-		return truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
-
-	def _createCodeBlockMaker(self) :
-		return codeblockmaker.CodeBlockMaker(self._createLogicMaker())
 
 	def _convertFunctionToLambda(self, node) :
 		if type(node) != ast.FunctionDef :
@@ -535,19 +543,14 @@ class _AstVistorSecond(_BaseAstVistor) :
 		)
 		return astutil.makeAssignment(ast.Name(id = node.name, ctx = ast.Store()), lambdaNode)
 
-astVistorClassList = [ _AstVistorFirst, _AstVistorSecond ]
+astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
 class _IRewriter :
 	def __init__(self, options) :
 		super().__init__()
 		self._options = options
-		self._documentManager = None
-
-	def _getDocumentList(self) :
-		return self._documentManager.getDocumentList()
 
 	def transform(self, documentManager) :
-		self._documentManager = documentManager
-		for document in self._getDocumentList() :
+		for document in documentManager.getDocumentList() :
 			contextStack = context.ContextStack()
 			rootNode = ast.parse(document.getContent(), document.getFileName())
 			for visitorClass in astVistorClassList :

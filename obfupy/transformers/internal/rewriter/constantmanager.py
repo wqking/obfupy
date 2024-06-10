@@ -132,6 +132,8 @@ class ConstantManager :
 		loadList(self._strictValueMap)
 		loadList(self._nameMap)
 		random.shuffle(itemList)
+		if len(itemList) == 0 :
+			return
 		targetList = []
 		valueList = []
 		for item in itemList :
