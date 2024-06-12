@@ -22,7 +22,7 @@ folders = [ 'input', 'output' ]
 #folders = [ '/source/python/nodezator', '/test' ]
 #folders = [ '/source/python/django', '/test/django' ]
 #folders = [ '/source/python/algorithms', '/test/algorithms' ]
-#folders = [ '/source/python/flask', '/test/flask' ]
+folders = [ '/source/python/flask', '/test/flask' ]
 
 print(folders[0])
 fileList = util.findFiles(folders[0])

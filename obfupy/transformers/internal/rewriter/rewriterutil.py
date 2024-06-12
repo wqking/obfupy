@@ -1,3 +1,8 @@
+guardId_compare = 1
+guardId_boolOp = 2
+guardId_constant = 3
+guardId_makeCodeBlock = 4
+
 featureYield = "yield"
 
 def getNodeContext(node) :

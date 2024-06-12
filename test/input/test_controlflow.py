@@ -27,3 +27,23 @@ def doTestFor() :
 
 def test_for() :
 	doTestFor()
+
+def doTestIf() :
+	a = 1
+	b = 0
+	if a > 0 :
+		b = 5
+		assert True
+	else :
+		assert False
+	if b == 5 :
+		assert True
+	else :
+		assert False
+	if a == 1 and b == 5 :
+		assert True
+	else :
+		assert False
+
+def test_if() :
+	doTestIf()

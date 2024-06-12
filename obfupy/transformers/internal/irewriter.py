@@ -13,15 +13,10 @@ from .rewriter import context
 from .rewriter import codeblockmaker
 from .rewriter import extranodemanager
 from .rewriter import functionrewriter
+from .rewriter import ifrewriter
 from .rewriter import rewriterutil
 from .rewriter import negationmaker
 from .. import rewriter
-
-guardId_compare = 1
-guardId_boolOp = 2
-guardId_constant = 3
-guardId_makeCodeBlock = 4
-guardId_extactFunction = 5
 
 class _BaseAstVistor(ast.NodeTransformer) :
 	def __init__(self, contextStack, options) :
@@ -37,6 +32,8 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		return self._options[name]
 
 	def _doVisitNodeList(self, nodeList) :
+		if not isinstance(nodeList, list) :
+			return self.visit(nodeList)
 		result = []
 		for node in nodeList :
 			if node is None :
@@ -142,7 +139,8 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 class _AstVistorRewrite(_BaseAstVistor) :
 	def __init__(self, contextStack, options) :
 		super().__init__(contextStack, options)
-		self._functionVisitor = functionrewriter.FunctionRewriter(self)
+		self._functionRewriter = functionrewriter.FunctionRewriter(self)
+		self._ifRewriter = ifrewriter.IfRewriter(self)
 		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
 		self._nopMaker = nopmaker.NopMaker()
 		self._trueMaker = truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
@@ -193,11 +191,11 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			return self._makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):
-		node = self._functionVisitor.rewriteFunction(node)
+		node = self._functionRewriter.rewriteFunction(node)
 		return self._makeResultNode(node)
 
 	def visit_FunctionDef(self, node) :
-		node = self._functionVisitor.rewriteFunction(node)
+		node = self._functionRewriter.rewriteFunction(node)
 		return self._makeResultNode(node)
 		
 	def visit_Lambda(self, node) :
@@ -237,33 +235,33 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self.generic_visit(node)
 
 	def visit_Constant(self, node) :
-		if self._reentryGuard.isEntered(guardId_constant) :
+		if self._reentryGuard.isEntered(rewriterutil.guardId_constant) :
 			return self.generic_visit(node)
-		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
 			if self._getOption(rewriter.OptionNames.extractConstant) :
 				node = self._constantManager.getConstantReplacedNode(node.value) or node
 			return node
 
 	def visit_Match(self, node):
-		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
 			return self.generic_visit(node)
 
 	def visit_JoinedStr(self, node) :
 		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
-		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_constant) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
 			return self.generic_visit(node)
 
 	def visit_Compare(self, node) :
-		if self._reentryGuard.isEntered([ guardId_compare, guardId_boolOp ]) :
+		if self._reentryGuard.isEntered([ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
 			return self.generic_visit(node)
-		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_compare) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_compare) :
 			node = self._doReverseBoolOperator(node)
 			return self.generic_visit(node)
 
 	def visit_BoolOp(self, node) :
-		if self._reentryGuard.isEntered(guardId_boolOp) :
+		if self._reentryGuard.isEntered(rewriterutil.guardId_boolOp) :
 			return self.generic_visit(node)
-		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_boolOp) :
+		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_boolOp) :
 			node = self._doReverseBoolOperator(node)
 			return self.generic_visit(node)
 
@@ -276,7 +274,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self.generic_visit(node)
 
 	def visit_If(self, node) :
-		with reentryguard.AutoReentryGuard(self._reentryGuard, [ guardId_compare, guardId_boolOp ]) :
+		return self._ifRewriter.rewriteIf(node)
+		with reentryguard.AutoReentryGuard(self._reentryGuard, [ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
 			node = self._doReverseIfElse(node)
 			return self.generic_visit(node)
 	
@@ -312,8 +311,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def _doMakeCodeBlock(self, node, allowOuterBlock) :
 		if not self._getOption(rewriter.OptionNames.addNopControlFlow) :
 			return node
-		if not self._reentryGuard.isEntered(guardId_makeCodeBlock) :
-			with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_makeCodeBlock) :
+		if not self._reentryGuard.isEntered(rewriterutil.guardId_makeCodeBlock) :
+			with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_makeCodeBlock) :
 				return self._codeBlockMaker.makeCodeBlock(node, allowOuterBlock)
 		return node
 

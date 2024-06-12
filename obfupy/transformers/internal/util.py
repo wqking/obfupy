@@ -41,6 +41,8 @@ def isUsedRandomSymbol(symbol) :
 	return symbol in _uniqueSymbolMap
 
 def hasChance(total, chance = 1) :
+	if total < 1 :
+		return False
 	return random.randint(1, total) <= chance
 
 def makeShuffledIndexList(len) :
