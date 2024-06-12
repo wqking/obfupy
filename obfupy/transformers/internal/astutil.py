@@ -100,18 +100,23 @@ def addNot(node) :
 def makeAssignment(targets, values) :
 	if not isinstance(targets, list) :
 		targets = [ targets ]
-	if not isinstance(values, list) :
-		values = [ values ]
+	if isinstance(values, list) :
+		if len(values) == 1 :
+			values = values[0]
+		else :
+			values = ast.Tuple(elts = values, ctx = ast.Load())
+	node = None
 	if len(targets) == 1 :
-		return ast.Assign(
+		node = ast.Assign(
 				targets = targets,
 				value = values
 		)
 	else :
-		return ast.Assign(
+		node = ast.Assign(
 				targets = [ ast.Tuple(elts = targets, ctx = ast.Store()) ],
-				value = ast.Tuple(elts = values, ctx = ast.Load())
+				value = values
 		)
+	return ast.fix_missing_locations(node)
 
 def makeConstant(value) :
 	return ast.Constant(value = value)
