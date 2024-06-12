@@ -38,7 +38,8 @@ rewriterOptions = {
 	rewriter.OptionNames.renameLocalVariable : True and allowRewrite,
 	rewriter.OptionNames.addNopControlFlow : True and allowRewrite,
 	rewriter.OptionNames.reverseIfElse : True and allowRewrite,
-	rewriter.OptionNames.rewriteConditionalExpression : True and allowRewrite,
+	rewriter.OptionNames.reverseBoolOperator : True and allowRewrite,
+	rewriter.OptionNames.wrapReversedCompareOperator : True and allowRewrite,
 }
 Rewriter(rewriterOptions).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
@@ -75,6 +76,9 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-def getValue(self, unused : X = None, *args, unused2 = staticA) -> X :
-	return self._value
+def lt(a, b) :
+	try :
+		return a < b
+	except :
+		return not a >= b
 '''), indent=4))

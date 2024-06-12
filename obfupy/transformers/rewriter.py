@@ -9,7 +9,8 @@ class OptionNames(str, enum.Enum) :
 	renameLocalVariable = 'renameLocalVariable'
 	addNopControlFlow = 'addNopControlFlow'
 	reverseIfElse = 'reverseIfElse'
-	rewriteConditionalExpression = 'rewriteConditionalExpression'
+	reverseBoolOperator = 'reverseBoolOperator'
+	wrapReversedCompareOperator = 'wrapReversedCompareOperator'
 	stringEncoders = 'stringEncoders'
 
 defaultOptions = {
@@ -19,7 +20,8 @@ defaultOptions = {
 	OptionNames.renameLocalVariable : True,
 	OptionNames.addNopControlFlow : True,
 	OptionNames.reverseIfElse : True,
-	OptionNames.rewriteConditionalExpression : True,
+	OptionNames.reverseBoolOperator : True,
+	OptionNames.wrapReversedCompareOperator : True,
 	OptionNames.stringEncoders : stringencoders.defaultEncoders
 }
 

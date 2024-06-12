@@ -14,6 +14,7 @@ from .rewriter import codeblockmaker
 from .rewriter import extranodemanager
 from .rewriter import functionvistormixin
 from .rewriter import rewriterutil
+from .rewriter import negationmaker
 from .. import rewriter
 
 guardId_compare = 1
@@ -145,14 +146,17 @@ class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin)
 		self._nopMaker = nopmaker.NopMaker()
 		self._trueMaker = truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
 		self._codeBlockMaker = codeblockmaker.CodeBlockMaker(self._trueMaker)
+		self._negationMaker = None
 
 	def visit_Module(self, node) :
 		node = astutil.removeDocString(node)
 		with context.ContextGuard(self._contextStack, rewriterutil.getNodeContext(node)) :
 			node = self.generic_visit(node)
 			extraNodeManager = extranodemanager.ExtraNodeManager()
-			self._constantManager.loadExtraNode(extraNodeManager)
-			self._nopMaker.loadExtraNode(extraNodeManager)
+			extraNodeSourceList = [ self._constantManager, self._nopMaker, self._negationMaker ]
+			for item in extraNodeSourceList :
+				if item is not None :
+					item.loadExtraNode(extraNodeManager)
 			self._prependNodes(node.body, extraNodeManager.getNodeList(), self._findIndexNotImport(node.body))
 			return node
 
@@ -252,14 +256,14 @@ class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin)
 		if self._reentryGuard.isEntered([ guardId_compare, guardId_boolOp ]) :
 			return self.generic_visit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_compare) :
-			node = self._doRewriteLogicalOperator(node)
+			node = self._doReverseBoolOperator(node)
 			return self.generic_visit(node)
 
 	def visit_BoolOp(self, node) :
 		if self._reentryGuard.isEntered(guardId_boolOp) :
 			return self.generic_visit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, guardId_boolOp) :
-			node = self._doRewriteLogicalOperator(node)
+			node = self._doReverseBoolOperator(node)
 			return self.generic_visit(node)
 
 	def visit_For(self, node):
@@ -295,7 +299,7 @@ class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin)
 			return node
 		if not astutil.isLogicalNode(node.test) :
 			return node
-		newTest = astutil.makeNegation(node.test)
+		newTest = self.getNegationMaker().makeNegation(node.test)
 		if newTest is not None :
 			newTest = self._trueMaker.makeTrue(newTest)
 			node.test = newTest
@@ -312,12 +316,13 @@ class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin)
 				return self._codeBlockMaker.makeCodeBlock(node, allowOuterBlock)
 		return node
 
-	def _doRewriteLogicalOperator(self, node) :
-		if not self._getOption(rewriter.OptionNames.rewriteConditionalExpression) :
+	def _doReverseBoolOperator(self, node) :
+		if not self._getOption(rewriter.OptionNames.reverseBoolOperator) :
 			return node
+		# Don't reverse if it's not bool node, since the result value may be used for non-bool purpose. For example, x = 5 or 6
 		if not astutil.isLogicalNode(node) :
 			return node
-		newNode = astutil.makeNegation(node)
+		newNode = self.getNegationMaker().makeNegation(node)
 		newNode = astutil.addNot(newNode)
 		return newNode
 	
@@ -338,6 +343,12 @@ class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin)
 				self._prependNodes(body, node, index)
 		else :
 			body.insert(index, nodeList)
+
+	def getNegationMaker(self) :
+		if self._negationMaker is None :
+			self._negationMaker = negationmaker.NegationMaker(True)
+		self._negationMaker.setUseCompareWrapper(self._getOption(rewriter.OptionNames.wrapReversedCompareOperator))
+		return self._negationMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
 class _IRewriter :

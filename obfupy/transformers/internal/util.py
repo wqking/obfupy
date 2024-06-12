@@ -71,3 +71,11 @@ def findItemIndexInList(itemList, item) :
 		if itemList[i] == item :
 			return i
 	return -1
+
+def ensureList(a) :
+	if isinstance(a, list) :
+		return a
+	return [ a ]
+
+def joinList(a, b) :
+	return ensureList(a) + ensureList(b)

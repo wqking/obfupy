@@ -1,7 +1,7 @@
-from .. import astutil
-from .. import util
 from . import context
 from . import rewriterutil
+from .. import astutil
+from .. import util
 from ... import rewriter
 
 import ast
