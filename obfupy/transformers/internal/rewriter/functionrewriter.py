@@ -8,12 +8,15 @@ import ast
 import copy
 import random
 
-class FunctionVistorMixin :
-	def _doVisitFunction(self, node) :
+class FunctionRewriter :
+	def __init__(self, visitor) :
+		self._visitor = visitor
+
+	def rewriteFunction(self, node) :
 		node = astutil.removeDocString(node)
 		# Visiting decorator_list must be outside of the function context
-		node.decorator_list = self._doVisitNodeList(node.decorator_list)
-		with context.ContextGuard(self._contextStack, rewriterutil.getNodeContext(node)) as currentContext :
+		node.decorator_list = self._visitor._doVisitNodeList(node.decorator_list)
+		with context.ContextGuard(self._visitor._contextStack, rewriterutil.getNodeContext(node)) as currentContext :
 			newNode = self._doExtractFunction(node)
 			if newNode is not None :
 				node = newNode
@@ -22,15 +25,15 @@ class FunctionVistorMixin :
 		return node
 	
 	def _doAliasFunctionArguments(self, node) :
-		currentContext = self._contextStack.getCurrentContext()
+		currentContext = self._visitor._contextStack.getCurrentContext()
 		node.name = currentContext.getParentContext().findRenamedName(node.name) or node.name
 		renamedArgs = self._doCreateRenamedArgs(node)
 		for item in renamedArgs['renamedArgList'] :
 			currentContext.renameSymbol(item['argName'], item['newName'])
-		node.body = self._doVisitNodeList(node.body)
+		node.body = self._visitor._doVisitNodeList(node.body)
 		if renamedArgs['node'] is not None :
 			node.body.insert(0, renamedArgs['node'])
-		node.args = self._doVisitArgumentDefaults(node.args)
+		node.args = self._visitor._doVisitArgumentDefaults(node.args)
 		return node
 	
 	def _canExtractFunction(self, node) :
@@ -61,7 +64,7 @@ class FunctionVistorMixin :
 		return True
 
 	def _doExtractFunction(self, node) :
-		if not self._getOption(rewriter.OptionNames.extractFunction) :
+		if not self._visitor._getOption(rewriter.OptionNames.extractFunction) :
 			return None
 		if not self._canExtractFunction(node) :
 			return None
@@ -94,10 +97,10 @@ class FunctionVistorMixin :
 			argItem.annotation = None
 		astutil.enumerateArguments(newFuncNode.args, callback)
 
-		self._contextStack.saveAndReset()
-		with context.ContextGuard(self._contextStack, newContext) :
-			newFuncNode.body = self._doVisitNodeList(newFuncNode.body)
-		self._contextStack.restore()
+		self._visitor._contextStack.saveAndReset()
+		with context.ContextGuard(self._visitor._contextStack, newContext) :
+			newFuncNode.body = self._visitor._doVisitNodeList(newFuncNode.body)
+		self._visitor._contextStack.restore()
 
 		newCall = self._doCreateForwardCall(
 			newFuncNode.name,
@@ -112,7 +115,7 @@ class FunctionVistorMixin :
 			value = newCall
 		)
 		node.body = [ newBody ]
-		self._contextStack.getTopScopedContext().addSiblingNode(newFuncNode)
+		self._visitor._contextStack.getTopScopedContext().addSiblingNode(newFuncNode)
 		return node
 	
 	def _doCreateForwardCall(
@@ -157,7 +160,7 @@ class FunctionVistorMixin :
 
 	def _doCreateRenamedArgs(self, node) :
 		renamedArgList = []
-		currentContext = self.getCurrentContext()
+		currentContext = self._visitor.getCurrentContext()
 		
 		def callback(argItem) :
 			renamedArgList.append({

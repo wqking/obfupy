@@ -12,7 +12,7 @@ from .rewriter import nopmaker
 from .rewriter import context
 from .rewriter import codeblockmaker
 from .rewriter import extranodemanager
-from .rewriter import functionvistormixin
+from .rewriter import functionrewriter
 from .rewriter import rewriterutil
 from .rewriter import negationmaker
 from .. import rewriter
@@ -139,9 +139,10 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			return False
 		return True
 
-class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin) :
+class _AstVistorRewrite(_BaseAstVistor) :
 	def __init__(self, contextStack, options) :
 		super().__init__(contextStack, options)
+		self._functionVisitor = functionrewriter.FunctionRewriter(self)
 		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
 		self._nopMaker = nopmaker.NopMaker()
 		self._trueMaker = truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
@@ -192,11 +193,11 @@ class _AstVistorRewrite(_BaseAstVistor, functionvistormixin.FunctionVistorMixin)
 			return self._makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):
-		node = self._doVisitFunction(node)
+		node = self._functionVisitor.rewriteFunction(node)
 		return self._makeResultNode(node)
 
 	def visit_FunctionDef(self, node) :
-		node = self._doVisitFunction(node)
+		node = self._functionVisitor.rewriteFunction(node)
 		return self._makeResultNode(node)
 		
 	def visit_Lambda(self, node) :
