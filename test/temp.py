@@ -8,7 +8,7 @@ from obfupy.document import Document
 import obfupy.util as util
 from obfupy.transformers.rewriter import Rewriter
 import obfupy.transformers.rewriter as rewriter
-from obfupy.transformers.literal import Literal
+from obfupy.transformers.formatter import Formatter
 from obfupy.transformers.replacer import Replacer
 from obfupy.transformers.codec import Codec
 from obfupy.transformers.codec import CodecProvider

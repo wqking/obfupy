@@ -1,6 +1,6 @@
-from .internal.iliteral import _ILiteral
+from .internal.iformatter import _IFormatter
 
-class Literal :
+class Formatter :
 	def __init__(
 			self,
 			removeComment = True,
@@ -16,4 +16,4 @@ class Literal :
 		}
 
 	def transform(self, documentManager) :
-		_ILiteral(self._options).transform(documentManager)
+		_IFormatter(self._options).transform(documentManager)

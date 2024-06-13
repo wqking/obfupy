@@ -7,7 +7,7 @@ from collections import namedtuple
 
 from . import util
 
-class _ILiteral :
+class _IFormatter :
 	def __init__(self, options) :
 		self._options = options
 		self._documentManager = None
@@ -96,7 +96,6 @@ class TokenEnumerator :
 		self._currentTokenType = None
 		self._currentTokenValue = None
 		self._currentIndex = -1
-		self._inImportLine = False
 
 	def nextToken(self) :
 		self._currentIndex += 1
@@ -105,18 +104,10 @@ class TokenEnumerator :
 			return None
 		self._previousTokenType = self._currentTokenType
 		self._currentTokenType, self._currentTokenValue = self._tokenList[self._currentIndex]
-		if self._currentTokenType == tokenize.NAME and self._currentTokenValue in [ 'import', 'from' ] :
-			if self.isPreviousTokenIndentOrNewLine() :
-				self._inImportLine = True
-		if self._currentTokenType == tokenize.NEWLINE :
-			self._inImportLine = False
 		return Token(type = self._currentTokenType, value = self._currentTokenValue)
 	
 	def isPreviousTokenIndentOrNewLine(self) :
 		return self._previousTokenType in [ tokenize.ENCODING, tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT, tokenize.NL ]
-	
-	def isInImportLine(self) :
-		return self._inImportLine
 	
 	def setCurrentValue(self, tokenValue) :
 		self._tokenList[self._currentIndex] = (self._currentTokenType, tokenValue)
