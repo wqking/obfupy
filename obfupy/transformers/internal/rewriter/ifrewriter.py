@@ -15,21 +15,37 @@ class IfRewriter :
 		self._visitor = visitor
 
 	def rewriteIf(self, node) :
+		node = self._doExpandIfCondition(node)
+		if not self._visitor._getOption(rewriter.OptionNames.rewriteIf) :
+			return self._visitor.generic_visit(node)
+
 		with reentryguard.AutoReentryGuard(self._visitor._reentryGuard, [ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
 			node.test = self._visitor._doVisitNodeList(node.test)
 			node.body = self._visitor._doVisitNodeList(node.body)
 			node.orelse = self._visitor._doVisitNodeList(node.orelse)
-		node = self._doRewriteIfCondition(node)
-		return node
 
-	def _doRewriteIfCondition(self, node) :
 		if isinstance(node.test, ast.BoolOp) :
 			if util.hasChance(2) :
 				node.test = self._visitor.getNegationMaker().makeNegation(node.test)
 				node.test = astutil.addNot(node.test)
-		return self._doRewriteIfConditionHelper(node)
 
-	def _doRewriteIfConditionHelper(self, node) :
+		node = self._doRewriteIfCondition(node)
+		return node
+	
+	def _doExpandIfCondition(self, node) :
+		option = self._visitor._getOption(rewriter.OptionNames.expandIfCondition)
+		depth = 0
+		if option is True :
+			depth = 3
+		elif option is False :
+			depth = 0
+		elif isinstance(option, int) :
+			depth = option
+		if depth > 0 :
+			node.test = self._visitor.getTrueMaker().makeTrue(node.test, depth)
+		return node
+
+	def _doRewriteIfCondition(self, node) :
 		node = copy.deepcopy(node)
 		if isinstance(node.test, ast.BoolOp) :
 			node = self._doRewriteAndOr(node) 
@@ -45,7 +61,7 @@ class IfRewriter :
 			body = astutil.addPassIfNecessary(node.orelse),
 			orelse = node.body
 		)
-		node = self._doRewriteIfConditionHelper(node)
+		node = self._doRewriteIfCondition(node)
 		return node
 
 	def _doRewriteCommon(self, node) :
@@ -98,7 +114,7 @@ class IfRewriter :
 				body = util.ensureList(goto.gotoLabel(labelList[i])),
 				orelse = util.ensureList(goto.gotoLabel(labelElse))
 			)
-			newNode = self._doRewriteIfConditionHelper(newNode)
+			newNode = self._doRewriteIfCondition(newNode)
 			if i == 0 :
 				goto.setBody(newNode)
 			else :
@@ -139,7 +155,7 @@ class IfRewriter :
 				body = util.ensureList(goto.gotoLabel(labelDoIt)),
 				orelse = util.ensureList(goto.gotoLabel(labelList[i]))
 			)
-			newNode = self._doRewriteIfConditionHelper(newNode)
+			newNode = self._doRewriteIfCondition(newNode)
 			if i == 0 :
 				goto.setBody(newNode)
 			else :

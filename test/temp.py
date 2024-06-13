@@ -26,6 +26,7 @@ def abc() :
 		assert True
 	else :
 		assert False
+		pass
 abc()
 '''
 
@@ -37,11 +38,10 @@ documentManager.addDocument(document)
 allowRewrite = True
 rewriterOptions = {
 	rewriter.OptionNames.extractFunction : not True and allowRewrite,
-	rewriter.OptionNames.extractConstant : not True and allowRewrite,
+	rewriter.OptionNames.extractConstant : True and allowRewrite,
 	rewriter.OptionNames.extractBuiltinFunction : not True and allowRewrite,
 	rewriter.OptionNames.renameLocalVariable : not True and allowRewrite,
 	rewriter.OptionNames.addNopControlFlow : not True and allowRewrite,
-	rewriter.OptionNames.reverseIfElse : not True and allowRewrite,
 	rewriter.OptionNames.reverseBoolOperator : not True and allowRewrite,
 	rewriter.OptionNames.wrapReversedCompareOperator : not True and allowRewrite,
 }

@@ -2,13 +2,16 @@ import random
 import ast
 
 from .. import util
+from .. import astutil
 
 class CodeBlockMaker :
 	def __init__(self, logicMaker) :
 		self._logicMaker = logicMaker
 
 	def makeCodeBlock(self, node, allowOuterBlock, depth = 1) :
-		return self._doMakeCodeBlock(node, allowOuterBlock, depth)
+		node = self._doMakeCodeBlock(node, allowOuterBlock, depth)
+		node = astutil.fixMissingLocations(node)
+		return node
 
 	def _doMakeCodeBlock(self, node, allowOuterBlock, depth) :
 		if depth <= 0 :

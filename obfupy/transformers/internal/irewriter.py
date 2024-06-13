@@ -203,7 +203,9 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			return self.generic_visit(node)
 
 	def visit_Name(self, node) :
-		if self._canFindRenamedName(node) :
+		if self._getOption(rewriter.OptionNames.extractBuiltinFunction) and node.id in builtinfunctions.builtinFunctionMap :
+			node = self._constantManager.getNameReplacedNode(node.id) or node
+		elif self._canFindRenamedName(node) :
 			node.id = self.getCurrentContext().findRenamedName(node.id) or node.id
 		return node
 
@@ -229,9 +231,6 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self.generic_visit(node)
 	
 	def visit_Call(self, node) :
-		if isinstance(node.func, ast.Name) and node.func.id in builtinfunctions.builtinFunctionMap :
-			if self._getOption(rewriter.OptionNames.extractBuiltinFunction) :
-				node.func = self._constantManager.getNameReplacedNode(node.func.id) or node.func
 		return self.generic_visit(node)
 
 	def visit_Constant(self, node) :
@@ -275,9 +274,6 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_If(self, node) :
 		return self._ifRewriter.rewriteIf(node)
-		with reentryguard.AutoReentryGuard(self._reentryGuard, [ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
-			node = self._doReverseIfElse(node)
-			return self.generic_visit(node)
 	
 	def visit_Try(self, node) :
 		node = self._doRewriteTry(node)
@@ -292,19 +288,6 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		for handler in node.handlers :
 			if handler.name is not None :
 				handler.name = currentContext.findRenamedName(handler.name) or handler.name
-		return node
-
-	def _doReverseIfElse(self, node) :
-		if not self._getOption(rewriter.OptionNames.reverseIfElse) :
-			return node
-		if not astutil.isLogicalNode(node.test) :
-			return node
-		newTest = self.getNegationMaker().makeNegation(node.test)
-		if newTest is not None :
-			newTest = self._trueMaker.makeTrue(newTest)
-			node.test = newTest
-			node.body, node.orelse = node.orelse, node.body
-			node.body = astutil.addPassIfNecessary(node.body)
 		return node
 
 	def _doMakeCodeBlock(self, node, allowOuterBlock) :
@@ -348,6 +331,9 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			self._negationMaker = negationmaker.NegationMaker(True)
 		self._negationMaker.setUseCompareWrapper(self._getOption(rewriter.OptionNames.wrapReversedCompareOperator))
 		return self._negationMaker
+	
+	def getTrueMaker(self) :
+		return self._trueMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
 class _IRewriter :

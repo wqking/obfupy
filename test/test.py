@@ -22,7 +22,7 @@ folders = [ 'input', 'output' ]
 #folders = [ '/source/python/nodezator', '/test' ]
 #folders = [ '/source/python/django', '/test/django' ]
 #folders = [ '/source/python/algorithms', '/test/algorithms' ]
-folders = [ '/source/python/flask', '/test/flask' ]
+#folders = [ '/source/python/flask', '/test/flask' ]
 
 print(folders[0])
 fileList = util.findFiles(folders[0])
@@ -37,8 +37,9 @@ rewriterOptions = {
 	rewriter.OptionNames.extractBuiltinFunction : True and allowRewrite,
 	rewriter.OptionNames.renameLocalVariable : True and allowRewrite,
 	rewriter.OptionNames.addNopControlFlow : True and allowRewrite,
-	rewriter.OptionNames.reverseIfElse : True and allowRewrite,
 	rewriter.OptionNames.reverseBoolOperator : True and allowRewrite,
+	rewriter.OptionNames.expandIfCondition : True and allowRewrite,
+	rewriter.OptionNames.rewriteIf : True and allowRewrite,
 	rewriter.OptionNames.wrapReversedCompareOperator : True and allowRewrite,
 }
 Rewriter(rewriterOptions).transform(documentManager)

@@ -8,3 +8,7 @@ def test_intAndFloat() :
 	b = 3
 	b = b + 1
 	assert isinstance(b, int)
+
+def test_builtinFunction() :
+	a = "abc"
+	assert isinstance(a, str)

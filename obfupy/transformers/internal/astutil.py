@@ -141,6 +141,14 @@ def getNodeListFromAssignTargets(targets) :
 def astToSource(node) :
 	return ast.unparse(ast.fix_missing_locations(node))
 
+def fixMissingLocations(node) :
+	if isinstance(node, (list, tuple)) :
+		for i in range(len(node)) :
+			node[i] = fixMissingLocations(node[i])
+	else :
+		node = ast.fix_missing_locations(node)
+	return node
+
 def enumerateArguments(arguments, callback) :
 	argList = [
 		arguments.args,
