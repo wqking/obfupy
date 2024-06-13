@@ -13,10 +13,8 @@ import random
 class IfRewriter :
 	def __init__(self, visitor) :
 		self._visitor = visitor
-		self._goto = gotowithif.GotoWithIf()
 
 	def rewriteIf(self, node) :
-		self._goto.reset()
 		with reentryguard.AutoReentryGuard(self._visitor._reentryGuard, [ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
 			node.test = self._visitor._doVisitNodeList(node.test)
 			node.body = self._visitor._doVisitNodeList(node.body)
@@ -29,8 +27,33 @@ class IfRewriter :
 			if util.hasChance(2) :
 				node.test = self._visitor.getNegationMaker().makeNegation(node.test)
 				node.test = astutil.addNot(node.test)
+		return self._doRewriteIfConditionHelper(node)
+
+	def _doRewriteIfConditionHelper(self, node) :
+		node = copy.deepcopy(node)
 		if isinstance(node.test, ast.BoolOp) :
 			node = self._doRewriteAndOr(node) 
+		elif isinstance(node.test, ast.UnaryOp) and isinstance(node.test.op, ast.Not) :
+			node = self._doRewriteNot(node)
+		else :
+			node = self._doRewriteCommon(node)
+		return node
+	
+	def _doRewriteNot(self, node) :
+		node = ast.If(
+			test = node.test.operand,
+			body = astutil.addPassIfNecessary(node.orelse),
+			orelse = node.body
+		)
+		node = self._doRewriteIfConditionHelper(node)
+		return node
+
+	def _doRewriteCommon(self, node) :
+		node = ast.If(
+			test = self._visitor.getNegationMaker().makeNegation(node.test),
+			body = astutil.addPassIfNecessary(node.orelse),
+			orelse = node.body
+		)
 		return node
 
 	def _doRewriteAndOr(self, node) :
@@ -66,24 +89,27 @@ class IfRewriter :
 
 	'''
 	def _doRewriteAndType1(self, node) :
-		self._goto.reset()
-		labelElse = self._goto.getNewLable()
-		labelList = [ self._goto.getNewLable() for _ in node.test.values ]
+		goto = self._createGoto()
+		labelElse = goto.getNewLable()
+		labelList = [ goto.getNewLable() for _ in node.test.values ]
 		for i in range(len(node.test.values)) :
 			newNode = ast.If(
 				test = node.test.values[i],
-				body = util.ensureList(self._goto.gotoLabel(labelList[i])),
-				orelse = util.ensureList(self._goto.gotoLabel(labelElse))
+				body = util.ensureList(goto.gotoLabel(labelList[i])),
+				orelse = util.ensureList(goto.gotoLabel(labelElse))
 			)
+			newNode = self._doRewriteIfConditionHelper(newNode)
 			if i == 0 :
-				self._goto.setBody(newNode)
+				goto.setBody(newNode)
 			else :
-				self._goto.addHandler(labelList[i - 1], newNode)
-		self._goto.addHandler(labelList[-1], node.body)
-		if len(node.orelse) == 0 :
-			node.orelse = [ ast.Pass() ]
-		self._goto.addHandler(labelElse, node.orelse)
-		node = self._goto.makeNode()
+				goto.addHandler(labelList[i - 1], newNode)
+		randomizer = gotowithif.LabelOrderRandomizer()
+		randomizer.addHandler(labelList[-1], node.body)
+		node.orelse = astutil.addPassIfNecessary(node.orelse)
+		randomizer.addHandler(labelElse, node.orelse)
+		randomizer.takeOut(goto)
+
+		node = goto.makeNode()
 		return node
 
 	'''
@@ -104,22 +130,28 @@ class IfRewriter :
 
 	'''
 	def _doRewriteOrType1(self, node) :
-		self._goto.reset()
-		labelDoIt = self._goto.getNewLable()
-		labelList = [ self._goto.getNewLable() for _ in node.test.values ]
+		goto = self._createGoto()
+		labelDoIt = goto.getNewLable()
+		labelList = [ goto.getNewLable() for _ in node.test.values ]
 		for i in range(len(node.test.values)) :
 			newNode = ast.If(
 				test = node.test.values[i],
-				body = util.ensureList(self._goto.gotoLabel(labelDoIt)),
-				orelse = util.ensureList(self._goto.gotoLabel(labelList[i]))
+				body = util.ensureList(goto.gotoLabel(labelDoIt)),
+				orelse = util.ensureList(goto.gotoLabel(labelList[i]))
 			)
+			newNode = self._doRewriteIfConditionHelper(newNode)
 			if i == 0 :
-				self._goto.setBody(newNode)
+				goto.setBody(newNode)
 			else :
-				self._goto.addHandler(labelList[i - 1], newNode)
-		self._goto.addHandler(labelDoIt, node.body)
-		if len(node.orelse) == 0 :
-			node.orelse = [ ast.Pass() ]
-		self._goto.addHandler(labelList[-1], node.orelse)
-		node = self._goto.makeNode()
+				goto.addHandler(labelList[i - 1], newNode)
+		randomizer = gotowithif.LabelOrderRandomizer()
+		randomizer.addHandler(labelDoIt, node.body)
+		node.orelse = astutil.addPassIfNecessary(node.orelse)
+		randomizer.addHandler(labelList[-1], node.orelse)
+		randomizer.takeOut(goto)
+
+		node = goto.makeNode()
 		return node
+
+	def _createGoto(self) :
+		return gotowithif.GotoWithIf(self._visitor)

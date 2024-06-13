@@ -304,8 +304,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			newTest = self._trueMaker.makeTrue(newTest)
 			node.test = newTest
 			node.body, node.orelse = node.orelse, node.body
-			if len(node.body) == 0 :
-				node.body.append(ast.Pass())
+			node.body = astutil.addPassIfNecessary(node.body)
 		return node
 
 	def _doMakeCodeBlock(self, node, allowOuterBlock) :

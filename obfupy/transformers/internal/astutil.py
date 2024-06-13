@@ -169,3 +169,7 @@ def removeDocString(node) :
 		node.body.append(ast.Pass())
 	return node
 
+def addPassIfNecessary(nodeList) :
+	if nodeList is None or len(nodeList) == 0 :
+		return [ ast.Pass() ]
+	return nodeList

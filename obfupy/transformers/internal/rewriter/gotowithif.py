@@ -5,10 +5,8 @@ import random
 import ast
 
 class GotoWithIf :
-	def __init__(self) :
-		self.reset()
-
-	def reset(self) :
+	def __init__(self, visitor) :
+		self._visitor = visitor
 		self._labelList = []
 		self._handlerList = []
 		self._body = None
@@ -22,7 +20,7 @@ class GotoWithIf :
 	def gotoLabel(self, label) :
 		return astutil.makeAssignment(
 			ast.Name(id = self._varName, ctx = ast.Store()),
-			ast.Constant(value = label)
+			self._visitNode(ast.Constant(value = label))
 		)
 
 	def addHandler(self, label, handlerNodeList) :
@@ -45,7 +43,7 @@ class GotoWithIf :
 		startLabel = self._generateNewLable()
 		resultNodeList.append(astutil.makeAssignment(
 			ast.Name(id = self._varName, ctx = ast.Store()),
-			ast.Constant(value = startLabel)
+			self._visitNode(ast.Constant(value = startLabel))
 		))
 
 		resultNodeList = util.joinList(resultNodeList, self._body)
@@ -56,7 +54,7 @@ class GotoWithIf :
 				test = ast.Compare(
 					left = ast.Name(id = self._varName, ctx = ast.Load()),
 					ops = [ ast.Eq() ],
-					comparators = [ ast.Constant(value = handler['label']) ]
+					comparators = [ self._visitNode(ast.Constant(value = handler['label'])) ]
 				),
 				body = util.ensureList(handler['nodeList']),
 				orelse = []
@@ -71,5 +69,23 @@ class GotoWithIf :
 			label = random.randint(1, right)
 			if label not in self._labelList :
 				return label
-			right = 100000
+			right += 50
 
+	def _visitNode(self, node) :
+		return self._visitor.visit(node)
+
+class LabelOrderRandomizer :
+	def __init__(self) :
+		self._handlerList = []
+
+	def addHandler(self, label, handlerNodeList) :
+		self._handlerList.append({
+			"label" : label,
+			"nodeList" : handlerNodeList
+		})
+
+	def takeOut(self, goto) :
+		random.shuffle(self._handlerList)
+		for handler in self._handlerList :
+			goto.addHandler(handler['label'], handler['nodeList'])
+		self._handlerList = []
