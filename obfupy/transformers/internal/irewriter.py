@@ -32,6 +32,8 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		return self._options[name]
 
 	def _doVisitNodeList(self, nodeList) :
+		if nodeList is None :
+			return nodeList
 		if not isinstance(nodeList, list) :
 			return self.visit(nodeList)
 		result = []
@@ -93,7 +95,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			return self.generic_visit(node)
 
 	def visit_Name(self, node) :
-		self.getCurrentContext().seeName(node.id)
+		self.getCurrentContext().seeName(node.id, isinstance(node.ctx, ast.Store))
 		if self._getOption(rewriter.OptionNames.renameLocalVariable) and self._canRenameNameNode(node) :
 			self.getCurrentContext().renameSymbol(node.id)
 		return node
@@ -204,8 +206,11 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_Name(self, node) :
 		if self._getOption(rewriter.OptionNames.extractBuiltinFunction) and node.id in builtinfunctions.builtinFunctionMap :
-			node = self._constantManager.getNameReplacedNode(node.id) or node
-		elif self._canFindRenamedName(node) :
+			currentContext = self.getCurrentContext()
+			if not currentContext.isNameSeenStore(node.id) :
+				if not currentContext.isFunction() or not currentContext.isArgument(node.id) :
+					node = self._constantManager.getNameReplacedNode(node.id) or node
+		if self._canFindRenamedName(node) :
 			node.id = self.getCurrentContext().findRenamedName(node.id) or node.id
 		return node
 

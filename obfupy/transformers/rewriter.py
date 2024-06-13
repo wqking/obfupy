@@ -1,4 +1,5 @@
 from .utils import stringencoders
+from .internal import util as iutil
 
 import enum
 
@@ -29,11 +30,7 @@ defaultOptions = {
 
 class Rewriter :
 	def __init__(self, options = None) :
-		self._options = defaultOptions.copy()
-		if options is not None :
-			for name in options :
-				assert name in defaultOptions
-				self._options[name] = options[name]
+		self._options = iutil.makeOptions(options, defaultOptions)
 
 	def transform(self, documentManager) :
 		from .internal.irewriter import _IRewriter

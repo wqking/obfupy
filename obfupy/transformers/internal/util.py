@@ -1,5 +1,6 @@
 import string
 import random
+import copy
 
 class ExitGuard :
 	def __init__(self, callback) :
@@ -81,3 +82,12 @@ def ensureList(a) :
 
 def joinList(a, b) :
 	return ensureList(a) + ensureList(b)
+
+def makeOptions(options, defaultOptions) :
+	result = copy.deepcopy(defaultOptions)
+	if options is not None :
+		for name in options :
+			assert name in defaultOptions
+			result[name] = options[name]
+	return result
+

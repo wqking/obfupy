@@ -12,3 +12,15 @@ def test_intAndFloat() :
 def test_builtinFunction() :
 	a = "abc"
 	assert isinstance(a, str)
+
+def test_builtinFunctionAsVariable() :
+	str = "abc"
+	assert str == "abc"
+	assert len(str) == 3
+
+def funcBuiltinFunctionAsArgument(str) :
+    return len(str)
+
+def test_funcBuiltinFunctionAsArgument() :
+	str = "def"
+	assert funcBuiltinFunctionAsArgument(str) == 3

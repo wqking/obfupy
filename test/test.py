@@ -44,7 +44,7 @@ rewriterOptions = {
 }
 Rewriter(rewriterOptions).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
-Formatter(addExtraSpaces = True, expandIndent = True).transform(documentManager)
+#Formatter(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')
 #provider = CodecProvider()
 #Codec(codecproviders.byteEncryption).transform(documentManager)

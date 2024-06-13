@@ -22,6 +22,7 @@ class FunctionRewriter :
 				node = newNode
 			else :
 				node = self._doAliasFunctionArguments(node)
+		node = astutil.fixMissingLocations(node)
 		return node
 	
 	def _doAliasFunctionArguments(self, node) :

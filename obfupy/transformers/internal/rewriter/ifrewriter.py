@@ -23,6 +23,8 @@ class IfRewriter :
 			node.test = self._visitor._doVisitNodeList(node.test)
 			node.body = self._visitor._doVisitNodeList(node.body)
 			node.orelse = self._visitor._doVisitNodeList(node.orelse)
+			node.body = astutil.fixMissingLocations(node.body)
+			node.orelse = astutil.fixMissingLocations(node.orelse)
 
 		if isinstance(node.test, ast.BoolOp) :
 			if util.hasChance(2) :
@@ -30,6 +32,7 @@ class IfRewriter :
 				node.test = astutil.addNot(node.test)
 
 		node = self._doRewriteIfCondition(node)
+		node = astutil.fixMissingLocations(node)
 		return node
 	
 	def _doExpandIfCondition(self, node) :

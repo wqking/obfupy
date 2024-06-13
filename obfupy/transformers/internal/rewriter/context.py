@@ -14,11 +14,17 @@ class BaseContext :
 		self._seenAttributeSet = {}
 		self._seenFeatureSet = {}
 
-	def seeName(self, name) :
-		self._seenNameSet[name] = True
+	def seeName(self, name, isStore = False) :
+		if name not in self._seenNameSet :
+			self._seenNameSet[name] = isStore
+		else :
+			self._seenNameSet[name] = self._seenNameSet[name] or isStore
 
 	def isNameSeen(self, name) :
 		return name in self._seenNameSet
+	
+	def isNameSeenStore(self, name) :
+		return name in self._seenNameSet and self._seenNameSet[name]
 	
 	def getSeenNameSet(self) :
 		return self._seenNameSet

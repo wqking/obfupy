@@ -15,11 +15,11 @@ class NegationMaker :
 		if isinstance(node, ast.Compare) :
 			newNode = self._doMakeCompareNegation(node)
 			if newNode is not None :
-				return newNode
+				return astutil.fixMissingLocations(newNode)
 		if isinstance(node, ast.BoolOp) :
 			newNode = self._doMakeBoolOpNegation(node)
 			if newNode is not None :
-				return newNode
+				return astutil.fixMissingLocations(newNode)
 		if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not) :
 			return node.operand
 		if isinstance(node, ast.Constant) :
@@ -27,8 +27,9 @@ class NegationMaker :
 				return astutil.makeConstant(False)
 			elif node.value is False :
 				return astutil.makeConstant(True)
-		return astutil.addNot(node)
-		
+		node = astutil.addNot(node)
+		return astutil.fixMissingLocations(node)
+
 	def loadExtraNode(self, extraNodeManager) :
 		for name in self._compareWrapperMap :
 			extraNodeManager.addNode(self._compareWrapperMap[name])

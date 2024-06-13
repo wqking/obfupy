@@ -157,10 +157,12 @@ class NopMaker :
 		self._makerList = [ None for _ in range(self._makerCount) ]
 
 	def makeTrueNode(self, argNode) :
-		return self._doGetMaker().makeTrueNode(argNode)
+		node = self._doGetMaker().makeTrueNode(argNode)
+		return astutil.fixMissingLocations(node)
 
 	def makeReturnAsNode(self, argNode) :
-		return self._doGetMaker().makeReturnAsNode(argNode)
+		node = self._doGetMaker().makeReturnAsNode(argNode)
+		return astutil.fixMissingLocations(node)
 	
 	def loadExtraNode(self, extraNodeManager) :
 		result = []
