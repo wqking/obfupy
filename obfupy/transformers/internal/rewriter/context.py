@@ -8,35 +8,37 @@ class ContextType(enum.IntEnum) :
 	classContext = 2
 	moduleContext = 3
 
-class BaseContext :
-	def __init__(self) :
-		self._seenNameSet = {}
-		self._seenAttributeSet = {}
-		self._seenFeatureSet = {}
+@enum.unique
+class NameType(enum.IntEnum) :
+	load = 1
+	store = 2
+	delete = 3
+	argument = 4
+	attribute = 5
+	globalScope = 6
+	nonlocalScope = 7
 
-	def seeName(self, name, isStore = False) :
+class _NameMixin :
+	def seeName(self, name, type) :
 		if name not in self._seenNameSet :
-			self._seenNameSet[name] = isStore
-		else :
-			self._seenNameSet[name] = self._seenNameSet[name] or isStore
+			self._seenNameSet[name] = [ type ]
+		elif type not in self._seenNameSet[name] :
+			self._seenNameSet[name].append(type)
 
-	def isNameSeen(self, name) :
-		return name in self._seenNameSet
-	
-	def isNameSeenStore(self, name) :
-		return name in self._seenNameSet and self._seenNameSet[name]
-	
+	def isNameSeen(self, name, type = None) :
+		if name not in self._seenNameSet :
+			return False
+		if type is None :
+			return True
+		if isinstance(type, (list, tuple)) :
+			for t in type :
+				if t in self._seenNameSet[name] :
+					return True
+		else :
+			return type in self._seenNameSet[name]
+
 	def getSeenNameSet(self) :
 		return self._seenNameSet
-	
-	def seeAttribute(self, attribute) :
-		self._seenAttributeSet[attribute] = True
-
-	def isAttributeSeen(self, attribute) :
-		return attribute in self._seenAttributeSet
-	
-	def getSeenAttributeSet(self) :
-		return self._seenAttributeSet
 	
 	def seeFeature(self, feature) :
 		self._seenFeatureSet[feature] = True
@@ -46,7 +48,17 @@ class BaseContext :
 
 class _RenameMixin :
 	def findRenamedName(self, name) :
-		return self._doFindRenamedName(name)
+		newName = self._doFindRenamedName(name)
+		if newName is not None :
+			return newName
+		if self.isNameSeen(name, NameType.argument) :
+			return None
+		parent = self._parent
+		while parent is not None :
+			if parent.isFunction() or parent.isModule() :
+				return parent.findRenamedName(name)
+			parent = parent._parent
+		return None
 
 	def _doFindRenamedName(self, name) :
 		if name in self._renameMap :
@@ -70,24 +82,32 @@ class _RenameMixin :
 	def isRenamed(self, name) :
 		return name in self._renameMap
 	
-class Context(BaseContext, _RenameMixin) :
-	def __init__(self, type, contextName) :
-		super().__init__()
+class _SiblingMixin :
+	def addSiblingNode(self, node) :
+		self._siblingNodeList.append(node)
 
+	def getSiblingNodeList(self) :
+		return self._siblingNodeList
+	
+class Context(_NameMixin, _RenameMixin, _SiblingMixin) :
+	def __init__(self, type, contextName) :
 		self._type = type
 		self._contextName = contextName
 		self._parent = None
-		self._owner = None
-		self._globalNonlocalSet = {}
+
+		# _NameMixin
+		self._seenNameSet = {}
+		self._seenFeatureSet = {}
+
+		# _SiblingMixin
 		self._siblingNodeList = []
 
 		# _RenameMixin
 		self._renameMap = {}
 		self._usedNewNameSet = {}
 
-	def reset(self, parent = None, owner = None) :
+	def setParent(self, parent = None) :
 		self._parent = parent
-		self._owner = owner
 
 	def getContextName(self) :
 		return self._contextName
@@ -104,21 +124,6 @@ class Context(BaseContext, _RenameMixin) :
 	def getParentContext(self) :
 		return self._parent
 
-	def useGlobalName(self, name) :
-		self._globalNonlocalSet[name] = True
-
-	def useNonlocalName(self, name) :
-		self._globalNonlocalSet[name] = True
-
-	def isGlobalOrNonlocal(self, name) :
-		return name in self._globalNonlocalSet
-
-	def addSiblingNode(self, node) :
-		self._siblingNodeList.append(node)
-
-	def getSiblingNodeList(self) :
-		return self._siblingNodeList
-	
 class ModuleContext(Context) :
 	def __init__(self) :
 		super().__init__(ContextType.moduleContext, "module")
@@ -126,41 +131,10 @@ class ModuleContext(Context) :
 class FunctionContext(Context) :
 	def __init__(self, funcName) :
 		super().__init__(ContextType.functionContext, funcName)
-		self._argumentNameSet = {}
-
-	def addArgument(self, name) :
-		self._argumentNameSet[name] = True
-
-	def isArgument(self, name) :
-		return name in self._argumentNameSet
-
-	def findRenamedName(self, name) :
-		newName = self._doFindRenamedName(name)
-		if newName is not None :
-			return newName
-		if self.isArgument(name) :
-			return None
-		parent = self._parent
-		while parent is not None :
-			if parent.isFunction() or parent.isModule() :
-				return parent.findRenamedName(name)
-			parent = parent._parent
-		return None
 
 class ClassContext(Context) :
 	def __init__(self, className) :
 		super().__init__(ContextType.classContext, className)
-
-	def findRenamedName(self, name) :
-		newName = self._doFindRenamedName(name)
-		if newName is not None :
-			return newName
-		parent = self._parent
-		while parent is not None :
-			if parent.isFunction() or parent.isModule() :
-				return parent.findRenamedName(name)
-			parent = parent._parent
-		return None
 
 class ContextStack :
 	def __init__(self) :
@@ -182,10 +156,6 @@ class ContextStack :
 		assert len(self._contextList) > 0
 		return self._contextList[-1]
 	
-	def getModuleContext(self) :
-		assert len(self._contextList) > 0
-		return self._contextList[0]
-	
 	def getTopScopedContext(self) :
 		if len(self._contextList) > 1 :
 			return self._contextList[1]
@@ -195,7 +165,7 @@ class ContextStack :
 		parent = None
 		if len(self._contextList) > 0 :
 			parent = self._contextList[-1]
-		context.reset(parent, self)
+		context.setParent(parent)
 		self._contextList.append(context)
 		return context
 

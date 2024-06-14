@@ -48,9 +48,6 @@ class FunctionRewriter :
 		for name in currentContext.getSeenNameSet() :
 			if util.isNameMangling(name) :
 				return False
-		for name in currentContext.getSeenAttributeSet() :
-			if util.isNameMangling(name) :
-				return False
 		if currentContext.isNameSeen('super') :
 			return False
 		if currentContext.isFeatureSeen(rewriterutil.featureYield) :

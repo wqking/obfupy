@@ -18,6 +18,13 @@ from .rewriter import rewriterutil
 from .rewriter import negationmaker
 from .. import rewriter
 
+def ctxToNameType(ctx) :
+	if isinstance(ctx, ast.Store) :
+		return context.NameType.store
+	if isinstance(ctx, ast.Del) :
+		return context.NameType.delete
+	return context.NameType.load
+
 class _BaseAstVistor(ast.NodeTransformer) :
 	def __init__(self, contextStack, options) :
 		super().__init__()
@@ -75,7 +82,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		node.decorator_list = self._doVisitNodeList(node.decorator_list)
 		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext :
 			rewriterutil.setNodeContext(node, currentContext)
-			currentContext.seeName(node.name)
+			currentContext.seeName(node.name, context.NameType.load)
 			self._doVisitArguments(node.args)
 			node.body = self._doVisitNodeList(node.body)
 			node.args = self._doVisitArgumentDefaults(node.args)
@@ -84,8 +91,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 	def _doVisitArguments(self, arguments) :
 		currentContext = self.getCurrentContext()
 		def callback(argItem) :
-			currentContext.addArgument(argItem.arg)
-			currentContext.seeName(argItem.arg)
+			currentContext.seeName(argItem.arg, context.NameType.argument)
 		astutil.enumerateArguments(arguments, callback)
 
 	def visit_Lambda(self, node) :
@@ -95,25 +101,25 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			return self.generic_visit(node)
 
 	def visit_Name(self, node) :
-		self.getCurrentContext().seeName(node.id, isinstance(node.ctx, ast.Store))
+		self.getCurrentContext().seeName(node.id, ctxToNameType(node.ctx))
 		if self._getOption(rewriter.OptionNames.renameLocalVariable) and self._canRenameNameNode(node) :
 			self.getCurrentContext().renameSymbol(node.id)
 		return node
 	
 	def visit_Attribute(self, node) :
-		self.getCurrentContext().seeAttribute(node.attr)
+		self.getCurrentContext().seeName(node.attr, context.NameType.attribute)
 		return self.generic_visit(node)
 
 	def visit_Global(self, node) :
 		for name in node.names :
-			self.getCurrentContext().useGlobalName(name)
+			self.getCurrentContext().seeName(name, context.NameType.globalScope)
 		return self.generic_visit(node)
 
 	def visit_Nonlocal(self, node) :
 		currentContext = self.getCurrentContext()
 		for i in range(len(node.names)) :
 			name = node.names[i]
-			currentContext.useNonlocalName(name)
+			currentContext.seeName(name, context.NameType.nonlocalScope)
 		return self.generic_visit(node)
 
 	def visit_Yield(self, node) :
@@ -132,9 +138,9 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			return False
 		if not isinstance(node.ctx, ast.Store) :
 			return False
-		if currentContext.isGlobalOrNonlocal(node.id) :
-			return False
-		if currentContext.isArgument(node.id) :
+		if currentContext.isNameSeen(node.id, [
+			context.NameType.globalScope, context.NameType.nonlocalScope, context.NameType.argument
+		]) :
 			return False
 		return True
 
@@ -207,9 +213,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def visit_Name(self, node) :
 		if self._getOption(rewriter.OptionNames.extractBuiltinFunction) and node.id in builtinfunctions.builtinFunctionMap :
 			currentContext = self.getCurrentContext()
-			if not currentContext.isNameSeenStore(node.id) :
-				if not currentContext.isFunction() or not currentContext.isArgument(node.id) :
-					node = self._constantManager.getNameReplacedNode(node.id) or node
+			if not currentContext.isNameSeen(node.id, [ context.NameType.store, context.NameType.argument ]) :
+				node = self._constantManager.getNameReplacedNode(node.id) or node
 		if self._canFindRenamedName(node) :
 			node.id = self.getCurrentContext().findRenamedName(node.id) or node.id
 		return node
