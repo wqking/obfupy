@@ -77,9 +77,5 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-def lt(a, b) :
-	try :
-		return a < b
-	except :
-		return not a >= b
+b''.join([chr(i ^ value).encode('utf-8') for i in data ]).decode('utf-8')
 '''), indent=4))
