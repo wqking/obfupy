@@ -20,3 +20,4 @@ def test_stringRewriter() :
 		assert evalNode(stringencoders.reverse(s)) == s
 		assert evalNode(stringencoders.rot13(s)) == s
 		assert evalNode(stringencoders.hex(s)) == s
+		assert evalNode(stringencoders.xor(s)) == s

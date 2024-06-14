@@ -54,15 +54,6 @@ provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder =
 
 util.writeOutputFiles(documentManager, folders[0], folders[1])
 
-for _ in range(0) :
-	print(ast.unparse(truemaker.TrueMaker(nopmaker.NopMaker()).makeTrue(None, 1)))
-	continue
-	node = nopmaker.NopWithClass().getDefineNodes()[0]
-	node = nopmaker.NopWithClass().makeReturnAsNode(ast.Constant(value = 5))
-	node = ast.fix_missing_locations(node)
-	print(ast.unparse(node))
-	pass
-
 os.chdir('output')
 os.system('python -m pytest -s')
 
@@ -77,5 +68,5 @@ def xxxprint(a) :
 	pass
 
 xxxprint(ast.dump(ast.parse('''
-b''.join([chr(i ^ value).encode('utf-8') for i in data ]).decode('utf-8')
+''.join([chr(i ^ value) for i in data])
 '''), indent=4))

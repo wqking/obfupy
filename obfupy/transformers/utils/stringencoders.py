@@ -3,6 +3,7 @@ import codecs
 import random
 
 from ..internal import astutil
+from ..internal import util
 
 def reverse(string) :
 	return ast.Subscript(
@@ -58,56 +59,37 @@ hex.extraNode = ast.Import(
 )
 
 def xor(string) :
-	data = bytearray(string.encode('utf-8'))
-	value = random.randint(1, 255)
-	for i in range(len(data)) :
-		data[i] = data[i] ^ value
-	data = bytes(data)
+	value = random.randint(1, 0xffff)
+	data = [ ord(i) ^ value for i in string ]
+	indexName = util.getUnusedRandomSymbol()
 	return ast.Call(
 		func = ast.Attribute(
-			value = ast.Call(
-				func = ast.Attribute(
-					value = ast.Constant(value = b''),
-					attr = 'join',
-					ctx = ast.Load()),
-				args = [
-					ast.ListComp(
-						elt = ast.Call(
-							func = ast.Attribute(
-								value = ast.Call(
-									func = ast.Name(id='chr', ctx = ast.Load()),
-									args = [
-										ast.BinOp(
-											left = ast.Name(id = 'i', ctx = ast.Load()),
-											op = ast.BitXor(),
-											right = ast.Constant(value = value)
-										)
-									],
-									keywords = []
-								),
-								attr = 'encode',
-								ctx = ast.Load()
-							),
-							args = [
-								ast.Constant(value = 'utf-8')],
-							keywords = []
-						),
-						generators = [
-							ast.comprehension(
-								target = ast.Name(id='i', ctx = ast.Store()),
-								iter = ast.Constant(value = data),
-								ifs = [],
-								is_async = 0
-							)
-						]
-					)
-				],
-				keywords = []),
-			attr = 'decode',
+			value = ast.Constant(value=''),
+			attr = 'join',
 			ctx = ast.Load()
 		),
 		args = [
-			ast.Constant(value = 'utf-8')
+			ast.ListComp(
+				elt = ast.Call(
+					func = ast.Name(id='chr', ctx = ast.Load()),
+					args = [
+						ast.BinOp(
+							left = ast.Name(id = indexName, ctx = ast.Load()),
+							op = ast.BitXor(),
+							right = ast.Constant(value = value)
+						)
+					],
+					keywords = []
+				),
+				generators = [
+					ast.comprehension(
+						target = ast.Name(id = indexName, ctx = ast.Store()),
+						iter = ast.Constant(data),
+						ifs = [],
+						is_async = 0
+					)
+				]
+			)
 		],
 		keywords = []
 	)

@@ -353,6 +353,7 @@ class _IRewriter :
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
+			#print(document.getFileName())
 			contextStack = context.ContextStack()
 			rootNode = ast.parse(document.getContent(), document.getFileName())
 			for visitorClass in astVistorClassList :

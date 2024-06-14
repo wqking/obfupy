@@ -24,3 +24,8 @@ def funcBuiltinFunctionAsArgument(str) :
 def test_funcBuiltinFunctionAsArgument() :
 	str = "def"
 	assert funcBuiltinFunctionAsArgument(str) == 3
+
+def test_unicodeString() :
+	a = "\u2028"
+	assert len(a) == 1
+	assert a == "\u2028"
