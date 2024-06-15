@@ -72,7 +72,7 @@ class GotoWithIf :
 			right += 50
 
 	def _visitNode(self, node) :
-		return self._visitor.visit(node)
+		return self._visitor._doVisit(node)
 
 class LabelOrderRandomizer :
 	def __init__(self) :

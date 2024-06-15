@@ -38,7 +38,7 @@ class _BaseAstVistor(ast.NodeTransformer) :
 	def _getOption(self, name) :
 		return self._options[name]
 
-	def _doVisitNodeList(self, nodeList) :
+	def _doVisit(self, nodeList) :
 		if nodeList is None :
 			return nodeList
 		if not isinstance(nodeList, list) :
@@ -53,9 +53,12 @@ class _BaseAstVistor(ast.NodeTransformer) :
 				result.append(newNode)
 		return result
 
+	def _doGenericVisit(self, node) :
+		return self.generic_visit(node)
+
 	def _doVisitArgumentDefaults(self, arguments) :
-		arguments.kw_defaults = self._doVisitNodeList(arguments.kw_defaults)
-		arguments.defaults = self._doVisitNodeList(arguments.defaults)
+		arguments.kw_defaults = self._doVisit(arguments.kw_defaults)
+		arguments.defaults = self._doVisit(arguments.defaults)
 		return arguments
 
 class _AstVistorPreprocess(_BaseAstVistor) :
@@ -63,14 +66,14 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		super().__init__(contextStack, options)
 
 	def visit_Module(self, node) :
-		with context.ContextGuard(self._contextStack, context.ModuleContext()) as currentContext :
+		with self._contextStack.pushContext(context.ModuleContext()) as currentContext :
 			rewriterutil.setNodeContext(node, currentContext)
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_ClassDef(self, node):
-		with context.ContextGuard(self._contextStack, context.ClassContext(node.name)) as currentContext :
+		with self._contextStack.pushContext(context.ClassContext(node.name)) as currentContext :
 			rewriterutil.setNodeContext(node, currentContext)
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_AsyncFunctionDef(self, node):
 		return self._doVisitFunctionDef(node)
@@ -79,12 +82,12 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		return self._doVisitFunctionDef(node)
 		
 	def _doVisitFunctionDef(self, node) :
-		node.decorator_list = self._doVisitNodeList(node.decorator_list)
-		with context.ContextGuard(self._contextStack, context.FunctionContext(node.name)) as currentContext :
+		node.decorator_list = self._doVisit(node.decorator_list)
+		with self._contextStack.pushContext(context.FunctionContext(node.name)) as currentContext :
 			rewriterutil.setNodeContext(node, currentContext)
 			currentContext.seeName(node.name, context.NameType.load)
 			self._doVisitArguments(node.args)
-			node.body = self._doVisitNodeList(node.body)
+			node.body = self._doVisit(node.body)
 			node.args = self._doVisitArgumentDefaults(node.args)
 			return node
 		
@@ -95,10 +98,10 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		astutil.enumerateArguments(arguments, callback)
 
 	def visit_Lambda(self, node) :
-		with context.ContextGuard(self._contextStack, context.FunctionContext('lambda')) as currentContext :
+		with self._contextStack.pushContext(context.FunctionContext('lambda')) as currentContext :
 			rewriterutil.setNodeContext(node, currentContext)
 			self._doVisitArguments(node.args)
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_Name(self, node) :
 		self.getCurrentContext().seeName(node.id, ctxToNameType(node.ctx))
@@ -108,29 +111,29 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 	
 	def visit_Attribute(self, node) :
 		self.getCurrentContext().seeName(node.attr, context.NameType.attribute)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_Global(self, node) :
 		for name in node.names :
 			self.getCurrentContext().seeName(name, context.NameType.globalScope)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_Nonlocal(self, node) :
 		currentContext = self.getCurrentContext()
 		for i in range(len(node.names)) :
 			name = node.names[i]
 			currentContext.seeName(name, context.NameType.nonlocalScope)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_Yield(self, node) :
 		currentContext = self.getCurrentContext()
 		currentContext.seeFeature(rewriterutil.featureYield)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_YieldFrom(self, node) :
 		currentContext = self.getCurrentContext()
 		currentContext.seeFeature(rewriterutil.featureYield)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def _canRenameNameNode(self, node) :
 		currentContext = self.getCurrentContext()
@@ -157,8 +160,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_Module(self, node) :
 		node = astutil.removeDocString(node)
-		with context.ContextGuard(self._contextStack, rewriterutil.getNodeContext(node)) :
-			node = self.generic_visit(node)
+		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
+			node = self._doGenericVisit(node)
 			extraNodeManager = extranodemanager.ExtraNodeManager()
 			extraNodeSourceList = [ self._constantManager, self._nopMaker, self._negationMaker ]
 			for item in extraNodeSourceList :
@@ -191,11 +194,11 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_ClassDef(self, node):
 		node = astutil.removeDocString(node)
-		node.bases = self._doVisitNodeList(node.bases)
-		node.keywords = self._doVisitNodeList(node.keywords)
-		node.decorator_list = self._doVisitNodeList(node.decorator_list)
-		with context.ContextGuard(self._contextStack, rewriterutil.getNodeContext(node)) :
-			node.body = self._doVisitNodeList(node.body)
+		node.bases = self._doVisit(node.bases)
+		node.keywords = self._doVisit(node.keywords)
+		node.decorator_list = self._doVisit(node.decorator_list)
+		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
+			node.body = self._doVisit(node.body)
 			return self._makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):
@@ -207,8 +210,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self._makeResultNode(node)
 		
 	def visit_Lambda(self, node) :
-		with context.ContextGuard(self._contextStack, rewriterutil.getNodeContext(node)) :
-			return self.generic_visit(node)
+		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
+			return self._doGenericVisit(node)
 
 	def visit_Name(self, node) :
 		if self._getOption(rewriter.OptionNames.extractBuiltinFunction) and node.id in builtinfunctions.builtinFunctionMap :
@@ -230,22 +233,22 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		for i in range(len(node.names)) :
 			name = node.names[i]
 			node.names[i] = currentContext.findRenamedName(name) or name
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_Import(self, node) :
 		node = self._doRenameImport(node)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 	
 	def visit_ImportFrom(self, node) :
 		node = self._doRenameImport(node)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 	
 	def visit_Call(self, node) :
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_constant) :
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
 			if self._getOption(rewriter.OptionNames.extractConstant) :
 				node = self._constantManager.getConstantReplacedNode(node.value) or node
@@ -253,45 +256,45 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_Match(self, node):
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_JoinedStr(self, node) :
 		# Don't obfuscate constants in f-string (JoinedStr), otherwise ast.unparse will give error
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_Compare(self, node) :
 		if self._reentryGuard.isEntered([ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_compare) :
 			node = self._doReverseBoolOperator(node)
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_BoolOp(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_boolOp) :
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_boolOp) :
 			node = self._doReverseBoolOperator(node)
-			return self.generic_visit(node)
+			return self._doGenericVisit(node)
 
 	def visit_For(self, node):
 		node = self._doMakeCodeBlock(node, allowOuterBlock = True)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_While(self, node):
 		node = self._doMakeCodeBlock(node, allowOuterBlock = True)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_If(self, node) :
 		return self._ifRewriter.rewriteIf(node)
 	
 	def visit_Try(self, node) :
 		node = self._doRewriteTry(node)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def visit_TryStar(self, node) :
 		node = self._doRewriteTry(node)
-		return self.generic_visit(node)
+		return self._doGenericVisit(node)
 
 	def _doRewriteTry(self, node) :
 		currentContext = self.getCurrentContext()

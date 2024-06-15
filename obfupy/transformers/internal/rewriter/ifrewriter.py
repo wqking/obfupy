@@ -17,12 +17,12 @@ class IfRewriter :
 	def rewriteIf(self, node) :
 		node = self._doExpandIfCondition(node)
 		if not self._visitor._getOption(rewriter.OptionNames.rewriteIf) :
-			return self._visitor.generic_visit(node)
+			return self._visitor._doGenericVisit(node)
 
 		with reentryguard.AutoReentryGuard(self._visitor._reentryGuard, [ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
-			node.test = self._visitor._doVisitNodeList(node.test)
-			node.body = self._visitor._doVisitNodeList(node.body)
-			node.orelse = self._visitor._doVisitNodeList(node.orelse)
+			node.test = self._visitor._doVisit(node.test)
+			node.body = self._visitor._doVisit(node.body)
+			node.orelse = self._visitor._doVisit(node.orelse)
 			node.body = astutil.fixMissingLocations(node.body)
 			node.orelse = astutil.fixMissingLocations(node.orelse)
 

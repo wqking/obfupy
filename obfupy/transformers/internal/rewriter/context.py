@@ -162,6 +162,9 @@ class ContextStack :
 		return None
 	
 	def pushContext(self, context) :
+		return ContextGuard(self, context)
+
+	def _pushContext(self, context) :
 		parent = None
 		if len(self._contextList) > 0 :
 			parent = self._contextList[-1]
@@ -169,7 +172,7 @@ class ContextStack :
 		self._contextList.append(context)
 		return context
 
-	def popContext(self) :
+	def _popContext(self) :
 		assert len(self._contextList) > 0
 		self._contextList.pop()
 
@@ -179,8 +182,8 @@ class ContextGuard :
 		self._context = context
 
 	def __enter__(self) :
-		return self._contextStack.pushContext(self._context)
+		return self._contextStack._pushContext(self._context)
 
 	def __exit__(self, type, value, traceBack) :
-		self._contextStack.popContext()
+		self._contextStack._popContext()
 
