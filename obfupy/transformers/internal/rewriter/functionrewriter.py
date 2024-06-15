@@ -14,9 +14,8 @@ class FunctionRewriter :
 
 	def rewriteFunction(self, node) :
 		node = astutil.removeDocString(node)
-		# Visiting decorator_list must be outside of the function context
-		node.decorator_list = self._visitor._doVisit(node.decorator_list)
 		with self._visitor._contextStack.pushContext(rewriterutil.getNodeContext(node)) as currentContext :
+			node.decorator_list = self._visitor._doVisit(node.decorator_list, context.Section.decorator)
 			newNode = self._doExtractFunction(node)
 			if newNode is not None :
 				node = newNode
@@ -31,7 +30,7 @@ class FunctionRewriter :
 		renamedArgs = self._doCreateRenamedArgs(node)
 		for item in renamedArgs['renamedArgList'] :
 			currentContext.renameSymbol(item['argName'], item['newName'])
-		node.body = self._visitor._doVisit(node.body)
+		node.body = self._visitor._doVisit(node.body, context.Section.body)
 		if renamedArgs['node'] is not None :
 			node.body.insert(0, renamedArgs['node'])
 		node.args = self._visitor._doVisitArgumentDefaults(node.args)
@@ -97,7 +96,7 @@ class FunctionRewriter :
 
 		self._visitor._contextStack.saveAndReset()
 		with self._visitor._contextStack.pushContext(newContext) :
-			newFuncNode.body = self._visitor._doVisit(newFuncNode.body)
+			newFuncNode.body = self._visitor._doVisit(newFuncNode.body, context.Section.body)
 		self._visitor._contextStack.restore()
 
 		newCall = self._doCreateForwardCall(

@@ -18,6 +18,14 @@ class NameType(enum.IntEnum) :
 	globalScope = 6
 	nonlocalScope = 7
 
+@enum.unique
+class Section(enum.IntEnum) :
+	body = 1
+	argument = 2
+	decorator = 3
+	baseClass = 4
+	metaClass = 5
+
 class _NameMixin :
 	def seeName(self, name, type) :
 		if name not in self._seenNameSet :
@@ -81,15 +89,32 @@ class _RenameMixin :
 
 	def isRenamed(self, name) :
 		return name in self._renameMap
-	
+
 class _SiblingMixin :
 	def addSiblingNode(self, node) :
 		self._siblingNodeList.append(node)
 
 	def getSiblingNodeList(self) :
 		return self._siblingNodeList
+
+class _SectionMixin :
+	def getCurrentSection(self) :
+		if len(self._sectionList) == 0 :
+			return None
+		return self._sectionList[-1]
+
+	def pushSection(self, section) :
+		return SectionGuard(self, section)
+
+	def _pushSection(self, section) :
+		self._sectionList.append(section)
+		return section
 	
-class Context(_NameMixin, _RenameMixin, _SiblingMixin) :
+	def _popSection(self) :
+		assert len(self._sectionList) > 0
+		self._sectionList.pop()
+
+class Context(_NameMixin, _RenameMixin, _SiblingMixin, _SectionMixin) :
 	def __init__(self, type, contextName) :
 		self._type = type
 		self._contextName = contextName
@@ -105,6 +130,9 @@ class Context(_NameMixin, _RenameMixin, _SiblingMixin) :
 		# _RenameMixin
 		self._renameMap = {}
 		self._usedNewNameSet = {}
+
+		# _SectionMixin
+		self._sectionList = []
 
 	def setParent(self, parent = None) :
 		self._parent = parent
@@ -186,4 +214,18 @@ class ContextGuard :
 
 	def __exit__(self, type, value, traceBack) :
 		self._contextStack._popContext()
+
+class SectionGuard :
+	def __init__(self, context, section) :
+		self._context = context
+		self._section = section
+
+	def __enter__(self) :
+		if self._section is not None :
+			return self._context._pushSection(self._section)
+		return None
+
+	def __exit__(self, type, value, traceBack) :
+		if self._section is not None :
+			self._context._popSection()
 

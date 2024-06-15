@@ -32,33 +32,44 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		self._contextStack = contextStack
 		self._reentryGuard = reentryguard.ReentryGuard()
 
-	def getCurrentContext(self) :
-		return self._contextStack.getCurrentContext()
+	def getCurrentContext(self, adjustBySection = True) :
+		currentContext = self._contextStack.getCurrentContext()
+		if adjustBySection :
+			section = currentContext.getCurrentSection()
+			if section not in [ None, context.Section.body ] :
+				parent = currentContext.getParentContext()
+				if parent is None :
+					print(currentContext.getContextName(), section)
+					assert parent is not None
+				currentContext = parent
+		return currentContext
 	
 	def _getOption(self, name) :
 		return self._options[name]
 
-	def _doVisit(self, nodeList) :
+	def _doVisit(self, nodeList, section = None) :
 		if nodeList is None :
 			return nodeList
-		if not isinstance(nodeList, list) :
-			return self.visit(nodeList)
-		result = []
-		for node in nodeList :
-			if node is None :
-				result.append(node)
-				continue
-			newNode = self.visit(node)
-			if newNode is not None :
-				result.append(newNode)
-		return result
+		with self.getCurrentContext(False).pushSection(section) :
+			if not isinstance(nodeList, list) :
+				return self.visit(nodeList)
+			result = []
+			for node in nodeList :
+				if node is None :
+					result.append(node)
+					continue
+				newNode = self.visit(node)
+				if newNode is not None :
+					result.append(newNode)
+			return result
 
-	def _doGenericVisit(self, node) :
-		return self.generic_visit(node)
+	def _doGenericVisit(self, node, section = None) :
+		with self.getCurrentContext(False).pushSection(section) :
+			return self.generic_visit(node)
 
 	def _doVisitArgumentDefaults(self, arguments) :
-		arguments.kw_defaults = self._doVisit(arguments.kw_defaults)
-		arguments.defaults = self._doVisit(arguments.defaults)
+		arguments.kw_defaults = self._doVisit(arguments.kw_defaults, context.Section.argument)
+		arguments.defaults = self._doVisit(arguments.defaults, context.Section.argument)
 		return arguments
 
 class _AstVistorPreprocess(_BaseAstVistor) :
@@ -82,12 +93,12 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		return self._doVisitFunctionDef(node)
 		
 	def _doVisitFunctionDef(self, node) :
-		node.decorator_list = self._doVisit(node.decorator_list)
 		with self._contextStack.pushContext(context.FunctionContext(node.name)) as currentContext :
 			rewriterutil.setNodeContext(node, currentContext)
 			currentContext.seeName(node.name, context.NameType.load)
+			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
 			self._doVisitArguments(node.args)
-			node.body = self._doVisit(node.body)
+			node.body = self._doVisit(node.body, context.Section.body)
 			node.args = self._doVisitArgumentDefaults(node.args)
 			return node
 		
@@ -194,11 +205,11 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_ClassDef(self, node):
 		node = astutil.removeDocString(node)
-		node.bases = self._doVisit(node.bases)
-		node.keywords = self._doVisit(node.keywords)
-		node.decorator_list = self._doVisit(node.decorator_list)
 		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
-			node.body = self._doVisit(node.body)
+			node.bases = self._doVisit(node.bases, context.Section.baseClass)
+			node.keywords = self._doVisit(node.keywords, context.Section.metaClass)
+			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
+			node.body = self._doVisit(node.body, context.Section.body)
 			return self._makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):

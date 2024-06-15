@@ -13,12 +13,20 @@ def funcB(a, n) :
 		return b - 1
 	return inner(n)
 
-def test_a() :
+def test_funcA() :
 	assert funcA(5) == "abc_6"
 
 def test_inner() :
 	test_inner.wrapper = decoratorPrependAbc
 	assert funcB(test_inner, 8) == "abc_7"
+
+@decoratorPrependAbc
+def funcC(n) :
+	decoratorPrependAbc = 2
+	return n + decoratorPrependAbc
+
+def test_funcC() :
+	assert funcC(5) == "abc_7"
 
 class DecoratorClass :
 	def __init__(self, v = 0) :
