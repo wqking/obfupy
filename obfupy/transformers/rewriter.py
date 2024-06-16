@@ -29,9 +29,10 @@ defaultOptions = {
 }
 
 class Rewriter :
-	def __init__(self, options = None) :
+	def __init__(self, options = None, callback = None) :
 		self._options = iutil.makeOptions(options, defaultOptions)
+		self._callback = callback
 
 	def transform(self, documentManager) :
 		from .internal.irewriter import _IRewriter
-		_IRewriter(self._options).transform(documentManager)
+		_IRewriter(options = self._options, callback = self._callback).transform(documentManager)

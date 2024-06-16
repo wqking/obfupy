@@ -42,7 +42,12 @@ rewriterOptions = {
 	rewriter.OptionNames.rewriteIf : True and allowRewrite,
 	rewriter.OptionNames.wrapReversedCompareOperator : True and allowRewrite,
 }
-Rewriter(rewriterOptions).transform(documentManager)
+def callback(data) :
+	if 'importa' in data.getFileName() and not data.isFile() :
+		context = data.getContext()
+		if context.isFunction() and context.getName() == 'testInnerWraps' :
+			data.skip()
+Rewriter(options = rewriterOptions, callback = callback).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Formatter(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder = "codecs.decode(%s, 'zip')", extraCode = 'import codecs')

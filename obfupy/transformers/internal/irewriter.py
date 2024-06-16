@@ -25,11 +25,99 @@ def ctxToNameType(ctx) :
 		return context.NameType.delete
 	return context.NameType.load
 
-class _BaseAstVistor(ast.NodeTransformer) :
-	def __init__(self, contextStack, options) :
-		super().__init__()
+optionNameSkip = '_skip'
+
+class CallbackContext :
+	def __init__(self, currentContext) :
+		self._currentContext = currentContext
+		self._parent = False
+
+	def isModule(self) :
+		return self._currentContext.isModule()
+
+	def isClass(self) :
+		return self._currentContext.isClass()
+
+	def isFunction(self) :
+		return self._currentContext.isFunction()
+	
+	def getName(self) :
+		return self._currentContext.getContextName()
+	
+	def getParent(self) :
+		if self._parent is False :
+			parentContext = self._currentContext.getParentContext()
+			if parentContext is None :
+				self._parent = None
+			else :
+				self._parent = CallbackContext(parentContext)
+		return self._parent
+
+class CallbackData :
+	def __init__(self, options, fileName, currentContext) :
 		self._options = options
+		self._needCopy = True
+		self._fileName = fileName
+		self._currentContext = currentContext
+		self._callbackContext = None
+		self._skip = False
+		self._modified = False
+
+	def getFileName(self) :
+		return self._fileName
+	
+	def isFile(self) :
+		return self._currentContext is None
+	
+	def getOption(self, name) :
+		return self._options[name]
+	
+	def setOption(self, name, value) :
+		self._willModifyOptions()
+		self._options[name] = value
+
+	def skip(self) :
+		self._willModifyOptions()
+		self._skip = True
+
+	def getContext(self) :
+		if self._callbackContext is None and not self.isFile() :
+			self._callbackContext = CallbackContext(self._currentContext)
+		return self._callbackContext
+	
+	def _getOptions(self) :
+		return self._options
+
+	def _shouldSkip(self) :
+		return self._skip
+	
+	def _isModified(self) :
+		return self._modified
+
+	def _willModifyOptions(self) :
+		if self._needCopy :
+			self._needCopy = False
+			self._options = copy.deepcopy(self._options)
+		self._modified = True
+
+def _invokeCallback(callback, options, fileName, currentContext) :
+	if callback is None :
+		return None
+	data = CallbackData(options, fileName, currentContext)
+	callback(data)
+	if data._isModified() :
+		options = data._getOptions()
+		options[optionNameSkip] = data._shouldSkip()
+		return options
+	return None
+
+class _BaseAstVistor(ast.NodeTransformer) :
+	def __init__(self, contextStack, options, fileName, callback) :
+		super().__init__()
 		self._contextStack = contextStack
+		self._options = options
+		self._fileName = fileName
+		self._callback = callback
 		self._reentryGuard = reentryguard.ReentryGuard()
 
 	def getCurrentContext(self, adjustBySection = True) :
@@ -45,7 +133,12 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		return currentContext
 	
 	def _getOption(self, name) :
-		return self._options[name]
+		currentContext = self.getCurrentContext(False)
+		options = currentContext.getOptionMap()
+		return options[name]
+	
+	def _shouldSkip(self) :
+		return self._getOption(optionNameSkip)
 
 	def _doVisit(self, nodeList, section = None) :
 		if nodeList is None :
@@ -71,19 +164,25 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		arguments.kw_defaults = self._doVisit(arguments.kw_defaults, context.Section.argument)
 		arguments.defaults = self._doVisit(arguments.defaults, context.Section.argument)
 		return arguments
+	
+	def _prepareNodeContext(self, node, currentContext) :
+		rewriterutil.setNodeContext(node, currentContext)
+		options = _invokeCallback(self._callback, currentContext.getOptionMap(), self._fileName, currentContext)
+		if options is not None :
+			currentContext.setOptionMap(options)
 
 class _AstVistorPreprocess(_BaseAstVistor) :
-	def __init__(self, contextStack, options) :
-		super().__init__(contextStack, options)
+	def __init__(self, contextStack, options, fileName, callback) :
+		super().__init__(contextStack, options, fileName, callback)
 
 	def visit_Module(self, node) :
-		with self._contextStack.pushContext(context.ModuleContext()) as currentContext :
-			rewriterutil.setNodeContext(node, currentContext)
+		with self._contextStack.pushContext(context.ModuleContext(self._fileName, copy.deepcopy(self._options))) as currentContext :
+			self._prepareNodeContext(node, currentContext)
 			return self._doGenericVisit(node)
 
 	def visit_ClassDef(self, node):
 		with self._contextStack.pushContext(context.ClassContext(node.name)) as currentContext :
-			rewriterutil.setNodeContext(node, currentContext)
+			self._prepareNodeContext(node, currentContext)
 			return self._doGenericVisit(node)
 
 	def visit_AsyncFunctionDef(self, node):
@@ -91,10 +190,10 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 
 	def visit_FunctionDef(self, node) :
 		return self._doVisitFunctionDef(node)
-		
+
 	def _doVisitFunctionDef(self, node) :
 		with self._contextStack.pushContext(context.FunctionContext(node.name)) as currentContext :
-			rewriterutil.setNodeContext(node, currentContext)
+			self._prepareNodeContext(node, currentContext)
 			currentContext.seeName(node.name, context.NameType.load)
 			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
 			self._doVisitArguments(node.args)
@@ -102,17 +201,17 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			node.args = self._doVisitArgumentDefaults(node.args)
 			return node
 		
+	def visit_Lambda(self, node) :
+		with self._contextStack.pushContext(context.FunctionContext('#lambda')) as currentContext :
+			self._prepareNodeContext(node, currentContext)
+			self._doVisitArguments(node.args)
+			return self._doGenericVisit(node)
+
 	def _doVisitArguments(self, arguments) :
 		currentContext = self.getCurrentContext()
 		def callback(argItem) :
 			currentContext.seeName(argItem.arg, context.NameType.argument)
 		astutil.enumerateArguments(arguments, callback)
-
-	def visit_Lambda(self, node) :
-		with self._contextStack.pushContext(context.FunctionContext('lambda')) as currentContext :
-			rewriterutil.setNodeContext(node, currentContext)
-			self._doVisitArguments(node.args)
-			return self._doGenericVisit(node)
 
 	def visit_Name(self, node) :
 		self.getCurrentContext().seeName(node.id, ctxToNameType(node.ctx))
@@ -159,8 +258,8 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		return True
 
 class _AstVistorRewrite(_BaseAstVistor) :
-	def __init__(self, contextStack, options) :
-		super().__init__(contextStack, options)
+	def __init__(self, contextStack, options, fileName, callback) :
+		super().__init__(contextStack, options, fileName, callback)
 		self._functionRewriter = functionrewriter.FunctionRewriter(self)
 		self._ifRewriter = ifrewriter.IfRewriter(self)
 		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
@@ -170,8 +269,10 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		self._negationMaker = None
 
 	def visit_Module(self, node) :
-		node = astutil.removeDocString(node)
 		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
+			if self._shouldSkip() :
+				return node
+			node = astutil.removeDocString(node)
 			node = self._doGenericVisit(node)
 			extraNodeManager = extranodemanager.ExtraNodeManager()
 			extraNodeSourceList = [ self._constantManager, self._nopMaker, self._negationMaker ]
@@ -204,8 +305,10 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return siblingList + [ node ]
 
 	def visit_ClassDef(self, node):
-		node = astutil.removeDocString(node)
 		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
+			if self._shouldSkip() :
+				return node
+			node = astutil.removeDocString(node)
 			node.bases = self._doVisit(node.bases, context.Section.baseClass)
 			node.keywords = self._doVisit(node.keywords, context.Section.metaClass)
 			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
@@ -222,6 +325,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		
 	def visit_Lambda(self, node) :
 		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
+			if self._shouldSkip() :
+				return node
 			return self._doGenericVisit(node)
 
 	def visit_Name(self, node) :
@@ -361,16 +466,27 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
 class _IRewriter :
-	def __init__(self, options) :
+	def __init__(self, options, callback) :
 		super().__init__()
 		self._options = options
+		self._options[optionNameSkip] = False
+		self._callback = callback
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
-			#print(document.getFileName())
+			fileName = document.getFileName()
+			#print(fileName)
 			contextStack = context.ContextStack()
-			rootNode = ast.parse(document.getContent(), document.getFileName())
+			rootNode = ast.parse(document.getContent(), fileName)
+			options = _invokeCallback(self._callback, self._options, fileName, None) or self._options
+			if options[optionNameSkip] :
+				continue
 			for visitorClass in astVistorClassList :
-				visitor = visitorClass(contextStack = contextStack, options = self._options)
+				visitor = visitorClass(
+					contextStack = contextStack,
+					options = options,
+					fileName = fileName,
+					callback = self._callback
+				)
 				visitor.visit(rootNode)
 			document.setContent(astutil.astToSource(rootNode))

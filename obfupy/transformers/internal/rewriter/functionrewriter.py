@@ -13,8 +13,10 @@ class FunctionRewriter :
 		self._visitor = visitor
 
 	def rewriteFunction(self, node) :
-		node = astutil.removeDocString(node)
 		with self._visitor._contextStack.pushContext(rewriterutil.getNodeContext(node)) as currentContext :
+			if self._visitor._shouldSkip() :
+				return node
+			node = astutil.removeDocString(node)
 			node.decorator_list = self._visitor._doVisit(node.decorator_list, context.Section.decorator)
 			newNode = self._doExtractFunction(node)
 			if newNode is not None :
