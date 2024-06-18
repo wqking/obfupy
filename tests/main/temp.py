@@ -57,3 +57,16 @@ provider = CodecProvider(encoder = lambda x : codecs.encode(x, 'zip'), decoder =
 
 print(documentManager.getDocumentList()[0].getContent())
 
+class Xxx :
+	def __init__(self) :
+		self._value = 5
+
+	add = (lambda self, a : self._value + a)
+
+def xxxprint(a) :
+	#print(a)
+	pass
+
+xxxprint(ast.dump(ast.parse('''
+''.join([chr(i ^ value) for i in data])
+'''), indent=4))

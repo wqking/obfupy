@@ -2,6 +2,7 @@ import random
 import base64
 
 from .internal import util as util
+from .internal import callbackdata
 
 class CodecProvider :
 	def __init__(
@@ -29,11 +30,14 @@ class CodecProvider :
 		return self._extraCode
 
 class Codec :
-	def __init__(self, provider) :
+	def __init__(self, provider, callback = None) :
 		self._provider = provider
+		self._callback = callback
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
+			if callbackdata._shouldSkipFile(self._callback, document.getFileName()) :
+				continue
 			self._doTransformDocument(document)
 
 	def _doTransformDocument(self, document) :

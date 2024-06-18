@@ -17,17 +17,16 @@ from .rewriter import ifrewriter
 from .rewriter import rewriterutil
 from .rewriter import negationmaker
 from .. import rewriter
+from . import callbackdata
 
-def ctxToNameType(ctx) :
+def _ctxToNameType(ctx) :
 	if isinstance(ctx, ast.Store) :
 		return context.NameType.store
 	if isinstance(ctx, ast.Del) :
 		return context.NameType.delete
 	return context.NameType.load
 
-optionNameSkip = '_skip'
-
-class CallbackContext :
+class _CallbackContext :
 	def __init__(self, currentContext) :
 		self._currentContext = currentContext
 		self._parent = False
@@ -50,66 +49,28 @@ class CallbackContext :
 			if parentContext is None :
 				self._parent = None
 			else :
-				self._parent = CallbackContext(parentContext)
+				self._parent = _CallbackContext(parentContext)
 		return self._parent
 
-class CallbackData :
-	def __init__(self, options, fileName, currentContext) :
-		self._options = options
-		self._needCopy = True
-		self._fileName = fileName
+class _RewriterCallbackData(callbackdata._OptionCallbackData) :
+	def __init__(self, fileName, options, currentContext) :
+		super().__init__(fileName, options)
 		self._currentContext = currentContext
 		self._callbackContext = None
-		self._skip = False
-		self._modified = False
 
-	def getFileName(self) :
-		return self._fileName
-	
 	def isFile(self) :
 		return self._currentContext is None
 	
-	def getOption(self, name) :
-		return self._options[name]
-	
-	def setOption(self, name, value) :
-		self._willModifyOptions()
-		self._options[name] = value
-
-	def skip(self) :
-		self._willModifyOptions()
-		self._skip = True
-
 	def getContext(self) :
 		if self._callbackContext is None and not self.isFile() :
-			self._callbackContext = CallbackContext(self._currentContext)
+			self._callbackContext = _CallbackContext(self._currentContext)
 		return self._callbackContext
 	
-	def _getOptions(self) :
-		return self._options
-
-	def _shouldSkip(self) :
-		return self._skip
-	
-	def _isModified(self) :
-		return self._modified
-
-	def _willModifyOptions(self) :
-		if self._needCopy :
-			self._needCopy = False
-			self._options = copy.deepcopy(self._options)
-		self._modified = True
-
-def _invokeCallback(callback, options, fileName, currentContext) :
+def _invokeCallback(callback, fileName, options, currentContext) :
 	if callback is None :
 		return None
-	data = CallbackData(options, fileName, currentContext)
-	callback(data)
-	if data._isModified() :
-		options = data._getOptions()
-		options[optionNameSkip] = data._shouldSkip()
-		return options
-	return None
+	data = _RewriterCallbackData(fileName, options, currentContext)
+	return callbackdata._invokeCallback(callback, data)
 
 class _BaseAstVistor(ast.NodeTransformer) :
 	def __init__(self, contextStack, options, specialOptions, fileName, callback) :
@@ -139,7 +100,7 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		return options[name]
 	
 	def _shouldSkip(self) :
-		return self._getOption(optionNameSkip)
+		return self._getOption(callbackdata._optionNameSkip)
 
 	def _doVisit(self, nodeList, section = None) :
 		if nodeList is None :
@@ -168,7 +129,7 @@ class _BaseAstVistor(ast.NodeTransformer) :
 	
 	def _prepareNodeContext(self, node, currentContext) :
 		rewriterutil.setNodeContext(node, currentContext)
-		options = _invokeCallback(self._callback, currentContext.getOptionMap(), self._fileName, currentContext)
+		options = _invokeCallback(self._callback, self._fileName, currentContext.getOptionMap(), currentContext)
 		if options is not None :
 			currentContext.setOptionMap(options)
 
@@ -223,7 +184,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 		astutil.enumerateArguments(arguments, callback)
 
 	def visit_Name(self, node) :
-		self.getCurrentContext().seeName(node.id, ctxToNameType(node.ctx))
+		self.getCurrentContext().seeName(node.id, _ctxToNameType(node.ctx))
 		if self._getOption(rewriter.OptionNames.renameLocalVariable) and self._canRenameNameNode(node) :
 			self.getCurrentContext().renameSymbol(node.id)
 		return node
@@ -273,7 +234,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		super().__init__(contextStack, options, specialOptions, fileName, callback)
 		self._functionRewriter = functionrewriter.FunctionRewriter(self)
 		self._ifRewriter = ifrewriter.IfRewriter(self)
-		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
+		self._constantManager = constantmanager.ConstantManager(self._specialOptions['stringEncoders'])
 		self._nopMaker = nopmaker.NopMaker()
 		self._trueMaker = truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
 		self._codeBlockMaker = codeblockmaker.CodeBlockMaker(self._trueMaker)
@@ -488,12 +449,12 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self._trueMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
-specialOptionNames = [ rewriter.OptionNames.unrenamedVariableNames ]
+specialOptionNames = [ rewriter.OptionNames.unrenamedVariableNames, rewriter.OptionNames.stringEncoders ]
 class _IRewriter :
 	def __init__(self, options, callback) :
 		super().__init__()
 		self._options = options
-		self._options[optionNameSkip] = False
+		self._options[callbackdata._optionNameSkip] = False
 		self._callback = callback
 		self._specialOptions = {}
 		for name in specialOptionNames :
@@ -514,11 +475,10 @@ class _IRewriter :
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
 			fileName = document.getFileName()
-			#print(fileName)
 			contextStack = context.ContextStack()
 			rootNode = ast.parse(document.getContent(), fileName)
 			options = _invokeCallback(self._callback, self._options, fileName, None) or self._options
-			if options[optionNameSkip] :
+			if options[callbackdata._optionNameSkip] :
 				continue
 			for visitorClass in astVistorClassList :
 				visitor = visitorClass(

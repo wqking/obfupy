@@ -5,6 +5,10 @@ from functools import wraps
 
 globalInt = 38
 
+def toBeSkipped(x) :
+	a = 5
+	return x + a
+
 def testInnerWraps(a) :
     @wraps(a)
     def b(*args, **kwargs):

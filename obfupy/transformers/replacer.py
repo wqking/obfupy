@@ -1,12 +1,14 @@
 from .internal import util
+from .internal import callbackdata
 
 import re
 import tokenize
 import io
 
 class Replacer :
-	def __init__(self, symbols, reportIfReplacedInString = True) :
+	def __init__(self, symbols, reportIfReplacedInString = True, callback = None) :
 		self._reportIfReplacedInString = reportIfReplacedInString
+		self._callback = callback
 		self._nameMap = {}
 		if isinstance(symbols, list) :
 			for name in symbols :
@@ -26,6 +28,8 @@ class Replacer :
 			if self._nameMap[name]['replacement'] is None :
 				self._nameMap[name]['replacement'] = util.getUnusedRandomSymbol()
 		for document in documentManager.getDocumentList() :
+			if callbackdata._shouldSkipFile(self._callback, document.getFileName()) :
+				continue
 			self._doReplaceDocument(document)
 			if self._reportIfReplacedInString :
 				self._doReportIfReplacedInString(document)

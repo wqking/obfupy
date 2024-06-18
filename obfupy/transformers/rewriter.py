@@ -19,7 +19,7 @@ class OptionNames(str, enum.Enum) :
 	stringEncoders = 'stringEncoders'
 	unrenamedVariableNames = 'unrenamedVariableNames'
 
-defaultOptions = {
+_defaultOptions = {
 	OptionNames.extractFunction : True,
 	OptionNames.extractConstant : True,
 	OptionNames.extractBuiltinFunction : True,
@@ -38,7 +38,7 @@ defaultOptions = {
 
 class Rewriter :
 	def __init__(self, options = None, callback = None) :
-		self._options = iutil.makeOptions(options, defaultOptions)
+		self._options = iutil.makeOptions(options, _defaultOptions)
 		self._callback = callback
 
 	def transform(self, documentManager) :

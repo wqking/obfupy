@@ -3,3 +3,4 @@ __pycache__
 tests/main/output
 temp
 *.bat
+*.egg-info

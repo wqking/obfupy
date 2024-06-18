@@ -30,8 +30,8 @@ def getUnusedRandomSymbol(usedMap = None, originalName = None) :
 	length = 12
 	while True :
 		newName = getRandomSymbol(length)
-		if originalName is not None :
-			newName = newName + '_' + originalName + '_' + str(random.randint(1, 100000))
+		#if originalName is not None :
+		#	newName = newName + '_' + originalName + '_' + str(random.randint(1, 100000))
 		if newName not in usedMap :
 			usedMap[newName] = True
 			_uniqueSymbolMap[newName] = True
@@ -83,11 +83,11 @@ def ensureList(a) :
 def joinList(a, b) :
 	return ensureList(a) + ensureList(b)
 
-def makeOptions(options, defaultOptions) :
-	result = copy.deepcopy(defaultOptions)
+def makeOptions(options, _defaultOptions) :
+	result = copy.deepcopy(_defaultOptions)
 	if options is not None :
 		for name in options :
-			assert name in defaultOptions
+			assert name in _defaultOptions
 			result[name] = options[name]
 	return result
 

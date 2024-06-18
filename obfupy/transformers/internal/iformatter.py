@@ -6,46 +6,37 @@ import io
 from collections import namedtuple
 
 from . import util
+from . import callbackdata
+from .. import formatter
 
 class _IFormatter :
-	def __init__(self, options) :
+	def __init__(self, options, callback) :
 		self._options = options
-		self._documentManager = None
-		self._uidTokenListMap = {}
+		self._callback = callback
 
 	def transform(self, documentManager) :
-		self._documentManager = documentManager
-		self._buildUidTokenListMap()
-		self._doLiteral()
-		self._finalize()
-
-	def _getDocumentList(self) :
-		return self._documentManager.getDocumentList()
-	
-	def _buildUidTokenListMap(self) :
-		for document in self._getDocumentList() :
-			content = document.getContent()
-			generator = tokenize.tokenize(io.BytesIO(content.encode('utf-8')).readline)
+		for document in documentManager.getDocumentList() :
+			options = callbackdata._invokeCallback(self._callback, callbackdata._OptionCallbackData(document.getFileName(), self._options)) or self._options
+			if callbackdata._shouldSkip(options) :
+				continue
+			generator = tokenize.tokenize(io.BytesIO(document.getContent().encode('utf-8')).readline)
 			tokenList = []
 			for tokenType, tokenValue, _,  _, _ in generator:
 				tokenList.append((tokenType, tokenValue))
-			self._uidTokenListMap[document.getUid()] = tokenList
+			self._doFormatForDocument(tokenList, options)
+			content = tokenize.untokenize(tokenList).decode('utf-8')
+			document.setContent(content)
 
-	def _doLiteral(self) :
-		for document in self._getDocumentList() :
-			self._doLiteralForDocument(document)
-
-	def _doLiteralForDocument(self, document) :
+	def _doFormatForDocument(self, tokenList, options) :
 		minIndentLength = 0
 		canExpandIndent = True
-		tokenList = self._uidTokenListMap[document.getUid()]
 		enumerator = TokenEnumerator(tokenList)
 		while True :
 			token = enumerator.nextToken()
 			if token is None :
 				break
 
-			if token.type == tokenize.OP and self._options['addExtraSpaces'] and token.value not in [ '!' ] :
+			if token.type == tokenize.OP and options[formatter.OptionNames.addExtraSpaces] and token.value not in [ '!' ] :
 				tokenValue = token.value
 				extraSpaces = self._getRandomSpaces()
 				tokenValue += extraSpaces
@@ -53,10 +44,10 @@ class _IFormatter :
 					tokenValue = extraSpaces + tokenValue
 				enumerator.setCurrentValue(tokenValue)
 
-			if token.type == tokenize.NEWLINE and self._options['addExtraNewLines']:
+			if token.type == tokenize.NEWLINE and options[formatter.OptionNames.addExtraNewLines]:
 				enumerator.setCurrentValue(token.value * random.randint(1, 10))
 
-			if token.type == tokenize.COMMENT and self._options['removeComment']:
+			if token.type == tokenize.COMMENT and options[formatter.OptionNames.removeComment]:
 				enumerator.setCurrentValue('')
 
 			if token.type == tokenize.INDENT :
@@ -65,7 +56,7 @@ class _IFormatter :
 				if minIndentLength > 0 and len(token.value) % minIndentLength != 0 :
 					canExpandIndent = False
 
-		if self._options['expandIndent'] and canExpandIndent and minIndentLength > 0 :
+		if options[formatter.OptionNames.expandIndent] and canExpandIndent and minIndentLength > 0 :
 			newIndent = self._getRandomSpaces()
 			enumerator = TokenEnumerator(tokenList)
 			while True :
@@ -81,12 +72,6 @@ class _IFormatter :
 		else :
 			return ' ' * random.randint(16, 32)
 		
-	def _finalize(self) :
-		for document in self._getDocumentList() :
-			tokenList = self._uidTokenListMap[document.getUid()]
-			content = tokenize.untokenize(tokenList).decode('utf-8')
-			document.setContent(content)
-
 Token = namedtuple("Token", "type value")
 
 class TokenEnumerator :
