@@ -30,19 +30,32 @@ rewriterOptions = {
 	# sensitive_variables_wrapper is used by inspect, don't rename it
 	rewriter.OptionNames.unrenamedVariableNames : [ 'sensitive_variables_wrapper' ],
 }
+
+excludeFolderList = [
+	'/tests/admin_scripts/custom_templates/', # the comment in the templates can't be removed.
+	'/tests/sphinx/testdata', # the .py files are acturally data files, don't touch them.
+]
+
 def callback(data) :
-	#if '/django/tests/' in data.getFileName() :
-	#	data.skip()
-	#	return
+	for folder in excludeFolderList :
+		if folder in data.getFileName() :
+			data.skip()
+			return
+	if '/tests/migrations' in data.getFileName() :
+		# test_alter_field_add_db_column_noop doesn't like it because assertIs will fail
+		data.setOption(rewriter.OptionNames.extractConstant, False)
+		return
 	if data.isFile() :
 		return
 	context = data.getContext()
 	if context.isClass() :
+		# Some classes inherits from enum.Enum and have if condition in class body.
+		# If we rewrite the if condition, the newly generated assignment will cause enum.Enum throw exceptions.
 		data.setOption(rewriter.OptionNames.rewriteIf, False)
 	else :
 		data.setOption(rewriter.OptionNames.rewriteIf, rewriterOptions[rewriter.OptionNames.rewriteIf])
 
-#general.obfuscateProject(options = rewriterOptions, callback = callback)
+general.obfuscateProject(options = rewriterOptions, callback = callback)
 args = helper.parseCommandLine()
 outputPath = args['output']
 
@@ -71,8 +84,8 @@ def doTest() :
 			break
 	return
 
-lastTest = 'admin_scripts'
-countToTest = 1
+lastTest = 0 #'wsgi'
+countToTest = -1
 testFolderList = [
 	"absolute_url_overrides",
 	"admin_autodiscover",
@@ -285,7 +298,7 @@ testFolderList = [
 	"validation",
 	"validators",
 	"version",
-	"view_tests",
+	# "view_tests", # It uses inspect package
 	"wsgi",
 	"xor_lookups",
 ]
