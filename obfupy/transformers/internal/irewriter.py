@@ -112,10 +112,11 @@ def _invokeCallback(callback, options, fileName, currentContext) :
 	return None
 
 class _BaseAstVistor(ast.NodeTransformer) :
-	def __init__(self, contextStack, options, fileName, callback) :
+	def __init__(self, contextStack, options, specialOptions, fileName, callback) :
 		super().__init__()
 		self._contextStack = contextStack
 		self._options = options
+		self._specialOptions = specialOptions
 		self._fileName = fileName
 		self._callback = callback
 		self._reentryGuard = reentryguard.ReentryGuard()
@@ -171,18 +172,23 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		if options is not None :
 			currentContext.setOptionMap(options)
 
+	def _needToKeepLocalVariables(self) :
+		return self.getCurrentContext().isNameSeen('locals')
+
 class _AstVistorPreprocess(_BaseAstVistor) :
-	def __init__(self, contextStack, options, fileName, callback) :
-		super().__init__(contextStack, options, fileName, callback)
+	def __init__(self, contextStack, options, specialOptions, fileName, callback) :
+		super().__init__(contextStack, options, specialOptions, fileName, callback)
 
 	def visit_Module(self, node) :
 		with self._contextStack.pushContext(context.ModuleContext(self._fileName, copy.deepcopy(self._options))) as currentContext :
 			self._prepareNodeContext(node, currentContext)
+			rewriterutil.markNodeDocString(node)
 			return self._doGenericVisit(node)
 
 	def visit_ClassDef(self, node):
 		with self._contextStack.pushContext(context.ClassContext(node.name)) as currentContext :
 			self._prepareNodeContext(node, currentContext)
+			rewriterutil.markNodeDocString(node)
 			return self._doGenericVisit(node)
 
 	def visit_AsyncFunctionDef(self, node):
@@ -194,7 +200,10 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 	def _doVisitFunctionDef(self, node) :
 		with self._contextStack.pushContext(context.FunctionContext(node.name)) as currentContext :
 			self._prepareNodeContext(node, currentContext)
-			currentContext.seeName(node.name, context.NameType.load)
+			rewriterutil.markNodeDocString(node)
+			currentContext.seeName(node.name, context.NameType.store)
+			# Function name is visible in both the function scope and outter scope
+			currentContext.getParentContext().seeName(node.name, context.NameType.store)
 			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
 			self._doVisitArguments(node.args)
 			node.body = self._doVisit(node.body, context.Section.body)
@@ -255,11 +264,13 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			context.NameType.globalScope, context.NameType.nonlocalScope, context.NameType.argument
 		]) :
 			return False
+		if node.id in self._specialOptions[rewriter.OptionNames.unrenamedVariableNames] :
+			return False
 		return True
 
 class _AstVistorRewrite(_BaseAstVistor) :
-	def __init__(self, contextStack, options, fileName, callback) :
-		super().__init__(contextStack, options, fileName, callback)
+	def __init__(self, contextStack, options, specialOptions, fileName, callback) :
+		super().__init__(contextStack, options, specialOptions, fileName, callback)
 		self._functionRewriter = functionrewriter.FunctionRewriter(self)
 		self._ifRewriter = ifrewriter.IfRewriter(self)
 		self._constantManager = constantmanager.ConstantManager(self._options['stringEncoders'])
@@ -272,19 +283,21 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
 			if self._shouldSkip() :
 				return node
-			node = astutil.removeDocString(node)
+			node = self._removeDocString(node)
 			node = self._doGenericVisit(node)
 			extraNodeManager = extranodemanager.ExtraNodeManager()
 			extraNodeSourceList = [ self._constantManager, self._nopMaker, self._negationMaker ]
 			for item in extraNodeSourceList :
 				if item is not None :
 					item.loadExtraNode(extraNodeManager)
-			self._prependNodes(node.body, extraNodeManager.getNodeList(), self._findIndexNotImport(node.body))
+			index = 0
+			if rewriterutil.isNodeMarkedDocString(node) :
+				index = 1
+			self._prependNodes(node.body, extraNodeManager.getNodeList(), self._findIndexNotImport(node.body, index))
 			return node
 
 	# This is to avoid SyntaxError: from __future__ imports must occur at the beginning of the file
-	def _findIndexNotImport(self, nodeList) :
-		index = 0
+	def _findIndexNotImport(self, nodeList, index) :
 		for node in nodeList :
 			index += 1
 			if isinstance(node, ast.Constant) :
@@ -308,7 +321,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		with self._contextStack.pushContext(rewriterutil.getNodeContext(node)) :
 			if self._shouldSkip() :
 				return node
-			node = astutil.removeDocString(node)
+			node = self._removeDocString(node)
 			node.bases = self._doVisit(node.bases, context.Section.baseClass)
 			node.keywords = self._doVisit(node.keywords, context.Section.metaClass)
 			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
@@ -342,6 +355,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		currentContext = self.getCurrentContext()
 		if currentContext.isClass() and isinstance(node.ctx, ast.Store) :
 			return False
+		if self._needToKeepLocalVariables() :
+			return False
 		return True
 
 	def visit_Nonlocal(self, node) :
@@ -364,6 +379,8 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_constant) :
+			return self._doGenericVisit(node)
+		if not self._getOption(rewriter.OptionNames.removeDocString) and rewriterutil.isConstantNodeMarkedDocString(node) :
 			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
 			if self._getOption(rewriter.OptionNames.extractConstant) :
@@ -455,22 +472,44 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		else :
 			body.insert(index, nodeList)
 
+	def _removeDocString(self, node) :
+		if self._getOption(rewriter.OptionNames.removeDocString) :
+			node = astutil.removeDocString(node)
+		return node
+	
 	def getNegationMaker(self) :
 		if self._negationMaker is None :
-			self._negationMaker = negationmaker.NegationMaker(True)
+			self._negationMaker = negationmaker.NegationMaker()
 		self._negationMaker.setUseCompareWrapper(self._getOption(rewriter.OptionNames.wrapReversedCompareOperator))
+		self._negationMaker.setAllowReverseCompareOperator(self._getOption(rewriter.OptionNames.allowReverseCompareOperator))
 		return self._negationMaker
 	
 	def getTrueMaker(self) :
 		return self._trueMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
+specialOptionNames = [ rewriter.OptionNames.unrenamedVariableNames ]
 class _IRewriter :
 	def __init__(self, options, callback) :
 		super().__init__()
 		self._options = options
 		self._options[optionNameSkip] = False
 		self._callback = callback
+		self._specialOptions = {}
+		for name in specialOptionNames :
+			self._specialOptions[name] = self._options[name]
+			del self._options[name]
+		self._doInitOptions()
+
+	def _doInitOptions(self) :
+		names = self._specialOptions[rewriter.OptionNames.unrenamedVariableNames]
+		if names is None :
+			names = {}
+		elif isinstance(names, (list, tuple)) :
+			names = { n: 1 for n in names }
+		elif isinstance(names, str) :
+			names = { names: 1 }
+		self._specialOptions[rewriter.OptionNames.unrenamedVariableNames] = names
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
@@ -485,6 +524,7 @@ class _IRewriter :
 				visitor = visitorClass(
 					contextStack = contextStack,
 					options = options,
+					specialOptions = self._specialOptions,
 					fileName = fileName,
 					callback = self._callback
 				)

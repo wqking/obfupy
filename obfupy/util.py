@@ -37,7 +37,16 @@ def findFiles(path, recursive = True) :
 		fileList = list(p.rglob(pattern))
 	else :
 		fileList = list(p.glob(pattern))
-	return [ str(file) for file in fileList ]
+	return [ str(file.resolve()) for file in fileList ]
+
+def ensureLinuxPath(path) :
+	def convert(p) :
+		return str(pathlib.PurePosixPath(pathlib.PureWindowsPath(p)))
+
+	if isinstance(path, list) :
+		return [ convert(p) for p in path ]
+	else :
+		return convert(path)
 
 def listSymbols(documentManager, regexps = None) :
 	classNameSet = {}

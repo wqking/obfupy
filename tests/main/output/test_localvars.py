@@ -1,223 +1,223 @@
-(lI1IIII1Il1I, lII11l1IIllI, IIlI11l11II1, llIlII11I11I, IlIlIl1IlIl1, I1lllllII111, Ill1ll11IIlI, Il1l1111l1ll, lllIl1III1l1, IIIl1IllIlII, ll111IIlIIII, llI1111l11I1, l1II11l1l1Il, IllIIlIIIII1, l1ll111I1ll1, III1lIIl11ll, II1IlIlIII1l, I1IIIlllIlI1, l1Il1l1llllI, IllIl1llI111, l1llIlIIlI1l, ll1IIll11llI, lIlll111I1lI, lll1II1I1llI, l1llIll11111, lI1l11IIlI1l, II1IIlIl1ll1, lII1IIll1I1I, l1lllIlI1IlI, I111IllllIlI, I1I1lII11lI1, IllIIIl1IIll, lI1I1Il1ll1I, I11ll1IlI11I, IlIII11lIllI, ll11I1lIlIl1, I1I1Il1l1II1, lIIl1lI11Il1, l1ll111IIII1, l11ll1I1l1I1, llI1l11I1ll1, l1IIlI1I1l11, III11llIlllI, lIlIIIl1Il1I, IlII11l1I1lI, IIlI1Illll1l, IIII1l1IIIII, lII1Ill1llII, IIl11I111l1I, IlI1I1I111Il, II1IllI1l111, I11lI1I11l1l, l11lIIl11IIl, IIIllIIIIIIl, lII1l1lllIIl, I1I1lIlI1ll1, IIl11111l1I1, I1111lIlII1I, I1l1I11IlIll, Il1ll11l1l1I, ll1llIIIl11I, lIll1l11I1II, l1Il11l1llII, l11l1ll11I1I, IlI1l1I1II1I, lIl1Il1l11l1, IIlI1II1Ill1, l11II1lIllIl, l1ll1lI11lI1, l1IIIIIIl111, IlI1I1l111Il, II11lII11I1I, I1I1111IIlI1, lIIlI1ll1lIl, I1IIl11I1llI, lIlllIII111l, l1I1lIlIl11I, lI1ll11l1Il1) = (77308114 ^ 124329533 ^ (4823520 ^ 62596907), 876628213 + -41386090 + (796707947 - 1631950067), 949912347 + -267007060 + -(338748103 ^ 1015327745), 741549085 + -252219343 + -(159447833 ^ 346713950), range, 226440213 + -136263600 ^ (164221813 ^ 211169029), 175136441 ^ 211590469 ^ (766236809 ^ 726080378), 435590038 ^ 997618367 ^ 959355835 + -380484228, 144740471 ^ 357517746 ^ (439687402 ^ 131776825), (8356165 ^ 431649317) + -(863808812 ^ 716791414), ~-~-36, ~-671458404 ^ 818260986 + -146802641, 599681841 ^ 575291878 ^ (122131201 ^ 112441810), (315822079 ^ 297108625) + -(374717363 ^ 355676402), 973791177 ^ 579011363 ^ (607965823 ^ 1018498693), ~-~-3, ~-873076250 + -(146286719 ^ 1018314344), ~-722128416 ^ ~-722128406, 509473986 ^ 1020806327 ^ (418720436 ^ 980458199), 90657647 - 69709724 + (463780904 + -484728822), 493706005 - -432118775 - (414614921 ^ 798520181), ~(172377260 - 172377299), ~-918153516 ^ 918480513 - 327032, 657896506 + 179342490 ^ ~-837238978, (645654451 ^ 888486478) - (419530582 ^ 193944227), 861430430 ^ 157961112 ^ 17346283 + 959019596, 216336759 ^ 437422738 ^ ~-385319879, 892749949 - 538871076 ^ (193011997 ^ 513204837), ~-~-17, 874971590 + -766151784 + -(897500483 ^ 855814157), ~-(888814104 ^ 888814084), 420637622 - 293180741 - (948376661 + -820919802), (576183930 ^ 223374945) - (980106329 ^ 359435359), 982427426 + -765530397 - (379337009 ^ 443657431), ~-(569451733 ^ 569451738), 120580150 ^ 175625889 ^ (214743012 ^ 26511721), 312645750 ^ 844243520 ^ (39057999 ^ 581124216), 972630736 ^ 471682043 ^ (698404118 ^ 205827127), ~-987743093 ^ (682280804 ^ 309658635), (64586429 ^ 145923587) - (433085038 ^ 314263048), 153535875 + 803460036 ^ 857422809 + 99573097, ~-695203777 - (197488886 ^ 581601097), 104399531 ^ 110924537 ^ 154809820 - 143959396, ~-(72202691 ^ 72202697), 10742521 - -646355171 - (422189179 ^ 1040227233), 774926458 ^ 68218806 ^ 85947088 - -620834049, 968210744 ^ 483440940 ^ 22149138 + 605227018, ~-400124738 ^ (6744527 ^ 398426761), ~-(660994420 ^ 660994372), 146779920 - -29168307 ^ (859578383 ^ 960553421), ~-~-25, 706531099 ^ 151239682 ^ 782142817 + -192879144, 562732251 - -167128906 + -(156601491 ^ 584401036), 405308050 ^ 856571582 ^ (252407202 ^ 606982539), 686017634 - -229200639 + -(230854112 ^ 995070653), ~-~-33, 370024200 ^ 1031379594 ^ (813706826 ^ 469216228), 818728888 ^ 1037357678 ^ (204200268 ^ 20169915), ~-890332618 ^ (122358551 ^ 844787404), (127159328 ^ 652082689) + (341127116 - 899604963), '6_si'[::-1], 158356041 + 577544368 + (635939325 - 1371839687), ~-278512964 + -~-278512950, 280508913 - -222270392 ^ 74622029 - -428157249, 260073586 + -7243415 ^ (240097683 ^ 22968398), (430686759 ^ 408894931) - ~-32833523, ~-939913732 ^ (83915431 ^ 1023770788), '1_si'[::-1], (62286917 ^ 792715561) + -(728622087 ^ 132409610), ~-~-52, ~-(488844636 ^ 488844633), 371780485 + -187338907 ^ 179419505 - -5022077, 538082031 - -143813060 - ~-681895090, (95914539 ^ 484079967) - ~-426636142, ~-(694902699 ^ 694902663), 676588030 ^ 468948147 ^ 323031271 - -543124602, ~-564331141 ^ (270141454 ^ 834210449), ~-(439998913 ^ 439998926))
+import codecs
+(Il11I1I1Ill1, IIllI1IllI11, III1II11l11I, IllIIII11Ill, I1l1IIlI1lII, I1l11I1I11ll, l11Ill1l11l1, lIl1IIlIlll1, l1I111l111I1, lI1llllIIIlI, lI11lI111IlI, Il1l11l1l1Il, IIlIIII11IIl, lIIIl1I1llIl, lIlI1I11I11l, ll1IIllIIl11, llIlI1l1l11I, Il1IIllIIlII, l1ll111I1ll1, Il11l11lll1I, I1I11Ill1lIl, lIIIl11II111, I1I11IIl1Ill, l11111l1l1I1, l11I11lll11I, ll1Ill1ll1ll, llI1II1IlIll, l111IllIllI1, Il1II1111lll, I111III1I1II, I1I1I1IlI1ll, l1Il11I1lll1, ll1lllI1lIII, lI11II11Il1I, lI1I1IIII11l, lI1IlIIl1Il1, I1l1I1l1IIlI, lIlIIl1l11ll, Il1III1lI1lI, I11I11ll1III, ll1l1IIllllI, IIl11I11I1lI, I1l1llI1llIl, lI1l1l1lIIIl, l1ll1l11lIII, IlI1lI1Il11l, IIl1lI1llII1, II1lI11I1I1l, IlIIl11Il111, Ill11l11lIII, I11lll1l1Ill, Il11lIIIIlIl, I1ll11IIllll, ll11IlllIII1, IIIl1I11IIl1, lIl1I11lIlII, I111llI1IIll, II1II1II1lll, IIIII1I1llll, ll111III1II1, lIIIll1111l1, II1l11II1l1l, l1IlIlIII1lI, l11ll1lI11l1, lIlII1II1l1l, IIlll1llIlIl, l1l1l11II1lI, I11Il1lI111I, l1l1llIll1ll, I1l1lII1IIll, I1I1llI1I11I, llI1I1lIIII1, Il1II11I1IlI, IIlIIl1lll11) = ((413453146 ^ 63814615) + (587849723 - 1047744639), ~-(995609314 ^ 995609342), 926510493 + -664980002 ^ (389189338 ^ 413412751), 469537774 ^ 373132738 ^ (773092626 ^ 601189160), range, 812312707 + 111509975 + (117045100 + -1040867770), 929081869 ^ 325455502 ^ 876472038 - 272056888, 132299213 ^ 369629208 ^ 970401624 - 669812118, ~-(641881002 ^ 641880879), 144373861 + -53393056 - ~-90980803, (407969929 ^ 374204627) - (996277889 + -759510593), ~-629151473 ^ ~-629151443, 788536452 - 294847058 ^ (19911164 ^ 474139626), ~-463566404 + -(852694361 ^ 695362400), 723623991 ^ 819825339 ^ 110600316 + 358910491, codecs.decode(b'69735f31', 'hex').decode('utf-8'), 249726944 ^ 1071729650 ^ (736635461 ^ 451667570), 794068517 + -666968479 ^ 742865633 + -615765557, 290502923 ^ 904536643 ^ (12159880 ^ 604180673), (130897592 ^ 550413365) + (282498473 + -937068577), '6_si'[::-1], ~-986847312 ^ 200721262 + 786126035, 480207790 ^ 337282919 ^ ~-142992613, 799546268 ^ 158094042 ^ (857759773 ^ 367274329), ~-630651203 + (301085566 - 931736750), ~(965854284 - 965854299), 436378323 + 385611932 ^ (660765608 ^ 396159204), ~(684327632 - 684327670), ~(318990480 - 318990485), 796750875 ^ 1057090685 ^ 238892700 + 37708229, (241086996 ^ 685384228) + (422101088 + -1068322943), ~-68272289 ^ (195651490 ^ 263759630), 832166566 - -28120280 + (513846328 - 1374133164), (591317169 ^ 854672599) + -(218696029 ^ 482772242), ~-693144173 ^ (719226769 ^ 59641307), 678564500 ^ 538110160 ^ 665881980 - 525308688, 643204843 + -191753239 - (760855361 + -309403768), ~(401423116 - 401423122), (610879397 ^ 385699101) - (266247310 ^ 1028298287), 836965899 ^ 1058518670 ^ (490488736 ^ 331932448), (23460079 ^ 369403948) + -(494030582 ^ 169025098), 889577398 - -9334243 ^ (921695889 ^ 58440462), 451005465 ^ 305823657 ^ 882057205 - 733441096, 173234034 + 182771007 - (677272287 - 321267287), 874211017 - 188959124 ^ 673545839 + 11706055, 5593309 ^ 179743960 ^ (144931926 ^ 37783669), ~(685224226 + -685224263), ~-371762235 - ~-371762202, 856849221 + -476434805 ^ 591026712 + -210612293, 74209484 ^ 691491080 ^ ~-760941001, (793810740 ^ 752507392) + -(773730992 ^ 764739474), 633406472 - 152583168 + -~-480823300, 777106761 ^ 649056448 ^ 972175713 - 821285836, 345024472 ^ 494650564 ^ ~-166421277, ~-847243533 ^ ~-847243562, ~-~-29, (26627621 ^ 360828050) + (566119226 - 903204335), 892416889 ^ 718730310 ^ 996360215 - 461076714, 498925043 ^ 252378990 ^ 712047928 - 398129823, 76592305 ^ 922770879 ^ (768864081 ^ 507709053), 954913419 - 309940194 ^ ~-644973243, (384046992 ^ 254625399) - (561551113 + -128927011), 469086350 ^ 916454949 ^ (189632547 ^ 640147085), 482093046 ^ 353525212 ^ (533832688 ^ 377477570), ~-(700651257 ^ 700651241), 82549063 + 440143337 ^ 211443606 + 311248804, 639041905 - 376629203 ^ 643278664 + -380865962, (312859907 ^ 969785722) - (883621758 ^ 532865826), (307978862 ^ 938320209) - (175856465 ^ 802003013), ~-770816640 ^ (410229119 ^ 897721138), 575051668 ^ 704404089 ^ 396600303 + -199808510, ~-908053611 ^ 851820754 - -56232857, (182027278 ^ 778754618) - ~-615734836, 131134367 ^ 669573351 ^ (84149295 ^ 624695108))
+I1lIl1lIlI11 = lambda I111IIllI111: True
+l1Il1IllIl1l = lambda I111IIllI111: I111IIllI111
 
-def II1l1111111I(I1lIII11IIl1):
-    return True
-
-def IIII11l1IllI(I1lIII11IIl1):
-    return I1lIII11IIl1
-
-class I11I1l1lI11l:
+class IllIIIl11lII:
 
     @staticmethod
-    def lI11ll1IllI1(l1I1I111IIlI):
+    def Il11IIl1IIl1(IlllI1l1lllI):
         return True
 
     @staticmethod
-    def IlIlIII1111l(l1I1I111IIlI):
-        return l1I1I111IIlI
-I11II1lI1l1I = lambda lll1IlIl11I1: True
-lIl1I1IllI11 = lambda lll1IlIl11I1: lll1IlIl11I1
+    def ll1lI1llIIll(IlllI1l1lllI):
+        return IlllI1l1lllI
 
-def l1I11IIl1IlI(lIlllI111lll, IIlllll1l1Il):
+def llIIIlIll1II(IIIlIlI1I1lI):
+    return True
+
+def lIIlIll1l1I1(IIIlIlI1I1lI):
+    return IIIlIlI1I1lI
+
+def lI11lIIl1lII(lII1IIIlIl1I, II1II1llllII):
     try:
-        return lIlllI111lll != IIlllll1l1Il
+        return lII1IIIlIl1I != II1II1llllII
     except:
-        return not lIlllI111lll == IIlllll1l1Il
+        return not lII1IIIlIl1I == II1II1llllII
 
-def lIIl1Il1Il1l(lI1lllIII1I1, IIIll11lll11):
+def llIl1I1l1III(lll111I11II1, I11III1l1l1l):
     try:
-        return lI1lllIII1I1 <= IIIll11lll11
+        return lll111I11II1 <= I11III1l1l1l
     except:
-        return not lI1lllIII1I1 > IIIll11lll11
+        return not lll111I11II1 > I11III1l1l1l
 
-def I111IIIIllI1(lIlI1II1lI1l, lII11llII1lI):
+def I1llll11lIIl(IlI11lI11Il1, IIlIlIl1lIIl):
     try:
-        return lIlI1II1lI1l >= lII11llII1lI
+        return IlI11lI11Il1 >= IIlIlIl1lIIl
     except:
-        return not lIlI1II1lI1l < lII11llII1lI
+        return not IlI11lI11Il1 < IIlIlIl1lIIl
 
-def llll1Ill11ll():
-    IlIlI11Ill1I_a_85621 = IIlI11l11II1
-    assert not l1I11IIl1IlI(IlIlI11Ill1I_a_85621, IIlI11l11II1)
-    (IlIlI11Ill1I_a_85621, IIl1IIIl1I11_b_60444) = (II1IlIlIII1l, lII11l1IIllI)
-    I1Illl1llllI_c_96296 = IlIlI11Ill1I_a_85621 + IIl1IIIl1I11_b_60444
-    IIl1IIIl1I11_b_60444 = llI1l11I1ll1
-    I1Illl1llllI_c_96296 += IIl1IIIl1I11_b_60444
-    assert not l1I11IIl1IlI(I1Illl1llllI_c_96296, Il1ll11l1l1I)
+def I1l1lIlII1ll():
+    lIll1l1IIIIl_a_92403 = Il1II11I1IlI
+    assert not lI11lIIl1lII(lIll1l1IIIIl_a_92403, Il1II11I1IlI)
+    (lIll1l1IIIIl_a_92403, lIl1l1Illl1l_b_58507) = (l11111l1l1I1, IlIIl11Il111)
+    llIIIlIIlIIl_c_82576 = lIll1l1IIIIl_a_92403 + lIl1l1Illl1l_b_58507
+    lIl1l1Illl1l_b_58507 = lIlIIl1l11ll
+    llIIIlIIlIIl_c_82576 += lIl1l1Illl1l_b_58507
+    assert not lI11lIIl1lII(llIIIlIIlIIl_c_82576, ll1lllI1lIII)
 
 def test_localVariable():
-    return llll1Ill11ll()
+    return I1l1lIlII1ll()
 
-def II1l11IlI1I1():
-    Illll1lI11Il_a_75033 = llI1l11I1ll1
+def I11IllIlIl1I():
+    I1I11lIllIlI_a_33884 = lIlIIl1l11ll
 
     def nested(b):
-        l11I1llIl1lI_b_78001 = b
-        nonlocal Illll1lI11Il_a_75033
-        assert not l1I11IIl1IlI(Illll1lI11Il_a_75033, l11I1llIl1lI_b_78001)
-        Illll1lI11Il_a_75033 = Illll1lI11Il_a_75033 + IlI1I1I111Il
-        assert not l1I11IIl1IlI(Illll1lI11Il_a_75033, l11I1llIl1lI_b_78001 + l1IIlI1I1l11)
-    nested(IllIl1llI111)
-    assert not l1I11IIl1IlI(Illll1lI11Il_a_75033, l11lIIl11IIl)
-    Illll1lI11Il_a_75033 = Illll1lI11Il_a_75033 + l1IIlI1I1l11
-    Illll1lI11Il_a_75033 += IlII11l1I1lI
-    assert not l1I11IIl1IlI(Illll1lI11Il_a_75033, lIlIIIl1Il1I)
+        IIlI1l11IIl1_b_6781 = b
+        nonlocal I1I11lIllIlI_a_33884
+        assert not lI11lIIl1lII(I1I11lIllIlI_a_33884, IIlI1l11IIl1_b_6781)
+        I1I11lIllIlI_a_33884 = I1I11lIllIlI_a_33884 + II1l11II1l1l
+        assert not lI11lIIl1lII(I1I11lIllIlI_a_33884, IIlI1l11IIl1_b_6781 + Il1II11I1IlI)
+    nested(l1IlIlIII1lI)
+    assert not lI11lIIl1lII(I1I11lIllIlI_a_33884, IIl11I11I1lI)
+    I1I11lIllIlI_a_33884 = I1I11lIllIlI_a_33884 + Il1II11I1IlI
+    I1I11lIllIlI_a_33884 += l11111l1l1I1
+    assert not lI11lIIl1lII(I1I11lIllIlI_a_33884, Il11I1I1Ill1)
 
 def test_variableInNestedFunction():
-    return II1l11IlI1I1()
-globalA = ll1IIll11llI
+    return I11IllIlIl1I()
+globalA = IlI1lI1Il11l
 
-def l1lI1lIIll1I():
+def ll1lII1lllI1():
 
     def nested():
         global globalA
-        globalA = Il1ll11l1l1I
+        globalA = ll1lllI1lIII
     global globalA
-    globalA = IIlI1II1Ill1
+    globalA = ll11IlllIII1
     nested()
-    assert not l1I11IIl1IlI(globalA, I1IIIlllIlI1)
+    assert not lI11lIIl1lII(globalA, ll1lllI1lIII)
 
 def test_globalVariable():
-    return l1lI1lIIll1I()
+    return ll1lII1lllI1()
 
-def ll11IlIlll1l():
-    lI1l11I1lIII_a_37664 = IIlI11l11II1
-    l1II11llIIlI_b_78533 = not lIIl1Il1Il1l((lI1l11I1lIII_a_37664 := I1I1111IIlI1), III1lIIl11ll)
-    assert l1II11llIIlI_b_78533
-    assert not l1I11IIl1IlI(lI1l11I1lIII_a_37664, I1I1111IIlI1)
-    l1II11llIIlI_b_78533 = not I111IIIIllI1((ll1IlII1lI1l_c_44485 := lII11l1IIllI), IIlI1II1Ill1)
-    assert not l1II11llIIlI_b_78533
-    assert not l1I11IIl1IlI(ll1IlII1lI1l_c_44485, lII11l1IIllI)
-    ll1IlII1lI1l_c_44485 = IIIllIIIIIIl
-    assert not l1I11IIl1IlI(ll1IlII1lI1l_c_44485, llI1l11I1ll1)
+def IllIl1I111l1():
+    IIll1II1l1Il_a_84204 = Il1II11I1IlI
+    llI1IIlIII1l_b_28823 = not llIl1I1l1III((IIll1II1l1Il_a_84204 := l11111l1l1I1), l1ll111I1ll1)
+    assert llI1IIlIII1l_b_28823
+    assert not lI11lIIl1lII(IIll1II1l1Il_a_84204, l11111l1l1I1)
+    llI1IIlIII1l_b_28823 = not I1llll11lIIl((I1lI1lIl1l1I_c_70808 := l1ll1l11lIII), l1l1l11II1lI)
+    assert not llI1IIlIII1l_b_28823
+    assert not lI11lIIl1lII(I1lI1lIl1l1I_c_70808, lI1llllIIIlI)
+    I1lI1lIl1l1I_c_70808 = Il11lIIIIlIl
+    assert not lI11lIIl1lII(I1lI1lIl1l1I_c_70808, Il11lIIIIlIl)
 
 def test_walrus():
-    return ll11IlIlll1l()
+    return IllIl1I111l1()
 
-def ll1III1111I1():
-    Il111IIlll1l_a_72806 = l1IIlI1I1l11
-    lIIIIl11ll1I_s_73779 = f'is_{Il111IIlll1l_a_72806}'
-    assert not l1I11IIl1IlI(lIIIIl11ll1I_s_73779, l11II1lIllIl)
-    Il111IIlll1l_a_72806 += IIIllIIIIIIl
-    lIIIIl11ll1I_s_73779 = f'is_{Il111IIlll1l_a_72806}'
-    assert not l1I11IIl1IlI(lIIIIl11ll1I_s_73779, ll1llIIIl11I)
+def Il1lI1I1ll1I():
+    I1I1IlIllI1I_a_58330 = Il1II11I1IlI
+    IIIlIIlIlIlI_s_26057 = f'is_{I1I1IlIllI1I_a_58330}'
+    assert not lI11lIIl1lII(IIIlIIlIlIlI_s_26057, ll1IIllIIl11)
+    I1I1IlIllI1I_a_58330 += I11I11ll1III
+    IIIlIIlIlIlI_s_26057 = f'is_{I1I1IlIllI1I_a_58330}'
+    assert not lI11lIIl1lII(IIIlIIlIlIlI_s_26057, I1I11Ill1lIl)
 
 def test_fString():
-    return ll1III1111I1()
+    return Il1lI1I1ll1I()
 
-def l11IlIIIIllI():
-    IIllIlI11l11_n_47160 = IIlI1II1Ill1
-    for I1IIl1IlIIll in IlIlIl1IlIl1(lI1l11IIlI1l, l1IIIIIIl111):
-        for IlIIllI11l11___52258 in IlIlIl1IlIl1(II1IlIlIII1l):
-            Il1ll11l1Il1 = I1lllllII111
-            I1ll111l111l = Il1l1111l1ll
-            if not II1l1111111I(ll1IIll11llI):
-                I1ll111l111l = l11l1ll11I1I
+def I1lllIII1IIl():
+    llIl11IlI11l_n_74188 = ll11IlllIII1
+    for IllII11IIIIl___29831 in I1l1IIlI1lII(I111llI1IIll):
+        lIl111I1II11 = I11lll1l1Ill
+        I11llIIl1I11 = IIIl1I11IIl1
+        if not IIlIIII11IIl:
+            I11llIIl1I11 = lI11II11Il1I
+        else:
+            I11llIIl1I11 = lI11lI111IlI
+        if I11llIIl1I11 == lI11lI111IlI:
+            if not lIlII1II1l1l:
+                I11llIIl1I11 = Il1III1lI1lI
             else:
-                I1ll111l111l = II1IlIlIII1l
-            if I1ll111l111l == lIl1Il1l11l1:
-                IlII11I1I1II = IIIl1IllIlII
-                I1I1Illl11II = lII1Ill1llII
-                III1I11I11II = lIl1Il1l11l1
-                if not IIlI1Illll1l:
-                    III1I11I11II = lII1Ill1llII
+                I11llIIl1I11 = l11I11lll11I
+        if I11llIIl1I11 == lIl1IIlIlll1:
+            lIl111I1II11 = IIIl1I11IIl1
+        if I11llIIl1I11 == II1II1II1lll:
+            lIl111I1II11 = IIlIIII11IIl
+        if lIl111I1II11 == IIl1lI1llII1:
+            I1I1Illl111l = lIIIll1111l1
+            if not l1l1llIll1ll:
+                I1I1Illl111l = lIlI1I11I11l
+            else:
+                I1I1Illl111l = I111llI1IIll
+            if I1I1Illl111l == l11111l1l1I1:
+                ll11I1lll1I1 = I1l1lII1IIll
+                lIl1IllIl11I = IllIIII11Ill
+                IIlI1111lIIl = I1l1llI1llIl
+                if not llIIIlIll1II(II1II1II1lll):
+                    IIlI1111lIIl = l11111l1l1I1
                 else:
-                    III1I11I11II = lIll1l11I1II
-                if III1I11I11II == lIIlI1ll1lIl:
-                    if not I11II1lI1l1I(IlII11l1I1lI):
-                        III1I11I11II = IIl11I111l1I
+                    IIlI1111lIIl = lI1IlIIl1Il1
+                if IIlI1111lIIl == lI1IlIIl1Il1:
+                    if not lI11II11Il1I:
+                        IIlI1111lIIl = I111llI1IIll
                     else:
-                        III1I11I11II = IllIIlIIIII1
-                if III1I11I11II == IllIIlIIIII1:
-                    I1I1Illl11II = lI1IIII1Il1I
-                if III1I11I11II == IIl11I111l1I:
-                    I1I1Illl11II = lIlllIII111l
-                if I1I1Illl11II == lI1IIII1Il1I:
-                    lllll1I1IIIlllII = III1lIIl11ll
-                    if not l1I1lIlIl11I:
-                        lllll1I1IIIlllII = lllIl1III1l1
+                        IIlI1111lIIl = lI1l1l1lIIIl
+                if IIlI1111lIIl == l11111l1l1I1:
+                    lIl1IllIl11I = III1II11l11I
+                if IIlI1111lIIl == lI1l1l1lIIIl:
+                    lIl1IllIl11I = Il1l11l1l1Il
+                if lIl1IllIl11I == Il1l11l1l1Il:
+                    lIllllI1ll1l = l1I111l111I1
+                    if not Il11l11lll1I:
+                        lIllllI1ll1l = I1I1llI1I11I
                     else:
-                        lllll1I1IIIlllII = l11ll1I1l1I1
-                    if lllll1I1IIIlllII == l11ll1I1l1I1:
-                        if not ll11I1lIlIl1:
-                            lllll1I1IIIlllII = I1I1lII11lI1
+                        lIllllI1ll1l = IIlll1llIlIl
+                    if lIllllI1ll1l == I1ll11IIllll:
+                        if not IIllI1IllI11:
+                            lIllllI1ll1l = ll1lllI1lIII
                         else:
-                            lllll1I1IIIlllII = l1Il1l1llllI
-                    if lllll1I1IIIlllII == l1ll111IIII1:
-                        I1I1Illl11II = lIlllIII111l
-                    if lllll1I1IIIlllII == l1Il1l1llllI:
-                        I1I1Illl11II = II1IIlIl1ll1
-                if I1I1Illl11II == II1IIlIl1ll1:
-                    IlII11I1I1II = l1II11l1l1Il
-                if I1I1Illl11II == IIl11111l1I1:
-                    IlII11I1I1II = I1IIl11I1llI
-                if IlII11I1I1II == I1IIl11I1llI:
-                    l1llllIl1III = IIII1l1IIIII
-                    IIllllIIIlIl = lII1l1lllIIl
-                    if not l1I11IIl1IlI(lII1IIll1I1I, I1111lIlII1I):
-                        IIllllIIIlIl = lII1Ill1llII
+                            lIllllI1ll1l = llI1II1IlIll
+                    if lIllllI1ll1l == llI1II1IlIll:
+                        lIl1IllIl11I = III1II11l11I
+                    if lIllllI1ll1l == lIIIl1I1llIl:
+                        lIl1IllIl11I = I1l11I1I11ll
+                if lIl1IllIl11I == III1II11l11I:
+                    ll11I1lll1I1 = I1l1llI1llIl
+                if lIl1IllIl11I == Ill11l11lIII:
+                    ll11I1lll1I1 = Il11I1I1Ill1
+                if ll11I1lll1I1 == Il11I1I1Ill1:
+                    lI1IIlI1IIl1 = IIlIIII11IIl
+                    IlIllIl1lll1 = II1lI11I1I1l
+                    if not l1Il11I1lll1:
+                        IlIllIl1lll1 = l11ll1lI11l1
                     else:
-                        IIllllIIIlIl = l1ll111I1ll1
-                    if IIllllIIIlIl == llIlII11I11I:
-                        if not I11I1l1lI11l.lI11ll1IllI1(IlI1l1I1II1I):
-                            IIllllIIIlIl = I111IllllIlI
+                        IlIllIl1lll1 = ll1l1IIllllI
+                    if IlIllIl1lll1 == l11ll1lI11l1:
+                        if not IIllI1IllI11:
+                            IlIllIl1lll1 = ll1l1IIllllI
                         else:
-                            IIllllIIIlIl = l1Il11l1llII
-                    if IIllllIIIlIl == lI1ll11l1Il1:
-                        l1llllIl1III = l1lllIlI1IlI
-                    if IIllllIIIlIl == l1llIlIIlI1l:
-                        l1llllIl1III = I1l1I11IlIll
-                    if l1llllIl1III == l1lllIlI1IlI:
-                        I1I1IllIlIIl = IlI1l1I1II1I
-                        if not I11II1lI1l1I(IlII11l1I1lI):
-                            I1I1IllIlIIl = I1IIIlllIlI1
+                            IlIllIl1lll1 = Il11l11lll1I
+                    if IlIllIl1lll1 == I111III1I1II:
+                        lI1IIlI1IIl1 = I1I1I1IlI1ll
+                    if IlIllIl1lll1 == Il11l11lll1I:
+                        lI1IIlI1IIl1 = ll111III1II1
+                    if lI1IIlI1IIl1 == I1I1I1IlI1ll:
+                        llIIIlII111I = l111IllIllI1
+                        if not I1lIl1lIlI11(lI1I1IIII11l):
+                            llIIIlII111I = ll1Ill1ll1ll
                         else:
-                            I1I1IllIlIIl = IlIII11lIllI
-                        if I1I1IllIlIIl == lI1ll11l1Il1:
-                            if not II1l1111111I(l11lIIl11IIl):
-                                I1I1IllIlIIl = lIIl1lI11Il1
+                            llIIIlII111I = l11Ill1l11l1
+                        if llIIIlII111I == lIIIl11II111:
+                            if not IllIIIl11lII.Il11IIl1IIl1(I1l1I1l1IIlI):
+                                llIIIlII111I = l11Ill1l11l1
                             else:
-                                I1I1IllIlIIl = IllIIIl1IIll
-                        if I1I1IllIlIIl == I1IIIlllIlI1:
-                            l1llllIl1III = I1l1I11IlIll
-                        if I1I1IllIlIIl == IllIIIl1IIll:
-                            l1llllIl1III = I11lI1I11l1l
-                    if l1llllIl1III == I11lI1I11l1l:
-                        IlII11I1I1II = lll1II1I1llI
-                    if l1llllIl1III == I1l1I11IlIll:
-                        IlII11I1I1II = IlI1I1l111Il
-                if IlII11I1I1II == lI1I1Il1ll1I:
-                    I1ll111l111l = I1I1lIlI1ll1
-                if IlII11I1I1II == II11lII11I1I:
-                    I1ll111l111l = l11l1ll11I1I
-            if I1ll111l111l == l11l1ll11I1I:
-                Il1ll11l1Il1 = ll111IIlIIII
-            if I1ll111l111l == I11ll1IlI11I:
-                Il1ll11l1Il1 = lIlllIII111l
-            if Il1ll11l1Il1 == IIl11111l1I1:
-                lIIII11Ill11 = Ill1ll11IIlI
-                if not I11II1lI1l1I(I11lI1I11l1l):
-                    lIIII11Ill11 = IIII1l1IIIII
-                else:
-                    lIIII11Ill11 = ll1IIll11llI
-                if lIIII11Ill11 == l1llIll11111:
-                    if not lIIl1Il1Il1l(III11llIlllI, llI1111l11I1):
-                        lIIII11Ill11 = ll1IIll11llI
-                    else:
-                        lIIII11Ill11 = l1ll1lI11lI1
-                if lIIII11Ill11 == l1ll1lI11lI1:
-                    Il1ll11l1Il1 = ll111IIlIIII
-                if lIIII11Ill11 == ll1IIll11llI:
-                    Il1ll11l1Il1 = II1IllI1l111
-            if Il1ll11l1Il1 == lIlll111I1lI:
+                                llIIIlII111I = I1l1lII1IIll
+                        if llIIIlII111I == I1I11IIl1Ill:
+                            lI1IIlI1IIl1 = ll1Ill1ll1ll
+                        if llIIIlII111I == I1l1lII1IIll:
+                            lI1IIlI1IIl1 = Il1l11l1l1Il
+                    if lI1IIlI1IIl1 == lIIIl11II111:
+                        ll11I1lll1I1 = Il1II1111lll
+                    if lI1IIlI1IIl1 == Il1l11l1l1Il:
+                        ll11I1lll1I1 = I11Il1lI111I
+                if ll11I1lll1I1 == I11Il1lI111I:
+                    I1I1Illl111l = IIllI1IllI11
+                if ll11I1lll1I1 == IIIII1I1llll:
+                    I1I1Illl111l = Il1IIllIIlII
+            if I1I1Illl111l == lIl1I11lIlII:
+                lIl111I1II11 = llIlI1l1l11I
+            if I1I1Illl111l == Il1IIllIIlII:
+                lIl111I1II11 = lIIIll1111l1
+        if lIl111I1II11 == IIlIIl1lll11:
+            try:
+                llIl11IlI11l_n_74188 = lI1I1I111III_a_12466
+            except:
                 pass
-            if Il1ll11l1Il1 == II1IllI1l111:
-                try:
-                    IIllIlI11l11_n_47160 = I11l1lll1Ill_a_42059
-                except:
-                    pass
-                I11l1lll1Ill_a_42059 = III1lIIl11ll
-    assert not l1I11IIl1IlI(IIllIlI11l11_n_47160, I1I1Il1l1II1)
+            lI1I1I111III_a_12466 = l1ll111I1ll1
+        if lIl111I1II11 == l111IllIllI1:
+            pass
+    assert not lI11lIIl1lII(llIl11IlI11l_n_74188, llI1I1lIIII1)
 
 def test_useBeforeAssign():
-    return l11IlIIIIllI()
+    return I1lllIII1IIl()

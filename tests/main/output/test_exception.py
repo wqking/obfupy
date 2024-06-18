@@ -1,18 +1,18 @@
-(IlIlI11IlI11, llI1l1I11I1l, II1IIl1llI1l, llIIlllIIIII) = (565457089 - 151932320 ^ ~-413524770, None, None, (251767187 ^ 972862236) - (384534607 + 538022463))
+(IIIl1lIIl1l1, ll1lIl1IIllI, IIl1llllI1ll, lIIII11lI1lI) = (None, None, (889723297 ^ 792080755) + -(269496097 ^ 170788848), 851985067 + -96507611 ^ (626499977 ^ 139463257))
 
-def Il1l11IllIlI():
-    lllIIIllIlI1_e_66338 = II1IIl1llI1l
+def IIIl11l1ll11():
+    l1l1Il1lIl1I_e_59192 = IIIl1lIIl1l1
     try:
-        llIIlllIIIII / IlIlI11IlI11
-    except Exception as lllIIIllIlI1_e_66338:
-        return lllIIIllIlI1_e_66338
-    return llI1l1I11I1l
+        IIl1llllI1ll / lIIII11lI1lI
+    except Exception as l1l1Il1lIl1I_e_59192:
+        return l1l1Il1lIl1I_e_59192
+    return ll1lIl1IIllI
 
 def funcException1():
-    return Il1l11IllIlI()
+    return IIIl11l1ll11()
 
-def llIIlllI1I1l():
-    assert not funcException1() is llI1l1I11I1l
+def l11lllIll111():
+    assert not funcException1() is ll1lIl1IIllI
 
 def test_funcException1():
-    return llIIlllI1I1l()
+    return l11lllIll111()

@@ -8,24 +8,32 @@ class OptionNames(str, enum.Enum) :
 	extractConstant = 'extractConstant'
 	extractBuiltinFunction = 'extractBuiltinFunction'
 	renameLocalVariable = 'renameLocalVariable'
+	aliasFunctionArgument = 'aliasFunctionArgument'
 	addNopControlFlow = 'addNopControlFlow'
 	reverseBoolOperator = 'reverseBoolOperator'
+	allowReverseCompareOperator = 'allowReverseCompareOperator'
 	wrapReversedCompareOperator = 'wrapReversedCompareOperator'
 	expandIfCondition = 'expandIfCondition'
 	rewriteIf = 'rewriteIf'
+	removeDocString = 'removeDocString'
 	stringEncoders = 'stringEncoders'
+	unrenamedVariableNames = 'unrenamedVariableNames'
 
 defaultOptions = {
 	OptionNames.extractFunction : True,
 	OptionNames.extractConstant : True,
 	OptionNames.extractBuiltinFunction : True,
 	OptionNames.renameLocalVariable : True,
+	OptionNames.aliasFunctionArgument : True,
 	OptionNames.addNopControlFlow : True,
 	OptionNames.reverseBoolOperator : True,
+	OptionNames.allowReverseCompareOperator : False,
 	OptionNames.wrapReversedCompareOperator : True,
 	OptionNames.expandIfCondition : True,
 	OptionNames.rewriteIf : True,
-	OptionNames.stringEncoders : stringencoders.defaultEncoders
+	OptionNames.removeDocString : True,
+	OptionNames.stringEncoders : stringencoders.defaultEncoders,
+	OptionNames.unrenamedVariableNames : None,
 }
 
 class Rewriter :

@@ -1,9 +1,9 @@
 import importa
 
-def IlII1lIllI1I():
-    Il1I1Illlll1_a_40883 = importa.ClassA()
-    Il1I1Illlll1_a_40883.sayHello()
-    l1lI1lIl11Il_arg_10445 = importa.ArgumentParser()
+def Il1I1II1IIIl():
+    Ill1I1II11l1_a_50826 = importa.ClassA()
+    Ill1I1II11l1_a_50826.sayHello()
+    lllll1l1llII_arg_90498 = importa.ArgumentParser()
 
 def test_main():
-    return IlII1lIllI1I()
+    return Il1I1II1IIIl()

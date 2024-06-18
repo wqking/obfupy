@@ -16,7 +16,7 @@ class FunctionRewriter :
 		with self._visitor._contextStack.pushContext(rewriterutil.getNodeContext(node)) as currentContext :
 			if self._visitor._shouldSkip() :
 				return node
-			node = astutil.removeDocString(node)
+			node = self._visitor._removeDocString(node)
 			node.decorator_list = self._visitor._doVisit(node.decorator_list, context.Section.decorator)
 			newNode = self._doExtractFunction(node)
 			if newNode is not None :
@@ -34,7 +34,8 @@ class FunctionRewriter :
 			currentContext.renameSymbol(item['argName'], item['newName'])
 		node.body = self._visitor._doVisit(node.body, context.Section.body)
 		if renamedArgs['node'] is not None :
-			node.body.insert(0, renamedArgs['node'])
+			index = rewriterutil.findFirstInsertableIndex(node)
+			node.body.insert(index, renamedArgs['node'])
 		node.args = self._visitor._doVisitArgumentDefaults(node.args)
 		return node
 	
@@ -52,6 +53,8 @@ class FunctionRewriter :
 		if currentContext.isNameSeen('super') :
 			return False
 		if currentContext.isFeatureSeen(rewriterutil.featureYield) :
+			return False
+		if self._visitor._needToKeepLocalVariables() :
 			return False
 		parentContext = currentContext
 		while True :
@@ -113,7 +116,11 @@ class FunctionRewriter :
 		newBody = ast.Return(
 			value = newCall
 		)
-		node.body = [ newBody ]
+		if rewriterutil.isNodeMarkedDocString(node) :
+			node.body = [ node.body[0] ]
+		else :
+			node.body = []
+		node.body += [ newBody ]
 		self._visitor._contextStack.getTopScopedContext().addSiblingNode(newFuncNode)
 		return node
 	
@@ -158,8 +165,19 @@ class FunctionRewriter :
 		)
 
 	def _doCreateRenamedArgs(self, node) :
-		renamedArgList = []
 		currentContext = self._visitor.getCurrentContext()
+		canRename = True
+		if not self._visitor._getOption(rewriter.OptionNames.aliasFunctionArgument) :
+			canRename = False
+		if self._visitor._needToKeepLocalVariables() :
+			canRename = False
+		if not canRename :
+			return {
+				'node' : None,
+				'renamedArgList' : [],
+			}
+
+		renamedArgList = []
 		
 		def callback(argItem) :
 			renamedArgList.append({

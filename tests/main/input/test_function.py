@@ -139,3 +139,13 @@ def fundInnerInCondition(b) :
 def test_fundInnerInCondition() :
 	assert fundInnerInCondition(True) == "abc"
 	assert fundInnerInCondition(False)() == 3
+
+def test_locals() :
+	a = 5
+	assert locals()['a'] == 5
+
+def funcLocalsOfArgs(a, b) :
+	return locals()['a'] + locals()['b']
+
+def test_funcLocalsOfArgs() :
+	assert funcLocalsOfArgs(5, 6) == 11

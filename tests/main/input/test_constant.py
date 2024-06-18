@@ -29,3 +29,11 @@ def test_unicodeString() :
 	a = "\u2028"
 	assert len(a) == 1
 	assert a == "\u2028"
+
+def test_builtinFunctionAsNestedFunc() :
+	def open() :
+		return open.value
+	open.value = 5
+	assert open.value == 5
+	assert open() == 5
+

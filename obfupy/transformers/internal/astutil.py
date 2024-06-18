@@ -162,15 +162,20 @@ def enumerateArguments(arguments, callback) :
 				continue
 			callback(argItem)
 
-def removeDocString(node) :
+def isChildDocString(node) :
 	# See get_raw_docstring in Python built-in ast.py
 	if len(node.body) == 0 :
-		return node
+		return False
 	child = node.body[0]
 	if not isinstance(child, ast.Expr) :
-		return node
+		return False
 	child = child.value
 	if not isinstance(child, ast.Constant) or not isinstance(child.value, str) :
+		return False
+	return True
+
+def removeDocString(node) :
+	if not isChildDocString(node) :
 		return node
 	node.body = node.body[1 : ]
 	if len(node.body) == 0 :

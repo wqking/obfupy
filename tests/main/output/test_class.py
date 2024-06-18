@@ -1,148 +1,148 @@
-(IlI1Ill1llll, lI1lllll11ll, IlIIl11I11lI, IllIIIlII1ll, IllllIlIl11l, IlI1IIllIIll, IlIlIllll1l1, IIlIl1lI1llI, IIllll11I111, lll1IllIlll1, lll1IIIll11l, Ill1I11IIIl1, l1l11I11II11, IlII1I1lIlII, IlIII1III11l, l1l111IIl1II, I1lI11I1Il11, Il1l1111l111, lllII1Il111I, II1Il1lll1lI, I1IIIl1llI1I, I11IIIll1Ill, lIlIIlI11I1I, l1lIIl1I1I1l, lI11I1IlI1I1, l111IlI1lIlI, Illl1I11lIIl, llIIIllI11Il, lllll1Illll1, llIll1II1l1l, lll1llIIlll1, Il1Ill1II1l1, Ill111IIlIlI, llI111IlII1I, Ill1IlI111Il, Il1I1II111Il) = (~-(125480472 ^ 125480450), 196640562 - -56140357 + (418217952 - 670998870), 712342387 + 55093177 ^ (4600340 ^ 771232026), 415464727 + -168019328 ^ 793197650 + -545752216, ~-~-8, 451656825 - 132898462 ^ (75426468 ^ 377567081), 532079679 - -206233916 + (104915260 + -843228853), ~(902917740 - 902917747), 561493810 - 503816767 ^ (357482355 ^ 373205889), 521562360 - 177174028 ^ 801150855 + -456762523, 263716032 + -58961898 ^ ~-204754141, 898907410 + -487683954 ^ 515972505 + -104749046, 573320304 + 295238810 + -(763705757 ^ 507515034), 247518865 - -227832210 ^ 50745163 - -424605877, 774470055 ^ 235751395 ^ (197274374 ^ 736499024), ~(684183265 + -684183301), 928883598 ^ 46269042 ^ (45468482 ^ 925526717), ~-~-11, (544919208 ^ 361955957) - (551711630 + 352803114), 710505534 + -42926344 - (916334119 ^ 290739473), ~(987127055 - 987127094), 440745846 + 293731319 ^ (64134927 ^ 672506977), ~-761903101 + (530132824 + -1292035921), 189359410 + 119076545 ^ ~-308435947, ~-432890217 ^ 857639018 - 424748808, 656768719 + -170939193 ^ (83140258 ^ 402765081), ~-(380473094 ^ 380473089), (51638627 ^ 676530971) + -(615828654 ^ 267663074), ~-(958309423 ^ 958309382), 541359008 + -244664622 ^ (57260521 ^ 315001786), ~-90930941 ^ (751872616 ^ 700175543), ~-861681740 - (232543668 ^ 1048604049), ~-61325994 ^ (882230347 ^ 926025457), 625814996 ^ 64546234 ^ (978695832 ^ 482377459), ~-586097772 ^ ~-586097735, 660047372 + 24928038 ^ ~-684975364)
+(lII1I1lll1I1, IIII11IIlIlI, lll1lIIIlIll, I1IIl1111l1I, I1Il111IlI1l, IIl1lI1Ill11, l1Il1l1Il1l1, IIIIl11lIl1I, l1ll111Il1I1, IlII1llIIllI, Il1llI111ll1, Il1111I11IlI, llIIllIllI1l, llI11I11llII, III1IllIl1Il, Il1llI11l1I1, I1111l1I1I1l, lIl1lll1l11l, l1I1I11lIII1, lIl11I11Il1I, I1lllIll1I1I, lI11llIII1I1, lI1III1lll1I, lI1l1l1IlIlI, IlIllllII1Il, II11111l1II1, I11IllIIl1I1, Il1IIlIII1I1, IlIl1I11IllI, Il11lIlI111l, l1111I1IlII1, l11111III1I1, lll1IIlll1l1) = (~-(406998798 ^ 406998799), 481137913 - -106520529 ^ (815742244 ^ 328845761), 517429929 ^ 722785022 ^ (66010374 ^ 908899655), (310268802 ^ 405390509) - (583165532 ^ 680915312), (665793359 ^ 118579836) - (223009917 + 326333600), (911522737 ^ 33498574) - (379733756 + 554260354), ~-~-12, (596451473 ^ 960752285) - (663234959 ^ 1028055122), 597487074 ^ 731147287 ^ 217258778 + -82483500, 514831352 ^ 34327695 ^ (733417974 ^ 924020354), (175937653 ^ 121858295) - (195889235 ^ 110295097), ~-(648489512 ^ 648489506), 511649935 - -482060237 ^ ~-993710143, 145250337 - -409578133 ^ (993196555 ^ 438368425), 326099137 + 326110068 ^ (850544964 ^ 342730085), (618514501 ^ 1027988238) - (423949912 ^ 14476574), 56475751 ^ 286531249 ^ (448798001 ^ 143246305), 762913488 - 227912166 ^ 913754681 + -378753400, ~(152707558 + -152707561), (983498746 ^ 174820821) - (413974249 + 407417664), ~-912100900 + -(473687593 ^ 711354408), 428002647 ^ 709806593 ^ (256177901 ^ 1015607736), ~-902325413 ^ 294355733 + 607969701, (782923405 ^ 478681631) - (450416818 ^ 687520986), 870385892 + -402125638 ^ (323674511 ^ 144962582), 454387396 ^ 756564483 ^ (293170460 ^ 661932508), 315945149 ^ 172619324 ^ (594137535 ^ 1005901609), 926769521 - 610415739 ^ 699075598 - 382721837, 76796289 + 144302338 + -(479761650 ^ 297084582), 176625064 ^ 424871239 ^ ~-332665071, (155059957 ^ 333686081) - (80314587 ^ 504636276), ~-923627472 - (85664330 ^ 840322436), 898119621 + -252808174 ^ ~-645311486)
 
-def I1I1lI1IlI11(l11l1III1ll1):
+def l111Il1l1IlI(l11IlI11llll):
     return True
 
-def l11111l11lI1(l11l1III1ll1):
-    return l11l1III1ll1
+def l11I1lllII1l(l11IlI11llll):
+    return l11IlI11llll
 
-def lIlI1111IIII(lllllIIlIlII, l11I1llI111I):
+def lI11lIl11llI(IIlI11lIlIl1, IlI11lIlll1I):
     try:
-        return lllllIIlIlII != l11I1llI111I
+        return IIlI11lIlIl1 > IlI11lIlll1I
     except:
-        return not lllllIIlIlII == l11I1llI111I
+        return not IIlI11lIlIl1 <= IlI11lIlll1I
 
-def IIlllI11111l(IlI11lIl1II1, ll1l1lllIIl1):
+def l111Il11I1I1(l11l11llIIl1, lI11IllIllI1):
     try:
-        return IlI11lIl1II1 > ll1l1lllIIl1
+        return l11l11llIIl1 != lI11IllIllI1
     except:
-        return not IlI11lIl1II1 <= ll1l1lllIIl1
+        return not l11l11llIIl1 == lI11IllIllI1
 
-def I1II1I1l1III():
-    return I11IIIll1Ill
+def l1lIII11ll11():
+    return I1IIl1111l1I
 
 def duplicatedFunc():
-    return I1II1I1l1III()
+    return l1lIII11ll11()
 
-def llIl1lI111Il(IllIl111Ill1_n_59052, I1l111Ill11l_self_69403):
-    return IllIl111Ill1_n_59052 + ClassA.staticA + I1l111Ill11l_self_69403._value
+def I1lllllIIlIl(IlI1ll1lIIl1_n_16076, l1lllI1lIII1_self_40382):
+    return IlI1ll1lIIl1_n_16076 + ClassA.staticA + l1lllI1lIII1_self_40382._value
 
-def IIlll1lIIlIl(IIIl1l1I1lI1_self_71008):
+def Il11I11111l1(lIIII1l11II1_self_87685):
     return duplicatedFunc()
 
-def Il11I1Ill111(lI1l1l11II1l_n_47397, II111I11llIl_self_63634):
-    I1lllIll11ll = llIIIllI11Il
-    lIlllIlIlll1 = IlIII1III11l
-    if not lllll1Illll1:
-        lIlllIlIlll1 = Ill111IIlIlI
+def lIIlI11l11l1(Il11Ill1IIII_n_5739, IlIl1IIlll1l_self_84005):
+    IIII1IIlIl1I = IIIIl11lIl1I
+    l1111Ill1lII = llIIllIllI1l
+    if not l111Il1l1IlI(IIl1lI1Ill11):
+        l1111Ill1lII = IlIl1I11IllI
     else:
-        lIlllIlIlll1 = lllII1Il111I
-    if lIlllIlIlll1 == lllII1Il111I:
-        if lIlI1111IIII(lll1llIIlll1, IlII1I1lIlII):
-            lIlllIlIlll1 = Ill111IIlIlI
+        l1111Ill1lII = l1ll111Il1I1
+    if l1111Ill1lII == l1ll111Il1I1:
+        if not lI11lIl11llI(Il11Ill1IIII_n_5739, lII1I1lll1I1):
+            l1111Ill1lII = III1IllIl1Il
         else:
-            lIlllIlIlll1 = Il1Ill1II1l1
-    if lIlllIlIlll1 == Ill111IIlIlI:
-        I1lllIll11ll = l111IlI1lIlI
-    if lIlllIlIlll1 == I1IIIl1llI1I:
-        I1lllIll11ll = l1lIIl1I1I1l
-    if I1lllIll11ll == IlI1Ill1llll:
-        lI1II1II1II1 = llIll1II1l1l
-        if IIlllI11111l(lI1l1l11II1l_n_47397, II1Il1lll1lI):
-            lI1II1II1II1 = lI11I1IlI1I1
+            l1111Ill1lII = IlIl1I11IllI
+    if l1111Ill1lII == IIII11IIlIlI:
+        IIII1IIlIl1I = I11IllIIl1I1
+    if l1111Ill1lII == llI11I11llII:
+        IIII1IIlIl1I = lll1IIlll1l1
+    if IIII1IIlIl1I == Il1IIlIII1I1:
+        lI1lIIIl1II1 = l1111I1IlII1
+        if not l111Il11I1I1(IlIllllII1Il, II11111l1II1):
+            lI1lIIIl1II1 = lI1III1lll1I
         else:
-            lI1II1II1II1 = IlI1IIllIIll
-        if lI1II1II1II1 == IlI1IIllIIll:
-            if not I1I1lI1IlI11(Il1I1II111Il):
-                lI1II1II1II1 = lI11I1IlI1I1
+            lI1lIIIl1II1 = I1Il111IlI1l
+        if lI1lIIIl1II1 == lI1III1lll1I:
+            if not lIl1lll1l11l:
+                lI1lIIIl1II1 = I1lllIll1I1I
             else:
-                lI1II1II1II1 = IlIIl11I11lI
-        if lI1II1II1II1 == lI11I1IlI1I1:
-            I1lllIll11ll = Ill1IlI111Il
-        if lI1II1II1II1 == IlIIl11I11lI:
-            I1lllIll11ll = l1l111IIl1II
-    if I1lllIll11ll == IllIIIlII1ll:
+                lI1lIIIl1II1 = lll1lIIIlIll
+        if lI1lIIIl1II1 == lll1lIIIlIll:
+            IIII1IIlIl1I = Il1llI111ll1
+        if lI1lIIIl1II1 == I1lllIll1I1I:
+            IIII1IIlIl1I = lll1IIlll1l1
+    if IIII1IIlIl1I == Il1llI111ll1:
         pass
-    if I1lllIll11ll == IlII1I1lIlII:
-        return lll1IllIlll1
-    return lI1l1l11II1l_n_47397 + II111I11llIl_self_63634.recursive(lI1l1l11II1l_n_47397 - IIllll11I111)
+    if IIII1IIlIl1I == lI1l1l1IlIlI:
+        return lII1I1lll1I1
+    return Il11Ill1IIII_n_5739 + IlIl1IIlll1l_self_84005.recursive(Il11Ill1IIII_n_5739 - Il11lIlI111l)
 
-def lII111I11IIl(I11111lll11l_self_8822, ll1llIIl1lll_unused_830, *IlIl1l11lIII_args_32299, l1l1lIl11lIl_unused2_14621):
-    return I11111lll11l_self_8822._value
+def l11IIIIlllII(lllI111I1IIl_self_373, l1Illl1II1ll_unused_58736, *IllllI11llI1_args_96318, IIllI11l1I11_unused2_96065):
+    return lllI111I1IIl_self_373._value
 
 class ClassA:
-    staticA = llI111IlII1I
+    staticA = l1111I1IlII1
 
     def __init__(self):
-        III111lIIIll_self_92562 = self
-        III111lIIIll_self_92562.__mangledA = lI1lllll11ll
-        III111lIIIll_self_92562.__mangledB_ = IlIlIllll1l1
-        III111lIIIll_self_92562._value = lI1lllll11ll
+        llll1lI1llll_self_13109 = self
+        llll1lI1llll_self_13109.__mangledA = l11111III1I1
+        llll1lI1llll_self_13109.__mangledB_ = l1I1I11lIII1
+        llll1lI1llll_self_13109._value = l11111III1I1
 
     def computeA(self, n):
-        return llIl1lI111Il(n, self)
+        return I1lllllIIlIl(n, self)
 
     def getMangled(self):
-        IIl1I1I1IIII_self_85038 = self
-        return IIl1I1I1IIII_self_85038.__mangledA + IIl1I1I1IIII_self_85038.__mangledB_
+        llIlIlII11lI_self_85844 = self
+        return llIlIlII11lI_self_85844.__mangledA + llIlIlII11lI_self_85844.__mangledB_
 
     def duplicatedFunc(self):
-        return IIlll1lIIlIl(self)
+        return Il11I11111l1(self)
 
     def recursive(self, n):
-        return Il11I1Ill111(n, self)
+        return lIIlI11l11l1(n, self)
 
     class X:
         pass
 
     def getValue(self, unused: X=None, *args, unused2=staticA) -> X:
-        return lII111I11IIl(self, unused, *args, l1l1lIl11lIl_unused2_14621=unused2)
+        return l11IIIIlllII(self, unused, *args, IIllI11l1I11_unused2_96065=unused2)
 
-def I1lll1l1l11I():
-    llIIIIlll111_a_68984 = ClassA()
-    assert not lIlI1111IIII(llIIIIlll111_a_68984.computeA(l1l11I11II11), Il1l1111l111)
-    assert not lIlI1111IIII(llIIIIlll111_a_68984.getMangled(), lIlIIlI11I1I)
-    assert not lIlI1111IIII(llIIIIlll111_a_68984.duplicatedFunc(), I1lI11I1Il11)
-    assert not lIlI1111IIII(llIIIIlll111_a_68984.recursive(Ill1I11IIIl1), IllllIlIl11l)
+def IIlllIlIIll1():
+    ll11l11l1lII_a_41701 = ClassA()
+    assert not l111Il11I1I1(ll11l11l1lII_a_41701.computeA(lI11llIII1I1), Il1111I11IlI)
+    assert not l111Il11I1I1(ll11l11l1lII_a_41701.getMangled(), IlII1llIIllI)
+    assert not l111Il11I1I1(ll11l11l1lII_a_41701.duplicatedFunc(), lI11llIII1I1)
+    assert not l111Il11I1I1(ll11l11l1lII_a_41701.recursive(IlII1llIIllI), lIl11I11Il1I)
 
 def test_a():
-    return I1lll1l1l11I()
+    return IIlllIlIIll1()
 
-def IIlllIIlI1II(IllIl1ll111I_n_3005):
-    lII1l11IllI1_cls_24063 = ClassA
+def lI11l1lI1Ill(l1l1llI1lII1_n_28549):
+    lIlIIIl1I1I1_cls_87973 = ClassA
 
-    class LocalB(lII1l11IllI1_cls_24063):
+    class LocalB(lIlIIIl1I1I1_cls_87973):
 
         def add(self, n):
-            (Il1I1II1lIII_self_95122, lI1ll1l1IlI1_n_33046) = (self, n)
-            return Il1I1II1lIII_self_95122.getValue() + lI1ll1l1IlI1_n_33046
-    lI1lI11lII1I_b_7790 = LocalB()
-    return lI1lI11lII1I_b_7790.add(IllIl1ll111I_n_3005)
+            (I111IIlIII11_n_88309, lllllI11lllI_self_64832) = (n, self)
+            return lllllI11lllI_self_64832.getValue() + I111IIlIII11_n_88309
+    I1I1ll11lI1l_b_97382 = LocalB()
+    return I1I1ll11lI1l_b_97382.add(l1l1llI1lII1_n_28549)
 
 def funcLocalClassDeriveFromLocalVar(n):
-    return IIlllIIlI1II(n)
+    return lI11l1lI1Ill(n)
 
-def lI1IIIIII1lI():
-    assert not lIlI1111IIII(funcLocalClassDeriveFromLocalVar(llI111IlII1I), IllllIlIl11l)
+def llIIlll1Il1l():
+    assert not l111Il11I1I1(funcLocalClassDeriveFromLocalVar(l1111I1IlII1), lIl11I11Il1I)
 
 def test_funcLocalClassDeriveFromLocalVar():
-    return lI1IIIIII1lI()
+    return llIIlll1Il1l()
 
-def I1IlI1Il1III():
-    II11lIllI11I_abc_60362 = llI111IlII1I
+def lI1lll1llII1():
+    ll1111lI1l11_abc_31536 = Il1llI11l1I1
 
     class LocalClass:
-        xyz = II11lIllI11I_abc_60362
-    l1l1l111llI1_xyz_18182 = lll1IIIll11l
-    assert not lIlI1111IIII(llI111IlII1I, LocalClass.xyz)
-    LocalClass.xyz = Illl1I11lIIl
+        xyz = ll1111lI1l11_abc_31536
+    I11lIlII1l1l_xyz_7161 = l1Il1l1Il1l1
+    assert not l111Il11I1I1(Il1llI11l1I1, LocalClass.xyz)
+    LocalClass.xyz = lIl11I11Il1I
     return LocalClass.xyz
 
 def fundLocalClassWithClassAttribute():
-    return I1IlI1Il1III()
+    return lI1lll1llII1()
 
-def IlIlll1I1llI():
-    assert not lIlI1111IIII(fundLocalClassWithClassAttribute(), IIlIl1lI1llI)
+def III1I1IlI11l():
+    assert not l111Il11I1I1(fundLocalClassWithClassAttribute(), I1111l1I1I1l)
 
 def test_fundLocalClassWithClassAttribute():
-    return IlIlll1I1llI()
+    return III1I1IlI11l()

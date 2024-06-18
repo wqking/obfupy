@@ -11,7 +11,6 @@ class Document :
 		Document._uidSeed += 1
 
 	def loadFromFile(self, fileName) :
-		fileName = os.path.abspath(fileName)
 		file = codecs.open(fileName, "r", "utf-8")
 		self._content = file.read()
 		file.close()

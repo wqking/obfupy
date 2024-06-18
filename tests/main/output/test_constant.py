@@ -1,59 +1,70 @@
 import codecs
-(l11l1I1lllIl, I1l11Il1I1l1, IlI1I11llll1, llllI1Il1111, l1I1I11IIllI, I1Illl1lIIII, lIIIIIIl1Ill, lllllIll1llI, l11l1lI11llI, IIlIllI1I11I, IIIIIlI11lII, l1I1llIl1I1I, lI1I1II1lIII, ll1IllI1l1lI, II1I1llIl1II) = (~-(45787182 ^ 45787178), ''.join([chr(I1IIIIl1lI1l ^ 15719) for I1IIIIl1lI1l in [15622, 15621, 15620]]), str, codecs.decode(b'646566', 'hex').decode('utf-8'), '91'[::-1], ~-(875445083 ^ 875445071), len, isinstance, int, '\u2028'[::-1], 379045029 + 424007837 ^ (929910035 ^ 414240848), 1.0, len, str, 'cba'[::-1])
+(Il1lll1lII1l, lI1IIIIIIl1I, l1l1l1I1l1Il, IIl1lI11ll11, llIl1I1lIII1, I1l11l1lll1l, IllIl11Il1l1, lI1lIIIlIll1, IIIl11I11IlI, llllIII1lIll, I111lI1Il1ll, llII11Il1II1, II11lIII111l, II1llllII1lI, IlIl1II111I1, IIlIll11I1l1, IlI1l1l1l11l, ll1Il1IIIllI, l11II1l111ll) = (int, 'cba'[::-1], codecs.decode('nop', 'rot13'), codecs.decode(b'616263', 'hex').decode('utf-8'), ~-377603424 ^ 498544604 + -120941186, 'fed'[::-1], ''.join([chr(I11lIIII11lI ^ 12740) for I11lIIII11lI in [4588]]), ~-980641681 ^ 477252386 - -503389295, isinstance, 279463732 ^ 609338321 ^ 74711527 + 814056191, isinstance, 620157264 ^ 597836414 ^ (128024589 ^ 16063280), (931409003 ^ 415474445) - (459494232 + 333724683), str, codecs.decode(b'e280a8', 'hex').decode('utf-8'), len, 1.0, codecs.decode(b'3139', 'hex').decode('utf-8'), str)
 
-def lI11l11lIIII(III1111lI11I, l1ll1l1Illll):
+def I1lI11II1lII(II1l11lIl1II, lII11lllI1Il):
     try:
-        return III1111lI11I != l1ll1l1Illll
+        return II1l11lIl1II != lII11lllI1Il
     except:
-        return not III1111lI11I == l1ll1l1Illll
+        return not II1l11lIl1II == lII11lllI1Il
 
-def l1IIl11l11I1():
-    assert not lI11l11lIIII(ll1IllI1l1lI(I1Illl1lIIII), l1I1I11IIllI)
+def Ill1I1ll11II():
+    assert not I1lI11II1lII(l11II1l111ll(llII11Il1II1), ll1Il1IIIllI)
 
 def test_int():
-    return l1IIl11l11I1()
+    return Ill1I1ll11II()
 
-def II1lII1Il11l():
-    l1lIlllIlll1_a_46888 = l1I1llIl1I1I
-    llllIlI11I11_b_26673 = l11l1I1lllIl
-    llllIlI11I11_b_26673 = llllIlI11I11_b_26673 + IIIIIlI11lII
-    assert lllllIll1llI(llllIlI11I11_b_26673, l11l1lI11llI)
+def I1IIlIIlI11l():
+    lI1l1Il1lIll_a_78733 = IlI1l1l1l11l
+    l1l1llllI11I_b_97081 = llllIII1lIll
+    l1l1llllI11I_b_97081 = l1l1llllI11I_b_97081 + lI1lIIIlIll1
+    assert I111lI1Il1ll(l1l1llllI11I_b_97081, Il1lll1lII1l)
 
 def test_intAndFloat():
-    return II1lII1Il11l()
+    return I1IIlIIlI11l()
 
-def III1lIl1lI11():
-    IIIlI1lIllIl_a_12142 = II1I1llIl1II
-    assert lllllIll1llI(IIIlI1lIllIl_a_12142, IlI1I11llll1)
+def Illl1111lIII():
+    lllIl1lllIll_a_83884 = lI1IIIIIIl1I
+    assert IIIl11I11IlI(lllIl1lllIll_a_83884, II1llllII1lI)
 
 def test_builtinFunction():
-    return III1lIl1lI11()
+    return Illl1111lIII()
 
-def l1llI1l1IllI():
-    IIll1I1Il1Il_str_31753 = II1I1llIl1II
-    assert not lI11l11lIIII(IIll1I1Il1Il_str_31753, I1l11Il1I1l1)
-    assert not lI11l11lIIII(lIIIIIIl1Ill(IIll1I1Il1Il_str_31753), l11l1I1lllIl)
+def l1I1llllIlI1():
+    Il11ll11I1II_str_40974 = IIl1lI11ll11
+    assert not I1lI11II1lII(Il11ll11I1II_str_40974, l1l1l1I1l1Il)
+    assert not I1lI11II1lII(IIlIll11I1l1(Il11ll11I1II_str_40974), llllIII1lIll)
 
 def test_builtinFunctionAsVariable():
-    return l1llI1l1IllI()
+    return l1I1llllIlI1()
 
-def III11I1lll1I(llI1lI1IIl1I_str_21605):
-    return lIIIIIIl1Ill(llI1lI1IIl1I_str_21605)
+def IllI11IlI1l1(I111I1IIl1lI_str_74164):
+    return IIlIll11I1l1(I111I1IIl1lI_str_74164)
 
 def funcBuiltinFunctionAsArgument(str):
-    return III11I1lll1I(str)
+    return IllI11IlI1l1(str)
 
-def I1l11I11I1II():
-    ll111l1ll11I_str_77664 = llllI1Il1111
-    assert not lI11l11lIIII(funcBuiltinFunctionAsArgument(ll111l1ll11I_str_77664), l11l1I1lllIl)
+def II11lIIl11I1():
+    IllllIlI1l1I_str_67305 = I1l11l1lll1l
+    assert not I1lI11II1lII(funcBuiltinFunctionAsArgument(IllllIlI1l1I_str_67305), II11lIII111l)
 
 def test_funcBuiltinFunctionAsArgument():
-    return I1l11I11I1II()
+    return II11lIIl11I1()
 
-def III1Illll1ll():
-    I1IlI1III1Il_a_90574 = IIlIllI1I11I
-    assert not lI11l11lIIII(lI1I1II1lIII(I1IlI1III1Il_a_90574), IIIIIlI11lII)
-    assert not lI11l11lIIII(I1IlI1III1Il_a_90574, IIlIllI1I11I)
+def IllII1lllIll():
+    IIlII1I1llI1_a_49327 = IlIl1II111I1
+    assert not I1lI11II1lII(IIlIll11I1l1(IIlII1I1llI1_a_49327), lI1lIIIlIll1)
+    assert not I1lI11II1lII(IIlII1I1llI1_a_49327, IllIl11Il1l1)
 
 def test_unicodeString():
-    return III1Illll1ll()
+    return IllII1lllIll()
+
+def lI1I1lI1l11l():
+
+    def open():
+        return open.value
+    open.value = llIl1I1lIII1
+    assert not I1lI11II1lII(open.value, llIl1I1lIII1)
+    assert not I1lI11II1lII(open(), llIl1I1lIII1)
+
+def test_builtinFunctionAsNestedFunc():
+    return lI1I1lI1l11l()
