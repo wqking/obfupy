@@ -35,16 +35,7 @@ document = Document()
 document.setContent(source)
 documentManager.addDocument(document)
 
-allowRewrite = True
-rewriterOptions = {
-	rewriter.OptionNames.extractFunction : not True and allowRewrite,
-	rewriter.OptionNames.extractConstant : True and allowRewrite,
-	rewriter.OptionNames.extractBuiltinFunction : not True and allowRewrite,
-	rewriter.OptionNames.renameLocalVariable : not True and allowRewrite,
-	rewriter.OptionNames.addNopControlFlow : not True and allowRewrite,
-	rewriter.OptionNames.reverseBoolOperator : not True and allowRewrite,
-	rewriter.OptionNames.wrapReversedCompareOperator : not True and allowRewrite,
-}
+rewriterOptions = rewriter.Options()
 Rewriter(rewriterOptions).transform(documentManager)
 #Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #Literal(addExtraSpaces = True, expandIndent = True).transform(documentManager)

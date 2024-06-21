@@ -94,13 +94,13 @@ class _BaseAstVistor(ast.NodeTransformer) :
 				currentContext = parent
 		return currentContext
 	
-	def _getOption(self, name) :
+	def _getOptions(self) :
 		currentContext = self.getCurrentContext(False)
-		options = currentContext.getOptionMap()
-		return options[name]
-	
+		options = currentContext.getOptions()
+		return options
+
 	def _shouldSkip(self) :
-		return self._getOption(callbackdata._optionNameSkip)
+		return self._getOptions()._skip
 
 	def _doVisit(self, nodeList, section = None) :
 		if nodeList is None :
@@ -129,9 +129,9 @@ class _BaseAstVistor(ast.NodeTransformer) :
 	
 	def _prepareNodeContext(self, node, currentContext) :
 		rewriterutil.setNodeContext(node, currentContext)
-		options = _invokeCallback(self._callback, self._fileName, currentContext.getOptionMap(), currentContext)
+		options = _invokeCallback(self._callback, self._fileName, currentContext.getOptions(), currentContext)
 		if options is not None :
-			currentContext.setOptionMap(options)
+			currentContext.setOptions(options)
 
 	def _needToKeepLocalVariables(self) :
 		return self.getCurrentContext().isNameSeen('locals')
@@ -185,7 +185,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 
 	def visit_Name(self, node) :
 		self.getCurrentContext().seeName(node.id, _ctxToNameType(node.ctx))
-		if self._getOption(rewriter.OptionNames.renameLocalVariable) and self._canRenameNameNode(node) :
+		if self._getOptions().renameLocalVariable and self._canRenameNameNode(node) :
 			self.getCurrentContext().renameSymbol(node.id)
 		return node
 	
@@ -225,7 +225,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			context.NameType.globalScope, context.NameType.nonlocalScope, context.NameType.argument
 		]) :
 			return False
-		if node.id in self._specialOptions[rewriter.OptionNames.unrenamedVariableNames] :
+		if node.id in self._specialOptions.unrenamedVariableNames :
 			return False
 		return True
 
@@ -234,7 +234,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		super().__init__(contextStack, options, specialOptions, fileName, callback)
 		self._functionRewriter = functionrewriter.FunctionRewriter(self)
 		self._ifRewriter = ifrewriter.IfRewriter(self)
-		self._constantManager = constantmanager.ConstantManager(self._specialOptions['stringEncoders'])
+		self._constantManager = constantmanager.ConstantManager(self._specialOptions.stringEncoders)
 		self._nopMaker = nopmaker.NopMaker()
 		self._trueMaker = truemaker.TrueMaker(self._nopMaker, constants = self._constantManager.getConstantValueList())
 		self._codeBlockMaker = codeblockmaker.CodeBlockMaker(self._trueMaker)
@@ -304,7 +304,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			return self._doGenericVisit(node)
 
 	def visit_Name(self, node) :
-		if self._getOption(rewriter.OptionNames.extractBuiltinFunction) and node.id in builtinfunctions.builtinFunctionMap :
+		if self._getOptions().extractBuiltinFunction and node.id in builtinfunctions.builtinFunctionMap :
 			currentContext = self.getCurrentContext()
 			if not currentContext.isNameSeen(node.id, [ context.NameType.store, context.NameType.argument ]) :
 				node = self._constantManager.getNameReplacedNode(node.id) or node
@@ -341,10 +341,10 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_constant) :
 			return self._doGenericVisit(node)
-		if not self._getOption(rewriter.OptionNames.removeDocString) and rewriterutil.isConstantNodeMarkedDocString(node) :
+		if not self._getOptions().removeDocString and rewriterutil.isConstantNodeMarkedDocString(node) :
 			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_constant) :
-			if self._getOption(rewriter.OptionNames.extractConstant) :
+			if self._getOptions().extractConstant :
 				node = self._constantManager.getConstantReplacedNode(node.value) or node
 			return node
 
@@ -398,7 +398,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return node
 
 	def _doMakeCodeBlock(self, node, allowOuterBlock) :
-		if not self._getOption(rewriter.OptionNames.addNopControlFlow) :
+		if not self._getOptions().addNopControlFlow :
 			return node
 		if not self._reentryGuard.isEntered(rewriterutil.guardId_makeCodeBlock) :
 			with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_makeCodeBlock) :
@@ -406,7 +406,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return node
 
 	def _doReverseBoolOperator(self, node) :
-		if not self._getOption(rewriter.OptionNames.reverseBoolOperator) :
+		if not self._getOptions().reverseBoolOperator :
 			return node
 		# Don't reverse if it's not bool node, since the result value may be used for non-bool purpose. For example, x = 5 or 6
 		if not astutil.isLogicalNode(node) :
@@ -434,51 +434,52 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			body.insert(index, nodeList)
 
 	def _removeDocString(self, node) :
-		if self._getOption(rewriter.OptionNames.removeDocString) :
+		if self._getOptions().removeDocString :
 			node = astutil.removeDocString(node)
 		return node
 	
 	def getNegationMaker(self) :
 		if self._negationMaker is None :
 			self._negationMaker = negationmaker.NegationMaker()
-		self._negationMaker.setUseCompareWrapper(self._getOption(rewriter.OptionNames.wrapReversedCompareOperator))
-		self._negationMaker.setAllowReverseCompareOperator(self._getOption(rewriter.OptionNames.allowReverseCompareOperator))
+		self._negationMaker.setUseCompareWrapper(self._getOptions().wrapReversedCompareOperator)
+		self._negationMaker.setAllowReverseCompareOperator(self._getOptions().allowReverseCompareOperator)
 		return self._negationMaker
 	
 	def getTrueMaker(self) :
 		return self._trueMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
-specialOptionNames = [ rewriter.OptionNames.unrenamedVariableNames, rewriter.OptionNames.stringEncoders ]
+specialOptionNames = [ 'unrenamedVariableNames', 'stringEncoders' ]
 class _IRewriter :
 	def __init__(self, options, callback) :
 		super().__init__()
 		self._options = options
-		self._options[callbackdata._optionNameSkip] = False
 		self._callback = callback
-		self._specialOptions = {}
+		def x() :
+			pass
+		self._specialOptions = x
 		for name in specialOptionNames :
-			self._specialOptions[name] = self._options[name]
-			del self._options[name]
+			setattr(self._specialOptions, name, getattr(self._options, name))
+			setattr(self._options, name, None)
 		self._doInitOptions()
 
 	def _doInitOptions(self) :
-		names = self._specialOptions[rewriter.OptionNames.unrenamedVariableNames]
+		names = self._specialOptions.unrenamedVariableNames
 		if names is None :
 			names = {}
 		elif isinstance(names, (list, tuple)) :
 			names = { n: 1 for n in names }
 		elif isinstance(names, str) :
 			names = { names: 1 }
-		self._specialOptions[rewriter.OptionNames.unrenamedVariableNames] = names
+		self._specialOptions.unrenamedVariableNames = names
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
 			fileName = document.getFileName()
 			contextStack = context.ContextStack()
 			rootNode = ast.parse(document.getContent(), fileName)
-			options = _invokeCallback(self._callback, self._options, fileName, None) or self._options
-			if options[callbackdata._optionNameSkip] :
+			options = _invokeCallback(self._callback, fileName, self._options, None) or self._options
+			if options._skip :
 				continue
 			for visitorClass in astVistorClassList :
 				visitor = visitorClass(

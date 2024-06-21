@@ -115,14 +115,14 @@ class _SectionMixin :
 		self._sectionList.pop()
 
 class _OptionMixin :
-	def setOptionMap(self, optionMap) :
-		self._optionMap = optionMap
+	def setOptions(self, options) :
+		self._options = options
 
-	def getOptionMap(self) :
-		if self._optionMap is not None :
-			return self._optionMap
+	def getOptions(self) :
+		if self._options is not None :
+			return self._options
 		assert self._parent is not None
-		return self._parent.getOptionMap()
+		return self._parent.getOptions()
 
 class Context(_NameMixin, _RenameMixin, _SiblingMixin, _SectionMixin, _OptionMixin) :
 	def __init__(self, type, contextName) :
@@ -145,7 +145,7 @@ class Context(_NameMixin, _RenameMixin, _SiblingMixin, _SectionMixin, _OptionMix
 		self._sectionList = []
 
 		# _OptionMixin
-		self._optionMap = None
+		self._options = None
 
 	def setParent(self, parent = None) :
 		self._parent = parent
@@ -166,9 +166,9 @@ class Context(_NameMixin, _RenameMixin, _SiblingMixin, _SectionMixin, _OptionMix
 		return self._parent
 
 class ModuleContext(Context) :
-	def __init__(self, fileName, optionMap) :
+	def __init__(self, fileName, options) :
 		super().__init__(ContextType.moduleContext, fileName)
-		self.setOptionMap(optionMap)
+		self.setOptions(options)
 
 class FunctionContext(Context) :
 	def __init__(self, funcName) :

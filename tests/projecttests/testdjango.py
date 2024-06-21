@@ -10,26 +10,25 @@ import obfupy.transformers.rewriter as rewriter
 
 import os
 
-rewriterOptions = {
-	# Don't bother to set extractFunction. The project uses inspect package to get local variable, extractFunction won't work for all functions.
-	rewriter.OptionNames.extractFunction : not True,
-	rewriter.OptionNames.extractConstant : True, # verified
-	rewriter.OptionNames.extractBuiltinFunction : not True, # auth_tests fails
-	rewriter.OptionNames.renameLocalVariable : True, # verified
-	rewriter.OptionNames.aliasFunctionArgument : not True, # auth_tests fails
-	rewriter.OptionNames.addNopControlFlow : True, # verified
-	rewriter.OptionNames.reverseBoolOperator : True, # verified
-	rewriter.OptionNames.expandIfCondition : True, # verified
-	rewriter.OptionNames.rewriteIf : True, # verified
-	# Must be False since __doc__ is used in the project
-	rewriter.OptionNames.removeDocString : False, # verified
-	# Must be False since it compares with <= which not invertible, see function check_referrer_policy in django/django/core/checks/security/base.py
-	rewriter.OptionNames.allowReverseCompareOperator : False, # verified
-	# This is not used since allowReverseCompareOperator is False
-	rewriter.OptionNames.wrapReversedCompareOperator : True,
-	# sensitive_variables_wrapper is used by inspect, don't rename it
-	rewriter.OptionNames.unrenamedVariableNames : [ 'sensitive_variables_wrapper' ],
-}
+rewriterOptions = rewriter.Options()
+# Don't bother to set extractFunction. The project uses inspect package to get local variable, extractFunction won't work for all functions.
+rewriterOptions.extractFunction = not True
+rewriterOptions.extractConstant = True # verified
+rewriterOptions.extractBuiltinFunction = not True # auth_tests fails
+rewriterOptions.renameLocalVariable = True # verified
+rewriterOptions.aliasFunctionArgument = not True # auth_tests fails
+rewriterOptions.addNopControlFlow = True # verified
+rewriterOptions.reverseBoolOperator = True # verified
+rewriterOptions.expandIfCondition = True # verified
+rewriterOptions.rewriteIf = True # verified
+# Must be False since __doc__ is used in the project
+rewriterOptions.removeDocString = False # verified
+# Must be False since it compares with <= which not invertible, see function check_referrer_policy in django/django/core/checks/security/base.py
+rewriterOptions.allowReverseCompareOperator = False # verified
+# This is not used since allowReverseCompareOperator is False
+rewriterOptions.wrapReversedCompareOperator = True
+# sensitive_variables_wrapper is used by inspect, don't rename it
+rewriterOptions.unrenamedVariableNames = [ 'sensitive_variables_wrapper' ]
 
 excludeFolderList = [
 	'/tests/admin_scripts/custom_templates/', # the comment in the templates can't be removed.
@@ -43,7 +42,7 @@ def callback(data) :
 			return
 	if '/tests/migrations' in data.getFileName() :
 		# test_alter_field_add_db_column_noop doesn't like it because assertIs will fail
-		data.setOption(rewriter.OptionNames.extractConstant, False)
+		data.setOption(rewriterOptions.extractConstant, False)
 		return
 	if data.isFile() :
 		return
@@ -51,9 +50,9 @@ def callback(data) :
 	if context.isClass() :
 		# Some classes inherits from enum.Enum and have if condition in class body.
 		# If we rewrite the if condition, the newly generated assignment will cause enum.Enum throw exceptions.
-		data.setOption(rewriter.OptionNames.rewriteIf, False)
+		data.setOption(rewriterOptions.rewriteIf, False)
 	else :
-		data.setOption(rewriter.OptionNames.rewriteIf, rewriterOptions[rewriter.OptionNames.rewriteIf])
+		data.setOption(rewriterOptions.rewriteIf, rewriterOptions[rewriterOptions.rewriteIf])
 
 general.obfuscateProject(options = rewriterOptions, callback = callback)
 args = helper.parseCommandLine()

@@ -1,25 +1,31 @@
 from .internal.iformatter import _IFormatter
 from .internal import util as util
 
-import enum
+import copy
 
-class OptionNames(str, enum.Enum) :
-	removeComment = 'removeComment'
-	expandIndent = 'expandIndent'
-	addExtraSpaces = 'addExtraSpaces'
-	addExtraNewLines = 'addExtraNewLines'
+class Options :
+	def __init__(self) :
+		self._modified = False
+		self._data = {
+			'_skip' : False,
+			'removeComment' : True,
+			'expandIndent' : True,
+			'addExtraSpaces' : True,
+			'addExtraNewLines' : True,
+		}
 
-_defaultOptions = {
-	OptionNames.removeComment : True,
-	OptionNames.expandIndent : True,
-	OptionNames.addExtraSpaces : True,
-	OptionNames.addExtraNewLines : True,
-}
+	def _isModified(self) :
+		return self._modified
+
+	def _resetModified(self) :
+		self._modified = False
+util.addOptionPropertiesToClass(Options, Options()._data)
 
 class Formatter :
 	def __init__(self, options = None, callback = None) :
-		util.verifyOptionsKeyType(options, OptionNames, "formatter.OptionNames")
-		self._options = util.makeOptions(options, _defaultOptions)
+		if options is None :
+			options = Options()
+		self._options = copy.deepcopy(options)
 		self._callback = callback
 
 	def transform(self, documentManager) :

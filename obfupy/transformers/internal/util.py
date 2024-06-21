@@ -83,17 +83,16 @@ def ensureList(a) :
 def joinList(a, b) :
 	return ensureList(a) + ensureList(b)
 
-def makeOptions(options, _defaultOptions) :
-	result = copy.deepcopy(_defaultOptions)
-	if options is not None :
-		for name in options :
-			assert name in _defaultOptions
-			result[name] = options[name]
-	return result
+def addOptionPropertiesToClass(cls, optionNameList) :
+	for optionName in optionNameList :
+		propertyName = optionName
+		keyName = propertyName
+		@property
+		def prop(self, keyName = keyName):
+			return self._data[keyName]
 
-def verifyOptionsKeyType(options, keyType, keyTypeName) :
-	if options is None :
-		return
-	for key in options :
-		if not isinstance(key, keyType) :
-			raise Exception("Options key must be type of %s" % (keyTypeName))
+		@prop.setter
+		def prop(self, value, keyName = keyName):
+			self._data[keyName] = value
+			self._modified = True
+		setattr(cls, propertyName, prop)

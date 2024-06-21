@@ -5,8 +5,7 @@ _optionNameSkip = '_skip'
 def _shouldSkip(options) :
 	return (
 		options is not None
-		and _optionNameSkip in options
-		and options[_optionNameSkip]
+		and options._skip
 	)
 
 def _shouldSkipFile(callback, fileName) :
@@ -25,7 +24,6 @@ class _FileCallbackData :
 	def __init__(self, fileName) :
 		self._fileName = fileName
 		self._skip = False
-		self._modified = False
 
 	def getFileName(self) :
 		return self._fileName
@@ -34,43 +32,37 @@ class _FileCallbackData :
 		return True
 
 	def skip(self) :
-		self._willModifyOptions()
 		self._skip = True
 	
 	def _shouldSkip(self) :
 		return self._skip
 
-	def _willModifyOptions(self) :
-		self._modified = True
-
 	def _isModified(self) :
-		return self._modified
+		return self._skip
 	
 	def _makeOptions(self) :
-		return {
-			_optionNameSkip : self._skip
-		}
+		def x() :
+			pass
+		x._skip = self._skip
+		return x
 
 class _OptionCallbackData(_FileCallbackData) :
 	def __init__(self, fileName, options) :
 		super().__init__(fileName)
-		self._options = options
+		options._resetModified()
+		self._original = options
+		self._options = None
 		self._needCopy = True
 
-	def getOption(self, name) :
-		return self._options[name]
-	
-	def setOption(self, name, value) :
-		self._willModifyOptions()
-		self._options[name] = value
+	@property
+	def options(self) :
+		if self._options is None :
+			self._options = copy.deepcopy(self._original)
+		return self._options
 
-	def _willModifyOptions(self) :
-		super()._willModifyOptions()
-		if self._needCopy :
-			self._needCopy = False
-			self._options = copy.deepcopy(self._options)
+	def _isModified(self) :
+		return self._options is not None and self._options._isModified()
 
 	def _makeOptions(self) :
-		self._options[_optionNameSkip] = self._skip
 		return self._options
 

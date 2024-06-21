@@ -31,22 +31,7 @@ fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conf
 documentManager = documentmanager.DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
-allowRewrite = True
-rewriterOptions = {
-	rewriter.OptionNames.extractFunction : True and allowRewrite,
-	rewriter.OptionNames.extractConstant : True and allowRewrite,
-	rewriter.OptionNames.extractBuiltinFunction : True and allowRewrite,
-	rewriter.OptionNames.renameLocalVariable : True and allowRewrite,
-	rewriter.OptionNames.aliasFunctionArgument : True and allowRewrite,
-	rewriter.OptionNames.addNopControlFlow : True and allowRewrite,
-	rewriter.OptionNames.allowReverseCompareOperator : True and allowRewrite,
-	rewriter.OptionNames.reverseBoolOperator : True and allowRewrite,
-	rewriter.OptionNames.expandIfCondition : True and allowRewrite,
-	rewriter.OptionNames.rewriteIf : True and allowRewrite,
-	rewriter.OptionNames.removeDocString : not True and allowRewrite,
-	rewriter.OptionNames.wrapReversedCompareOperator : True and allowRewrite,
-	rewriter.OptionNames.unrenamedVariableNames : [],
-}
+rewriterOptions = rewriter.Options()
 def rewriterCallback(data) :
 	if 'importa' in data.getFileName() and not data.isFile() :
 		context = data.getContext()
@@ -54,7 +39,8 @@ def rewriterCallback(data) :
 			data.skip()
 def formatterCallback(data) :
 	if 'importa' in data.getFileName() :
-		data.setOption(formatter.OptionNames.addExtraSpaces, False)
+		data.options.addExtraSpaces = False
+		data.options.expandIndent = False
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
 #replacer.Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #formatter.Formatter(callback = formatterCallback).transform(documentManager)

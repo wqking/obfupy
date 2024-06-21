@@ -16,7 +16,7 @@ class IfRewriter :
 
 	def rewriteIf(self, node) :
 		node = self._doExpandIfCondition(node)
-		if not self._visitor._getOption(rewriter.OptionNames.rewriteIf) :
+		if not self._visitor._getOptions().rewriteIf :
 			return self._visitor._doGenericVisit(node)
 
 		with reentryguard.AutoReentryGuard(self._visitor._reentryGuard, [ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
@@ -36,7 +36,7 @@ class IfRewriter :
 		return node
 	
 	def _doExpandIfCondition(self, node) :
-		option = self._visitor._getOption(rewriter.OptionNames.expandIfCondition)
+		option = self._visitor._getOptions().expandIfCondition
 		depth = 0
 		if option is True :
 			depth = 3

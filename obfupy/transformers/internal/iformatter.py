@@ -17,8 +17,8 @@ class _IFormatter :
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
 			options = callbackdata._invokeCallback(self._callback, callbackdata._OptionCallbackData(document.getFileName(), self._options)) or self._options
-			if callbackdata._shouldSkip(options) :
-				continue
+			#if callbackdata._shouldSkip(options) :
+			#	continue
 			generator = tokenize.tokenize(io.BytesIO(document.getContent().encode('utf-8')).readline)
 			tokenList = []
 			for tokenType, tokenValue, _,  _, _ in generator:
@@ -36,7 +36,7 @@ class _IFormatter :
 			if token is None :
 				break
 
-			if token.type == tokenize.OP and options[formatter.OptionNames.addExtraSpaces] and token.value not in [ '!' ] :
+			if token.type == tokenize.OP and options.addExtraSpaces and token.value not in [ '!' ] :
 				tokenValue = token.value
 				extraSpaces = self._getRandomSpaces()
 				tokenValue += extraSpaces
@@ -44,10 +44,10 @@ class _IFormatter :
 					tokenValue = extraSpaces + tokenValue
 				enumerator.setCurrentValue(tokenValue)
 
-			if token.type == tokenize.NEWLINE and options[formatter.OptionNames.addExtraNewLines]:
+			if token.type == tokenize.NEWLINE and options.addExtraNewLines:
 				enumerator.setCurrentValue(token.value * random.randint(1, 10))
 
-			if token.type == tokenize.COMMENT and options[formatter.OptionNames.removeComment]:
+			if token.type == tokenize.COMMENT and options.removeComment:
 				enumerator.setCurrentValue('')
 
 			if token.type == tokenize.INDENT :
@@ -56,7 +56,7 @@ class _IFormatter :
 				if minIndentLength > 0 and len(token.value) % minIndentLength != 0 :
 					canExpandIndent = False
 
-		if options[formatter.OptionNames.expandIndent] and canExpandIndent and minIndentLength > 0 :
+		if options.expandIndent and canExpandIndent and minIndentLength > 0 :
 			newIndent = self._getRandomSpaces()
 			enumerator = TokenEnumerator(tokenList)
 			while True :

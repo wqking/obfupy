@@ -1,45 +1,41 @@
 from .utils import stringencoders
 from .internal import util as util
 
-import enum
+import copy
 
-class OptionNames(str, enum.Enum) :
-	extractFunction = 'extractFunction'
-	extractConstant = 'extractConstant'
-	extractBuiltinFunction = 'extractBuiltinFunction'
-	renameLocalVariable = 'renameLocalVariable'
-	aliasFunctionArgument = 'aliasFunctionArgument'
-	addNopControlFlow = 'addNopControlFlow'
-	reverseBoolOperator = 'reverseBoolOperator'
-	allowReverseCompareOperator = 'allowReverseCompareOperator'
-	wrapReversedCompareOperator = 'wrapReversedCompareOperator'
-	expandIfCondition = 'expandIfCondition'
-	rewriteIf = 'rewriteIf'
-	removeDocString = 'removeDocString'
-	stringEncoders = 'stringEncoders'
-	unrenamedVariableNames = 'unrenamedVariableNames'
+class Options :
+	def __init__(self) :
+		self._modified = False
+		self._data = {
+			'_skip' : False,
+			'extractFunction' : True,
+			'extractConstant' : True,
+			'extractBuiltinFunction' : True,
+			'renameLocalVariable' : True,
+			'aliasFunctionArgument' : True,
+			'addNopControlFlow' : True,
+			'reverseBoolOperator' : True,
+			'allowReverseCompareOperator' : not True,
+			'wrapReversedCompareOperator' : True,
+			'expandIfCondition' : True,
+			'rewriteIf' : True,
+			'removeDocString' : True,
+			'stringEncoders' : stringencoders.defaultEncoders,
+			'unrenamedVariableNames' : None,
+		}
 
-_defaultOptions = {
-	OptionNames.extractFunction : True,
-	OptionNames.extractConstant : True,
-	OptionNames.extractBuiltinFunction : True,
-	OptionNames.renameLocalVariable : True,
-	OptionNames.aliasFunctionArgument : True,
-	OptionNames.addNopControlFlow : True,
-	OptionNames.reverseBoolOperator : True,
-	OptionNames.allowReverseCompareOperator : False,
-	OptionNames.wrapReversedCompareOperator : True,
-	OptionNames.expandIfCondition : True,
-	OptionNames.rewriteIf : True,
-	OptionNames.removeDocString : True,
-	OptionNames.stringEncoders : stringencoders.defaultEncoders,
-	OptionNames.unrenamedVariableNames : None,
-}
+	def _isModified(self) :
+		return self._modified
+
+	def _resetModified(self) :
+		self._modified = False
+util.addOptionPropertiesToClass(Options, Options()._data)
 
 class Rewriter :
 	def __init__(self, options = None, callback = None) :
-		util.verifyOptionsKeyType(options, OptionNames, "rewriter.OptionNames")
-		self._options = util.makeOptions(options, _defaultOptions)
+		if options is None :
+			options = Options()
+		self._options = copy.deepcopy(options)
 		self._callback = callback
 
 	def transform(self, documentManager) :

@@ -66,7 +66,7 @@ class FunctionRewriter :
 		return True
 
 	def _doExtractFunction(self, node) :
-		if not self._visitor._getOption(rewriter.OptionNames.extractFunction) :
+		if not self._visitor._getOptions().extractFunction :
 			return None
 		if not self._canExtractFunction(node) :
 			return None
@@ -167,7 +167,7 @@ class FunctionRewriter :
 	def _doCreateRenamedArgs(self, node) :
 		currentContext = self._visitor.getCurrentContext()
 		canRename = True
-		if not self._visitor._getOption(rewriter.OptionNames.aliasFunctionArgument) :
+		if not self._visitor._getOptions().aliasFunctionArgument :
 			canRename = False
 		if self._visitor._needToKeepLocalVariables() :
 			canRename = False

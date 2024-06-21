@@ -28,24 +28,7 @@ def obfuscateProject(options = None, callback = None) :
 	documentManager = DocumentManager()
 	documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
-	allowRewrite = True
-	rewriterOptions = {
-		rewriter.OptionNames.extractFunction : True and allowRewrite,
-		rewriter.OptionNames.extractConstant : True and allowRewrite,
-		rewriter.OptionNames.extractBuiltinFunction : True and allowRewrite,
-		rewriter.OptionNames.renameLocalVariable : True and allowRewrite,
-		rewriter.OptionNames.aliasFunctionArgument : True and allowRewrite,
-		rewriter.OptionNames.addNopControlFlow : True and allowRewrite,
-		rewriter.OptionNames.reverseBoolOperator : True and allowRewrite,
-		rewriter.OptionNames.expandIfCondition : True and allowRewrite,
-		rewriter.OptionNames.rewriteIf : True and allowRewrite,
-		rewriter.OptionNames.removeDocString : True and allowRewrite,
-		rewriter.OptionNames.allowReverseCompareOperator : False and allowRewrite,
-		rewriter.OptionNames.wrapReversedCompareOperator : True and allowRewrite,
-	}
-	if options is not None :
-		for name in options :
-			rewriterOptions[name] = options[name]
+	rewriterOptions = options or rewriter.Options()
 	Rewriter(options = rewriterOptions, callback = callback).transform(documentManager)
 	#Formatter(addExtraSpaces = True, expandIndent = True).transform(documentManager)
 	#provider = CodecProvider()
