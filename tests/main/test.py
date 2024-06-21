@@ -39,8 +39,8 @@ def rewriterCallback(data) :
 			data.skip()
 def formatterCallback(data) :
 	if 'importa' in data.getFileName() :
-		data.options.addExtraSpaces = False
-		data.options.expandIndent = False
+		data.getOptions().addExtraSpaces = False
+		data.getOptions().expandIndent = False
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
 #replacer.Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
 #formatter.Formatter(callback = formatterCallback).transform(documentManager)

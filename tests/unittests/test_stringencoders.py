@@ -1,6 +1,4 @@
-import sys
-sys.path.append("../../")
-
+import testutil
 import obfupy.transformers.utils.stringencoders as stringencoders
 import obfupy.transformers.internal.astutil as astutil
 

@@ -83,8 +83,8 @@ def ensureList(a) :
 def joinList(a, b) :
 	return ensureList(a) + ensureList(b)
 
-def addOptionPropertiesToClass(cls, optionNameList) :
-	for optionName in optionNameList :
+def addOptionPropertiesToClass(cls, optionNameValueMap) :
+	for optionName in optionNameValueMap :
 		propertyName = optionName
 		keyName = propertyName
 		@property

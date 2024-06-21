@@ -1,25 +1,15 @@
 from .internal.iformatter import _IFormatter
-from .internal import util as util
+from .internal import util
+from .internal import optionsutil
 
 import copy
 
-class Options :
-	def __init__(self) :
-		self._modified = False
-		self._data = {
-			'_skip' : False,
-			'removeComment' : True,
-			'expandIndent' : True,
-			'addExtraSpaces' : True,
-			'addExtraNewLines' : True,
-		}
-
-	def _isModified(self) :
-		return self._modified
-
-	def _resetModified(self) :
-		self._modified = False
-util.addOptionPropertiesToClass(Options, Options()._data)
+Options = optionsutil._createOptionsClass({
+	'removeComment' : True,
+	'expandIndent' : True,
+	'addExtraSpaces' : True,
+	'addExtraNewLines' : True,
+})
 
 class Formatter :
 	def __init__(self, options = None, callback = None) :

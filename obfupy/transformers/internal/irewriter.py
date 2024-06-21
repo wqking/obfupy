@@ -441,8 +441,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def getNegationMaker(self) :
 		if self._negationMaker is None :
 			self._negationMaker = negationmaker.NegationMaker()
-		self._negationMaker.setUseCompareWrapper(self._getOptions().wrapReversedCompareOperator)
-		self._negationMaker.setAllowReverseCompareOperator(self._getOptions().allowReverseCompareOperator)
+		self._negationMaker.setOptions(self._getOptions())
 		return self._negationMaker
 	
 	def getTrueMaker(self) :

@@ -1,7 +1,5 @@
 import copy
 
-_optionNameSkip = '_skip'
-
 def _shouldSkip(options) :
 	return (
 		options is not None
@@ -54,8 +52,7 @@ class _OptionCallbackData(_FileCallbackData) :
 		self._options = None
 		self._needCopy = True
 
-	@property
-	def options(self) :
+	def getOptions(self) :
 		if self._options is None :
 			self._options = copy.deepcopy(self._original)
 		return self._options

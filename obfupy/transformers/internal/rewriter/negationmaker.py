@@ -4,16 +4,12 @@ from .. import util
 import ast
 
 class NegationMaker :
-	def __init__(self, useCompareWrapper = True, allowReverseCompareOperator = False) :
-		self._useCompareWrapper = useCompareWrapper
-		self._allowReverseCompareOperator = allowReverseCompareOperator
+	def __init__(self) :
+		self._options = None
 		self._compareWrapperMap = {}
 
-	def setUseCompareWrapper(self, useCompareWrapper) :
-		self._useCompareWrapper = useCompareWrapper
-
-	def setAllowReverseCompareOperator(self, allowReverseCompareOperator) :
-		self._allowReverseCompareOperator = allowReverseCompareOperator
+	def setOptions(self, options) :
+		self._options = options
 
 	def makeNegation(self, node) :
 		if isinstance(node, ast.Compare) :
@@ -40,7 +36,7 @@ class NegationMaker :
 
 	# a < b -> a >= b
 	def _doMakeCompareNegation(self, node) :
-		if not self._allowReverseCompareOperator :
+		if not self._options.reverseCompareOperator :
 			# We can't convert a < b to a >= b because some comparison is not invertible, such as < on sets.
 			return astutil.addNot(node)
 		# The user allows to convert, let's go.
@@ -92,7 +88,7 @@ class NegationMaker :
 		)
 
 	def _needToMakeCompareWrapper(self, node) :
-		if not self._useCompareWrapper :
+		if not self._options.reverseCompareOperator.wrapReversedCompareOperator :
 			return False
 		for op in node.ops :
 			if type(op) not in [ ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Eq, ast.NotEq ] :

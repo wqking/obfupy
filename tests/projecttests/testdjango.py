@@ -24,9 +24,9 @@ rewriterOptions.rewriteIf = True # verified
 # Must be False since __doc__ is used in the project
 rewriterOptions.removeDocString = False # verified
 # Must be False since it compares with <= which not invertible, see function check_referrer_policy in django/django/core/checks/security/base.py
-rewriterOptions.allowReverseCompareOperator = False # verified
-# This is not used since allowReverseCompareOperator is False
-rewriterOptions.wrapReversedCompareOperator = True
+rewriterOptions.reverseCompareOperator = False # verified
+# This is not used since reverseCompareOperator is False
+rewriterOptions.reverseCompareOperator.wrapReversedCompareOperator = True
 # sensitive_variables_wrapper is used by inspect, don't rename it
 rewriterOptions.unrenamedVariableNames = [ 'sensitive_variables_wrapper' ]
 
