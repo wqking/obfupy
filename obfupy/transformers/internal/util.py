@@ -91,3 +91,9 @@ def makeOptions(options, _defaultOptions) :
 			result[name] = options[name]
 	return result
 
+def verifyOptionsKeyType(options, keyType, keyTypeName) :
+	if options is None :
+		return
+	for key in options :
+		if not isinstance(key, keyType) :
+			raise Exception("Options key must be type of %s" % (keyTypeName))

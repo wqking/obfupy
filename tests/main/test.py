@@ -9,8 +9,7 @@ except :
 import os
 import codecs
 
-from obfupy.documentmanager import DocumentManager
-from obfupy.document import Document
+import obfupy.documentmanager as documentmanager
 import obfupy.util as util
 import obfupy.transformers.rewriter as rewriter
 import obfupy.transformers.formatter as formatter
@@ -20,15 +19,16 @@ import obfupy.transformers.utils.codecproviders as codecproviders
 
 import obfupy.transformers.internal.rewriter.truemaker as truemaker
 import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
+
+from obfupy.document import Document
 import ast
 
-folders = [ 'input', 'output' ]
-
-print(folders[0])
-fileList = util.findFiles(folders[0])
+inputPath = 'input'
+outputPath = 'output'
+fileList = util.findFiles(inputPath)
 fileList = util.ensureLinuxPath(fileList)
 fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conftest' not in s, fileList))
-documentManager = DocumentManager()
+documentManager = documentmanager.DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
 allowRewrite = True
@@ -56,14 +56,14 @@ def formatterCallback(data) :
 	if 'importa' in data.getFileName() :
 		data.setOption(formatter.OptionNames.addExtraSpaces, False)
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
-replacer.Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
-formatter.Formatter(callback = formatterCallback).transform(documentManager)
-codec.Codec(codecproviders.byteEncryption).transform(documentManager)
-codec.Codec(codecproviders.zip).transform(documentManager)
-codec.Codec(codecproviders.bz2).transform(documentManager)
-codec.Codec(codecproviders.base64).transform(documentManager)
+#replacer.Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
+#formatter.Formatter(callback = formatterCallback).transform(documentManager)
+#codec.Codec(codecproviders.byteEncryption).transform(documentManager)
+#codec.Codec(codecproviders.zip).transform(documentManager)
+#codec.Codec(codecproviders.bz2).transform(documentManager)
+#codec.Codec(codecproviders.base64).transform(documentManager)
 
-util.writeOutputFiles(documentManager, folders[0], folders[1])
+util.writeOutputFiles(documentManager, inputPath, outputPath)
 
 os.chdir('output')
 os.system('python -m pytest -s')

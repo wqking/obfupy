@@ -1,5 +1,5 @@
 from .utils import stringencoders
-from .internal import util as iutil
+from .internal import util as util
 
 import enum
 
@@ -38,7 +38,8 @@ _defaultOptions = {
 
 class Rewriter :
 	def __init__(self, options = None, callback = None) :
-		self._options = iutil.makeOptions(options, _defaultOptions)
+		util.verifyOptionsKeyType(options, OptionNames, "rewriter.OptionNames")
+		self._options = util.makeOptions(options, _defaultOptions)
 		self._callback = callback
 
 	def transform(self, documentManager) :

@@ -1,5 +1,5 @@
 from .internal.iformatter import _IFormatter
-from .internal import util as iutil
+from .internal import util as util
 
 import enum
 
@@ -18,7 +18,8 @@ _defaultOptions = {
 
 class Formatter :
 	def __init__(self, options = None, callback = None) :
-		self._options = iutil.makeOptions(options, _defaultOptions)
+		util.verifyOptionsKeyType(options, OptionNames, "formatter.OptionNames")
+		self._options = util.makeOptions(options, _defaultOptions)
 		self._callback = callback
 
 	def transform(self, documentManager) :

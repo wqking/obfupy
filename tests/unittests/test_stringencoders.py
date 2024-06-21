@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../")
+sys.path.append("../../")
 
 import obfupy.transformers.utils.stringencoders as stringencoders
 import obfupy.transformers.internal.astutil as astutil
@@ -15,7 +15,7 @@ stringList = [
 	"这是中文字符串", "これは日本語の文章です"
 ]
 
-def test_stringRewriter() :
+def test_stringEncoders() :
 	for s in stringList :
 		assert evalNode(stringencoders.reverse(s)) == s
 		assert evalNode(stringencoders.rot13(s)) == s

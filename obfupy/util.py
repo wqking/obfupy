@@ -29,8 +29,7 @@ def loadDocumentsFromFiles(fileNameList) :
 		result.append(document.Document().loadFromFile(fileName))
 	return result
 
-def findFiles(path, recursive = True) :
-	pattern = '*.py'
+def findFiles(path, pattern = '*.py', recursive = True) :
 	p = pathlib.Path(path)
 	fileList = None
 	if recursive :
