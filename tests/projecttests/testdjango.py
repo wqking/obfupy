@@ -38,7 +38,7 @@ excludeFolderList = [
 def callback(data) :
 	for folder in excludeFolderList :
 		if folder in data.getFileName() :
-			data.skip()
+			data.getOptions().enabled = False
 			return
 	if '/tests/migrations' in data.getFileName() :
 		# test_alter_field_add_db_column_noop doesn't like it because assertIs will fail

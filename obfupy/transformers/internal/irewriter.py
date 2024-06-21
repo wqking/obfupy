@@ -100,7 +100,7 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		return options
 
 	def _shouldSkip(self) :
-		return self._getOptions()._skip
+		return not self._getOptions().enabled
 
 	def _doVisit(self, nodeList, section = None) :
 		if nodeList is None :
@@ -478,7 +478,7 @@ class _IRewriter :
 			contextStack = context.ContextStack()
 			rootNode = ast.parse(document.getContent(), fileName)
 			options = _invokeCallback(self._callback, fileName, self._options, None) or self._options
-			if options._skip :
+			if not options.enabled :
 				continue
 			for visitorClass in astVistorClassList :
 				visitor = visitorClass(

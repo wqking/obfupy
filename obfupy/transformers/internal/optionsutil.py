@@ -17,7 +17,6 @@ class _BaseOptions :
 
 def _createOptionsClass(data) :
 	data = copy.deepcopy(data)
-	data['_skip'] = False
 	if 'enabled' not in data :
 		data['enabled'] = True
 	class _Options(_BaseOptions) :
@@ -52,3 +51,5 @@ def _createOptionsClass(data) :
 
 def _createOptionsObject(data) :
 	return _createOptionsClass(data)()
+
+EmptyOptions = _createOptionsClass({})

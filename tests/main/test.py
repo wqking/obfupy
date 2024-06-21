@@ -36,7 +36,7 @@ def rewriterCallback(data) :
 	if 'importa' in data.getFileName() and not data.isFile() :
 		context = data.getContext()
 		if context.isFunction() and context.getName() == 'toBeSkipped' :
-			data.skip()
+			data.getOptions().enabled = False
 def formatterCallback(data) :
 	if 'importa' in data.getFileName() :
 		data.getOptions().addExtraSpaces = False
