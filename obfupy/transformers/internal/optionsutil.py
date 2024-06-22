@@ -2,9 +2,9 @@ import copy
 
 class _BaseOptions :
 	__slots__ = ('_modified', '_data')
-	def __init__(self, data = None) :
+	def __init__(self, data) :
 		self._modified = False
-		self._data = data or {}
+		self._data = data
 
 	def _isModified(self) :
 		return self._modified
@@ -15,14 +15,22 @@ class _BaseOptions :
 	def __bool__(self) :
 		return self.enabled
 
-def _createOptionsClass(data) :
-	data = copy.deepcopy(data)
-	if 'enabled' not in data :
-		data['enabled'] = True
+def _createOptionsClass(fullData) :
+	if 'enabled' not in fullData :
+		fullData['enabled'] = True
+	data = {}
+	for name in fullData :
+		value = fullData[name]
+		if isinstance(value, tuple) :
+			value = value[0]
+		elif isinstance(value, dict) :
+			value = value['default']
+		data[name] = value
 	class _Options(_BaseOptions) :
 		__slots__ = ()
 		def __init__(self, data = data):
 			super().__init__(data)
+	_Options._fullData = fullData
 	slots = [ '_data' ]
 	for optionName in data :
 		propertyName = optionName
