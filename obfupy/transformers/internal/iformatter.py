@@ -17,8 +17,8 @@ class _IFormatter :
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
 			options = callbackdata._invokeCallback(self._callback, callbackdata._OptionCallbackData(document.getFileName(), self._options)) or self._options
-			#if callbackdata._shouldSkip(options) :
-			#	continue
+			if not options.enabled :
+				continue
 			generator = tokenize.tokenize(io.BytesIO(document.getContent().encode('utf-8')).readline)
 			tokenList = []
 			for tokenType, tokenValue, _,  _, _ in generator:

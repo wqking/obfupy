@@ -2,15 +2,12 @@ from . import optionsutil
 
 import copy
 
-def _shouldSkip(options) :
+def _shouldSkipFile(callback, fileName) :
+	options = _invokeCallback(callback, _OptionCallbackData(fileName, optionsutil.EmptyOptions()))
 	return (
 		options is not None
 		and not options.enabled
 	)
-
-def _shouldSkipFile(callback, fileName) :
-	options = _invokeCallback(callback, _OptionCallbackData(fileName, optionsutil.EmptyOptions()))
-	return _shouldSkip(options)
 
 def _invokeCallback(callback, data) :
 	if callback is None :

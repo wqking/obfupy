@@ -1,15 +1,26 @@
 from .internal import util
 from .internal import callbackdata
+from .internal import optionsutil
 
+import copy
 import re
 import tokenize
 import io
 
+Options = optionsutil._createOptionsClass({
+	'symbols' : [],
+	'reportIfReplacedInString' : True,
+})
+
 class Replacer :
-	def __init__(self, symbols, reportIfReplacedInString = True, callback = None) :
-		self._reportIfReplacedInString = reportIfReplacedInString
+	def __init__(self, options = None, callback = None) :
+		if options is None :
+			options = Options()
+		self._options = copy.deepcopy(options)
 		self._callback = callback
+		self._reportIfReplacedInString = options.reportIfReplacedInString
 		self._nameMap = {}
+		symbols = options.symbols
 		if isinstance(symbols, list) :
 			for name in symbols :
 				self._nameMap[name] = {

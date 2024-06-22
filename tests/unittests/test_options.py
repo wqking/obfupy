@@ -34,7 +34,7 @@ def test_nestedOptions() :
 	options = Options()
 	assert options.first == 1
 	assert options.nested
-	options.nested = False
+	options.nested.enabled = False
 	assert not options.nested
 	assert options.nested.second == 2
 	options.nested.second = 3

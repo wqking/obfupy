@@ -31,7 +31,9 @@ def _createOptionsClass(data) :
 		def prop(self, keyName = keyName):
 			return self._data[keyName]
 		
-		if isinstance(data[optionName], _BaseOptions) :
+		if False and isinstance(data[optionName], _BaseOptions) :
+			pass
+			'''
 			@prop.setter
 			def prop(self, value, keyName = keyName):
 				if isinstance(value, _BaseOptions) :
@@ -39,6 +41,7 @@ def _createOptionsClass(data) :
 					self._data[keyName] = value
 				else :
 					self._data[keyName].enabled = value
+			'''
 		else :
 			@prop.setter
 			def prop(self, value, keyName = keyName):

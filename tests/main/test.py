@@ -32,6 +32,10 @@ documentManager = documentmanager.DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
 rewriterOptions = rewriter.Options()
+rewriterOptions.extractConstant = False
+rewriterOptions.reverseCompareOperator.enabled = False
+rewriterOptions.reverseCompareOperator.wrapReversedCompareOperator = True
+
 def rewriterCallback(data) :
 	if 'importa' in data.getFileName() and not data.isFile() :
 		context = data.getContext()
@@ -41,8 +45,10 @@ def formatterCallback(data) :
 	if 'importa' in data.getFileName() :
 		data.getOptions().addExtraSpaces = False
 		data.getOptions().expandIndent = False
+replacerOptions = replacer.Options()
+replacerOptions.symbols = [ 'makeMessage' ]
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
-#replacer.Replacer(symbols = [ 'n', 'makeMessage' ]).transform(documentManager)
+replacer.Replacer(options = replacerOptions).transform(documentManager)
 #formatter.Formatter(callback = formatterCallback).transform(documentManager)
 #codec.Codec(codecproviders.byteEncryption).transform(documentManager)
 #codec.Codec(codecproviders.zip).transform(documentManager)
