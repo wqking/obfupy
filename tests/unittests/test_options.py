@@ -23,6 +23,8 @@ def test_deepCopyOptions() :
 	options.extractFunction = False
 	newOptions = copy.deepcopy(options)
 	assert not newOptions.extractFunction
+	options.stringEncoders.append(1)
+	assert len(options.stringEncoders) == len(newOptions.stringEncoders) + 1
 
 def test_nestedOptions() :
 	Options = optionsutil._createOptionsClass({
@@ -41,3 +43,8 @@ def test_nestedOptions() :
 	assert options.nested.second == 3
 	newOptions = copy.deepcopy(options)
 	assert not newOptions.nested
+	try :
+		options.nested = 1
+		assert False
+	except AttributeError :
+		assert True

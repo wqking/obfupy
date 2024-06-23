@@ -31,6 +31,22 @@ class _BaseOptions :
 	def __bool__(self) :
 		return self.enabled
 
+	def __copy__(self):
+		cls = self.__class__
+		result = cls.__new__(cls)
+		result.__slots__ = self.__slots__
+		result._modified = self._modified
+		result._data = self._data
+		return result
+
+	def __deepcopy__(self, memo):
+		cls = self.__class__
+		result = cls.__new__(cls)
+		memo[id(self)] = result
+		result._modified = self._modified
+		result._data = copy.deepcopy(self._data, memo)
+		return result
+
 def _createOptionsClass(fullData) :
 	if 'enabled' not in fullData :
 		fullData['enabled'] = True
@@ -55,7 +71,7 @@ def _createOptionsClass(fullData) :
 		def prop(self, keyName = keyName):
 			return self._data[keyName]
 		
-		if False and isinstance(data[optionName], _BaseOptions) :
+		if isinstance(data[optionName], _BaseOptions) :
 			pass
 			'''
 			@prop.setter
