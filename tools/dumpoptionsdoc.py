@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../")
 import obfupy.transformers.rewriter as rewriter
+import obfupy.transformers.formatter as formatter
 import obfupy.transformers.internal.optionsutil as optionsutil
 import toolutil
 
@@ -64,7 +65,16 @@ def dumpOptionsDoc(options) :
 	return doDumpOptionsDoc(options)
 
 tag = '<!--auto generated section-->'
-rewriterMd = '../doc/transformer_rewriter.md'
-text = dumpOptionsDoc(rewriter.Options)
-toolutil.replaceSectionInFile(rewriterMd, text, tag)
-#print(text)
+optionMdMap = [
+	{
+		'mdFileName' : '../doc/transformer_rewriter.md',
+		'optionClass' : rewriter.Options,
+	},
+	{
+		'mdFileName' : '../doc/transformer_formatter.md',
+		'optionClass' : formatter.Options,
+	},
+]
+for item in optionMdMap :
+	text = dumpOptionsDoc(item['optionClass'])
+	toolutil.replaceSectionInFile(item['mdFileName'], text, tag)

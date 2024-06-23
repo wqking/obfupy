@@ -21,10 +21,22 @@ from .internal import optionsutil
 import copy
 
 Options = optionsutil._createOptionsClass({
-	'removeComment' : True,
-	'expandIndent' : True,
-	'addExtraSpaces' : True,
-	'addExtraNewLines' : True,
+	'removeComment' : {
+		'default' : True,
+		'doc' : "Remove comments. Note: if transformer Rewriter is used, comments are always removed.",
+	},
+	'expandIndent' : {
+		'default' : True,
+		'doc' : "Expand indent with large amount of spaces or tabs.",
+	},
+	'addExtraSpaces' : {
+		'default' : True,
+		'doc' : "Add large amount of spaces or tabs around operators.",
+	},
+	'addExtraNewLines' : {
+		'default' : True,
+		'doc' : "Add large amount of blank lines between code lines.",
+	},
 })
 
 class Formatter :
