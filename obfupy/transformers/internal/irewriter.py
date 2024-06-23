@@ -377,14 +377,14 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		if self._reentryGuard.isEntered([ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
 			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_compare) :
-			node = self._doReverseBoolOperator(node)
+			node = self._doInvertBoolOperator(node)
 			return self._doGenericVisit(node)
 
 	def visit_BoolOp(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_boolOp) :
 			return self._doGenericVisit(node)
 		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_boolOp) :
-			node = self._doReverseBoolOperator(node)
+			node = self._doInvertBoolOperator(node)
 			return self._doGenericVisit(node)
 
 	def visit_For(self, node):
@@ -421,10 +421,10 @@ class _AstVistorRewrite(_BaseAstVistor) :
 				return self._codeBlockMaker.makeCodeBlock(node, allowOuterBlock)
 		return node
 
-	def _doReverseBoolOperator(self, node) :
-		if not self._getOptions().reverseBoolOperator :
+	def _doInvertBoolOperator(self, node) :
+		if not self._getOptions().invertBoolOperator :
 			return node
-		# Don't reverse if it's not bool node, since the result value may be used for non-bool purpose. For example, x = 5 or 6
+		# Don't invert if it's not bool node, since the result value may be used for non-bool purpose. For example, x = 5 or 6
 		if not astutil.isLogicalNode(node) :
 			return node
 		newNode = self.getNegationMaker().makeNegation(node)

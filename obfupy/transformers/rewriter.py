@@ -23,7 +23,11 @@ import copy
 Options = optionsutil._createOptionsClass({
 	'extractFunction' : {
 		'default' : True,
-		'doc' : "Take out the function (global or class member) body to a new random named function with random arguments, then make the original function calls the new function. The function won't be changed if obfupy determines it will cause error, such as `super` is used.",
+		'doc' : """
+Take out the function (global or class member) body to a new random named function with random arguments,
+then make the original function calls the new function.
+The function won't be changed if obfupy determines that may cause error, such as `super` is used.
+""",
 		'problemSituations' : '',
 	},
 	'extractConstant' : {
@@ -32,7 +36,9 @@ Options = optionsutil._createOptionsClass({
 	},
 	'extractBuiltinFunction' : {
 		'default' : True,
-		'doc' : "Replace built-in function names such as 'print', 'isinstance', with random named variables, the variables represent the functions.",
+		'doc' : """
+Replace built-in function names such as 'print', 'isinstance', with random named variables, the variables represent the functions.
+""",
 	},
 	'renameLocalVariable' : {
 		'default' : True,
@@ -40,45 +46,66 @@ Options = optionsutil._createOptionsClass({
 	},
 	'aliasFunctionArgument' : {
 		'default' : True,
-		'doc' : "If extractFunction is False or a function can't be extracted, obfupy can use random named variables as the argument names and replace all usage with the random names. Note the argument names are not renamed.",
+		'doc' : """
+If `extractFunction` is False or the function can't be extracted, obfupy can use random named variables as the argument names
+and replace all usage with the random names. Note the argument names are not renamed.
+""",
 	},
 	'addNopControlFlow' : {
 		'default' : True,
-		'doc' : "Add useless and harmless code block around `for` and `while`.",
+		'doc' : "Add no-effect code block around `for` and `while`.",
 	},
-	'reverseBoolOperator' : {
+	'invertBoolOperator' : {
 		'default' : True,
 		'doc' : "Convert `a and b` to `not (not a or not b)`, etc",
 	},
-	'reverseCompareOperator' : {
+	'invertCompareOperator' : {
 		'default' : optionsutil._createOptionsObject({
-			'wrapReversedCompareOperator' : {
+			'wrapInvertedCompareOperator' : {
 				'default' : True,
-				'doc' : "Convert `a < b` to a function `try: return not (a >= b) except: return a < b`, then if `a` doesn't support operator `>=`, it will fall back to `<`.",
+				'doc' : """
+Convert `a < b` to a function `try: return not (a >= b) except: return a < b`, so if `a` doesn't support operator `>=`,
+it will fall back to `<`.
+""",
 			},
 		}),
-		'doc' : "Convert `a < b` to `not (a >= b)`"
+		'doc' : "Convert `a < b` to `not (a >= b)`."
 	},
 	'expandIfCondition' : {
 		'default' : True,
-		'doc' : ''
+		'doc' : """
+Insert no-effect conditions to `if` conditions. For example, `if a and b` to `if alwaysTrueExpression and a and alwaysTrueExpression and b`, etc.
+This helps to hide the real condition.
+"""
 	},
 	'rewriteIf' : {
 		'default' : True,
-		'doc' : ''
+		'doc' : """
+Rewrite `if` statement to more `if` branches and obfuscate the control flow.
+If `expandIfCondition` is enabled, then the inserted no-effect conditions become no-effect control flows,
+that increases the obfuscating effect significantly. The option `invertCompareOperator` may help too.
+"""
 	},
 	'removeDocString' : {
 		'default' : True,
-		'doc' : ''
+		'doc' : "Remove doc strings. Note the comments are always removed, there is no option to control it."
 	},
 	'stringEncoders' : {
 		'default' : stringencoders.defaultEncoders,
-		'doc' : '',
 		'defaultLiteral' : 'stringencoders.defaultEncoders',
+		'doc' : """
+The list of encoders that's used to obfuscate strings. The default is `stringencoders.defaultEncoders`.
+If `stringEncoders` is `None` or empty list, the strings are not obfuscated.  
+Note strings are obfuscated only if `extractConstant` is `True`.  
+This option can't be set in the `callback`.
+""",
 	},
 	'unrenamedVariableNames' : {
 		'default' : None,
-		'doc' : ''
+		'doc' : """
+A list of variable names that will be kept unrenamed. If it's `None`, no variable names are kept.  
+This option can't be set in the `callback`.
+""",
 	},
 })
 

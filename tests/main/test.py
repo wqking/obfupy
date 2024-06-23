@@ -16,6 +16,7 @@ import obfupy.transformers.formatter as formatter
 import obfupy.transformers.replacer as replacer
 import obfupy.transformers.codec as codec
 import obfupy.transformers.utils.codecproviders as codecproviders
+import obfupy.transformers.utils.stringencoders as stringencoders
 
 import obfupy.transformers.internal.rewriter.truemaker as truemaker
 import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
@@ -32,9 +33,10 @@ documentManager = documentmanager.DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
 rewriterOptions = rewriter.Options()
-rewriterOptions.extractConstant = False
-rewriterOptions.reverseCompareOperator.enabled = False
-rewriterOptions.reverseCompareOperator.wrapReversedCompareOperator = True
+rewriterOptions.extractConstant = True
+rewriterOptions.invertCompareOperator.enabled = True
+rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
+#rewriterOptions.stringEncoders = None
 
 def rewriterCallback(data) :
 	if 'importa' in data.getFileName() and not data.isFile() :

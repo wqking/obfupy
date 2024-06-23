@@ -18,10 +18,10 @@ rewriterOptions = rewriter.Options()
 # Set extractConstant to False to disable it
 rewriterOptions.extractConstant = False
 
-# Enable the sub option reverseCompareOperator
-rewriterOptions.reverseCompareOperator.enabled = True
-# But disable reverseCompareOperator.wrapReversedCompareOperator
-rewriterOptions.reverseCompareOperator.wrapReversedCompareOperator = False
+# Enable the sub option invertCompareOperator
+rewriterOptions.invertCompareOperator.enabled = True
+# But disable invertCompareOperator.wrapInvertedCompareOperator
+rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = False
 
 # Pass the options to Rewriter and transform the documents
 rewriter.Rewriter(options = rewriterOptions).transform(documentManager)
@@ -43,10 +43,6 @@ The callback receives one argument `callbackData`. `callbackData` is an object. 
 
 All transformers support `callbackData` with below member functions
 
-#### getOptions()
-
-Returns the options object. There is always an options object in the callback data, even if the transformer doesn't have options argument in its contructor. The options object has at least one property `enabled`, set it to `False` will skip further transforming.
-
 #### isFile()
 
 Returns `True` if current processing context is file. It always returns `True` for most transformers. In transformer Rewriter it may return `False` if the processing context is class or function.
@@ -54,6 +50,10 @@ Returns `True` if current processing context is file. It always returns `True` f
 #### getFileName()
 
 Returns the full file name of the current source code file being processed. This function is always valid no matter `isFile()` returns `True` or `False`.
+
+#### getOptions()
+
+Returns the options object. There is always an options object in the callback data, even if the transformer doesn't have options argument in its constructor. The options object has at least one property `enabled`, set it to `False` will skip further transforming.
 
 ## Example
 

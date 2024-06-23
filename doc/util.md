@@ -32,5 +32,6 @@ The function returns a list of file names. The file name has full absolute path.
 Ensure the path delimiter in `path` is '/', even on Windows. `path` is a string or a list of string.  
 The function returns a string of the new path if `path` is a string, or a list of string if `path` is a list.  
 Note on Windows the driver delimiter is still '\', but the path delimiter will be '/', such as 'c:\/project/whatever/another'.
-This function is useful to normalize the path, and make it easier to check if a path contains a sub folder, such as `'whatever' in path`.
+This function is useful to normalize the path, and make it easier to check if a path contains a sub folder,
+such as we can check `'/whatever/' in path` on any platform.
 

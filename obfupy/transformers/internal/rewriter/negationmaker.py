@@ -52,7 +52,7 @@ class NegationMaker :
 
 	# a < b -> a >= b
 	def _doMakeCompareNegation(self, node) :
-		if not self._options.reverseCompareOperator :
+		if not self._options.invertCompareOperator :
 			# We can't convert a < b to a >= b because some comparison is not invertible, such as < on sets.
 			return astutil.addNot(node)
 		# The user allows to convert, let's go.
@@ -104,7 +104,7 @@ class NegationMaker :
 		)
 
 	def _needToMakeCompareWrapper(self, node) :
-		if not self._options.reverseCompareOperator.wrapReversedCompareOperator :
+		if not self._options.invertCompareOperator.wrapInvertedCompareOperator :
 			return False
 		for op in node.ops :
 			if type(op) not in [ ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Eq, ast.NotEq ] :

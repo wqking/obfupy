@@ -38,7 +38,7 @@ Below features (options) are disabled,
 `extractBuiltinFunction`: Django uses the builtin function names as variable and function names.  
 `aliasFunctionArgument`: Due to usage of inspect package.  
 `removeDocString`: Django code accesses doc string thus it can't be removed.  
-`reverseCompareOperator`: Some comparison is not invertable such as `<` with set operands.  
+`invertCompareOperator`: Some comparison is not invertable such as `<` with set operands.  
 `rewriteIf`: enabled by default, but disabled for class body, because some classes inherits from enum.Enum and have if condition in class body, if we rewrite the `if` condition, the newly generated assignment will cause enum.Enum throw exceptions.  
 
 Almost all .py files in both Django source folder and tests folder are obfuscated, only small parts are left untouched, such as test data, templates, etc.  

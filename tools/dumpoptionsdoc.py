@@ -4,26 +4,33 @@ import obfupy.transformers.rewriter as rewriter
 import obfupy.transformers.internal.optionsutil as optionsutil
 import toolutil
 
+titleTag = '###'
+
 def makeQualifiedName(name, parentName) :
 	if parentName is None :
 		return name
 	return parentName + '.' + name
 
-def doDumpOptionsValue(name, value, doc, parentName) :
-	text = doc
-	defaultValue = str(value)
-	if isinstance(doc, dict) :
-		text = doc['doc']
-		if 'defaultLiteral' in doc :
-			defaultValue = doc['defaultLiteral']
+def doDumpOptionsValue(name, defaultValue, docObj, parentName) :
+	text = docObj
+	defaultLiteral = str(defaultValue)
+	if isinstance(docObj, dict) :
+		text = docObj['doc']
+		if 'defaultLiteral' in docObj :
+			defaultLiteral = docObj['defaultLiteral']
+	if name == 'enabled' and text == '' :
+		text = """
+Enable or disable all the options.
+"""
+	text = text.strip()
 	result = ''
 	qualifiedName = makeQualifiedName(name, parentName)
-	if isinstance(value, optionsutil._BaseOptions) :
-		result += '#### %s = sub options\n' % (qualifiedName)
+	if isinstance(defaultValue, optionsutil._BaseOptions) :
+		result += '%s %s = sub options\n' % (titleTag, qualifiedName)
 		result += text + '\n'
-		result += doDumpOptionsDoc(value, qualifiedName)
+		result += doDumpOptionsDoc(defaultValue, qualifiedName)
 		return result
-	result += '#### %s = %s\n' % (qualifiedName, defaultValue)
+	result += '%s %s = %s\n' % (titleTag, qualifiedName, defaultLiteral)
 	result += text + '\n'
 	if len(text) > 0 :
 		result += '\n'
@@ -41,16 +48,16 @@ def doDumpOptionsDoc(optionsClass, parentName = None) :
 	result = ''
 	for name in nameList :
 		obj = dataMap[name]
-		value = obj
+		defaultValue = obj
 		doc = ''
 		if isinstance(obj, tuple) :
-			value = obj[0]
+			defaultValue = obj[0]
 			if len(obj) > 1 :
 				doc = obj[1]
 		elif isinstance(obj, dict) :
-			value = obj['default']
+			defaultValue = obj['default']
 			doc = obj
-		result += doDumpOptionsValue(name, value, doc, parentName)
+		result += doDumpOptionsValue(name, defaultValue, doc, parentName)
 	return result
 
 def dumpOptionsDoc(options) :

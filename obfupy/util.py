@@ -23,9 +23,8 @@ import ast
 import re
 
 def writeTextFile(fileName, content) :
-	file = codecs.open(fileName, "w", "utf-8")
-	file.write(str(content))
-	file.close()
+	with codecs.open(fileName, "w", "utf-8") as file :
+		file.write(str(content))
 
 def writeOutputFiles(documentManager, basePath, outputPath) :
 	for document in documentManager.getDocumentList() :
