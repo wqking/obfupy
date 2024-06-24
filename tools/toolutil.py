@@ -1,9 +1,15 @@
+def readTextFile(fileName) :
+	with open(fileName, 'r') as file :
+		return file.read()
+
+def writeTextFile(fileName, content) :
+	with open(fileName, 'w') as file :
+		file.write(content)
+
 def replaceSectionInFile(fileName, text, beginTag, endTag = None) :
 	if endTag is None :
 		endTag = beginTag
-	inputLineList = []
-	with open(fileName, 'r') as f :
-		inputLineList = f.read().split('\n')
+	inputLineList = readTextFile(fileName).split('\n')
 	lineList = []
 	inSection = False
 	for line in inputLineList :
@@ -17,9 +23,22 @@ def replaceSectionInFile(fileName, text, beginTag, endTag = None) :
 				inSection = True
 				lineList = lineList + text.split('\n')
 	content = '\n'.join(lineList)
-	with open(fileName, 'w') as f :
-		f.write(content)
+	writeTextFile(fileName, content)
 
-def readTextFile(fileName) :
-	with open(fileName, 'r') as file :
-		return file.read()
+def tabToSpaceInCode(fileName) :
+	inputLineList = readTextFile(fileName).split('\n')
+	lineList = []
+	inCode = False
+	for line in inputLineList :
+		isCodeTag = line.startswith('```')
+		if inCode :
+			if isCodeTag :
+				inCode = False
+			else :
+				line = line.replace("\t", "    ")
+		else :
+			if isCodeTag :
+				inCode = True
+		lineList.append(line)
+	content = '\n'.join(lineList)
+	writeTextFile(fileName, content)

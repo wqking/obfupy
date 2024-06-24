@@ -1,3 +1,4 @@
 import sys
-sys.path.append("../../")
-
+import os
+scriptPath = os.path.dirname(__file__)
+sys.path.append(os.path.join(scriptPath, "../../"))

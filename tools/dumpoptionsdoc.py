@@ -1,5 +1,3 @@
-import sys
-sys.path.append("../")
 import obfupy.transformers.internal.optionsutil as optionsutil
 
 titleTag = '###'

@@ -1,12 +1,13 @@
 import sys
+import os
+scriptPath = os.path.dirname(__file__)
 try :
 	import obfupy
 	print("Using installed obfupy")
 except :
-	sys.path.append("../../")
+	sys.path.append(os.path.join(scriptPath, "../../"))
 	print("Using local obfupy")
 
-import os
 import codecs
 
 import obfupy.documentmanager as documentmanager
@@ -24,8 +25,8 @@ import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 from obfupy.document import Document
 import ast
 
-inputPath = 'input'
-outputPath = 'output'
+inputPath = os.path.join(scriptPath, 'input')
+outputPath = os.path.join(scriptPath, 'output')
 fileList = util.findFiles(inputPath)
 fileList = util.ensureLinuxPath(fileList)
 fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conftest' not in s, fileList))
@@ -57,5 +58,5 @@ rewriter.Rewriter(options = None, callback = rewriterCallback).transform(documen
 
 util.writeOutputFiles(documentManager, inputPath, outputPath)
 
-os.chdir('output')
+os.chdir(outputPath)
 os.system('python -m pytest -s')

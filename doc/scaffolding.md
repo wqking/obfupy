@@ -36,8 +36,8 @@ import obfupy.transformers.utils.stringencoders as stringencoders
 # Get the input/output path from command line.
 # You may hardcode the input/output path for your projects.
 if len(sys.argv) != 3 :
-    print("Usage: python examples/scaffolding.py input_path output_path")
-    sys.exit(1)
+	print("Usage: python examples/scaffolding.py input_path output_path")
+	sys.exit(1)
 inputPath = sys.argv[1]
 outputPath = sys.argv[2]
 
@@ -79,16 +79,16 @@ rewriterOptions.unrenamedVariableNames = None
 # This is the callback function passed to Rewriter. It demonstrates how to use the callback.
 # If you don't need the callback, just pass None to argument `callback`` Rewriter constructor.
 def rewriterCallback(callbackData) :
-    if 'the_file_name_to_skip' in callbackData.getFileName() :
-        callbackData.getOptions().enabled = False
-        return
-    if not callbackData.isFile() :
-        context = callbackData.getContext()
-        if context.isFunction() :
-            if context.getName() == 'functionNotToBeObfuscated' :
-                callbackData.getOptions().enabled = False
-            if context.getName() == 'functionNotToRewriteIf' :
-                callbackData.getOptions().rewriteIf = False
+	if 'the_file_name_to_skip' in callbackData.getFileName() :
+		callbackData.getOptions().enabled = False
+		return
+	if not callbackData.isFile() :
+		context = callbackData.getContext()
+		if context.isFunction() :
+			if context.getName() == 'functionNotToBeObfuscated' :
+				callbackData.getOptions().enabled = False
+			if context.getName() == 'functionNotToRewriteIf' :
+				callbackData.getOptions().rewriteIf = False
 
 # Execute the transforming with Rewriter
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
@@ -125,9 +125,9 @@ codecOptions.provider = codecproviders.zip
 
 # The callback demonstrates how to use random codec provider for each source file
 def codecCallback(callbackData) :
-    providerList = [ codecproviders.zip, codecproviders.bz2, codecproviders.byteEncryption, codecproviders.base64 ]
-    import random
-    callbackData.getOptions().provider = random.choice(providerList)
+	providerList = [ codecproviders.zip, codecproviders.bz2, codecproviders.byteEncryption, codecproviders.base64 ]
+	import random
+	callbackData.getOptions().provider = random.choice(providerList)
 
 codec.Codec(options = codecOptions, callback = codecCallback).transform(documentManager)
 

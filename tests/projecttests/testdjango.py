@@ -1,8 +1,10 @@
 # https://github.com/django/django.git, branch main, commit adae619426b6f50046b3daaa744db52989c9d6db
 
 import sys
-sys.path.append("../../")
-sys.path.append("../projecttests")
+import os
+scriptPath = os.path.dirname(__file__)
+sys.path.append(os.path.join(scriptPath, "../../"))
+sys.path.append(os.path.join(scriptPath, "../projecttests"))
 import general
 import helper
 

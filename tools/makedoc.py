@@ -1,3 +1,8 @@
+import sys
+import os
+scriptPath = os.path.dirname(__file__)
+sys.path.append(os.path.join(scriptPath, "../"))
+
 import dumpoptionsdoc
 import toolutil
 
@@ -5,10 +10,6 @@ import obfupy.transformers.rewriter as rewriter
 import obfupy.transformers.formatter as formatter
 import obfupy.transformers.replacer as replacer
 import obfupy.transformers.codec as codec
-
-import os
-
-scriptPath = os.path.dirname(__file__)
 
 tag = '<!--auto generated section-->'
 
