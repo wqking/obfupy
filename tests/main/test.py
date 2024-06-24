@@ -32,8 +32,8 @@ fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conf
 documentManager = documentmanager.DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
-rewriterOptions = rewriter.Options()
-rewriterOptions.extractConstant = True
+rewriterOptions = rewriter.Options(extractConstant = False)
+#rewriterOptions.extractConstant = True
 rewriterOptions.invertCompareOperator.enabled = True
 rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
 #rewriterOptions.stringEncoders = None
@@ -52,13 +52,9 @@ replacerOptions.symbols = [ 'makeMessage' ]
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
 #replacer.Replacer(options = replacerOptions).transform(documentManager)
 #formatter.Formatter(callback = formatterCallback).transform(documentManager)
-#codec.Codec(codecproviders.byteEncryption).transform(documentManager)
-#codec.Codec(codecproviders.zip).transform(documentManager)
-#codec.Codec(codecproviders.bz2).transform(documentManager)
-#codec.Codec(codecproviders.base64).transform(documentManager)
+#codec.Codec(codec.Options(provider = codecproviders.byteEncryption)).transform(documentManager)
 
 util.writeOutputFiles(documentManager, inputPath, outputPath)
 
 os.chdir('output')
 os.system('python -m pytest -s')
-

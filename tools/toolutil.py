@@ -19,3 +19,7 @@ def replaceSectionInFile(fileName, text, beginTag, endTag = None) :
 	content = '\n'.join(lineList)
 	with open(fileName, 'w') as f :
 		f.write(content)
+
+def readTextFile(fileName) :
+	with open(fileName, 'r') as file :
+		return file.read()

@@ -28,7 +28,7 @@ Take out the function (global or class member) body to a new random named functi
 then make the original function calls the new function.
 The function won't be changed if obfupy determines that may cause error, such as `super` is used.
 """,
-		'problemSituations' : '',
+		'problemSituations' : "It doesn't work if the function frame object is accessed, such as using the frame object in `inspect` package.",
 	},
 	'extractConstant' : {
 		'default' : True,
@@ -50,6 +50,7 @@ Replace built-in function names such as 'print', 'isinstance', with random named
 If `extractFunction` is False or the function can't be extracted, obfupy can use random named variables as the argument names
 and replace all usage with the random names. Note the argument names are not renamed.
 """,
+		'problemSituations' : "It may not work if the function uses `locals()` or frame object to access the arguments by name.",
 	},
 	'addNopControlFlow' : {
 		'default' : True,
@@ -65,11 +66,21 @@ and replace all usage with the random names. Note the argument names are not ren
 				'default' : True,
 				'doc' : """
 Convert `a < b` to a function `try: return not (a >= b) except: return a < b`, so if `a` doesn't support operator `>=`,
-it will fall back to `<`.
+it will fall back to `<`. This is useful if an object implements comparison operator such as '<' but doesn't implement
+the inverted operator `>=`.
 """,
 			},
 		}),
-		'doc' : "Convert `a < b` to `not (a >= b)`."
+		'doc' : "Convert `a < b` to `not (a >= b)`.",
+		'problemSituations' : """
+It doesn't work if the comparison operator is not invertible, i.e, `(a < b) != not (a >= b)`. One case is `set`. For example,
+```python
+a = { 'a', 'b' }
+b = { '1', '2' }
+print(a < b) # False
+print(a >= b) # False
+```
+"""
 	},
 	'expandIfCondition' : {
 		'default' : True,
@@ -88,7 +99,8 @@ that increases the obfuscating effect significantly. The option `invertCompareOp
 	},
 	'removeDocString' : {
 		'default' : True,
-		'doc' : "Remove doc strings. Note the comments are always removed, there is no option to control it."
+		'doc' : "Remove doc strings. Note the comments are always removed, there is no option to control it.",
+		'problemSituations' : "This doesn't work if the source code uses the doc strings, e.g, by accessing `__doc__`."
 	},
 	'stringEncoders' : {
 		'default' : stringencoders.defaultEncoders,
@@ -97,14 +109,14 @@ that increases the obfuscating effect significantly. The option `invertCompareOp
 The list of encoders that's used to obfuscate strings. The default is `stringencoders.defaultEncoders`.
 If `stringEncoders` is `None` or empty list, the strings are not obfuscated.  
 Note strings are obfuscated only if `extractConstant` is `True`.  
-This option can't be set in the `callback`.
+Note: this option can't be set from within `callback`.
 """,
 	},
 	'unrenamedVariableNames' : {
 		'default' : None,
 		'doc' : """
 A list of variable names that will be kept unrenamed. If it's `None`, no variable names are kept.  
-This option can't be set in the `callback`.
+Note: this option can't be set from within `callback`.
 """,
 	},
 })

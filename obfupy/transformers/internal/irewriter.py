@@ -476,6 +476,7 @@ class _IRewriter :
 		for name in specialOptionNames :
 			setattr(self._specialOptions, name, getattr(self._options, name))
 			setattr(self._options, name, None)
+		self._options._setReadonlyNames([ 'stringEncoders', 'unrenamedVariableNames' ])
 		self._doInitOptions()
 
 	def _doInitOptions(self) :

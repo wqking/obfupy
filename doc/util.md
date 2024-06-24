@@ -35,3 +35,17 @@ Note on Windows the driver delimiter is still '\', but the path delimiter will b
 This function is useful to normalize the path, and make it easier to check if a path contains a sub folder,
 such as we can check `'/whatever/' in path` on any platform.
 
+#### listSymbols(documentManager, regexps = None)
+
+Returns all class names, functions names, and any text matching any item in regexps, in `documentManager`.  
+`regexps` is either `None` or a list of regular expressions.  
+The function scans all document in `documentManager`, collects all class names, function names, and any text matching `regexps`.  
+The function returns a dictionary,  
+```python
+{
+    'class' : list of class names,
+    'function' : list of function names,
+    'other' : list of texts matching regexps
+}
+```
+The use case of this function is to collect symbols and use transformer Replacer to replace them.

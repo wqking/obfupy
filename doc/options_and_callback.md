@@ -4,8 +4,9 @@ All transformers constructor accepts argument `callback`, and some customizable 
 
 ## Options
 
-`Options` is an object. Each transformer has its own `Options` class. An option is a property of the `Options` object, the value can be True/False, string, integer, or another `Options`.  
-Every `Options` has a property named `enabled`, setting it to `False` will disable all options in the `Options` object.
+`Options` is an object. Each transformer has its own `Options` class. An option is a property of the `Options` object, the value can be True/False, string, integer, or another `Options` (a.k.a, sub options).  
+Every `Options` has a property named `enabled`, setting it to `False` will disable all options in the `Options` object.  
+All options can be set as properties of `Options`. All simple options, except sub options, can be passed to `Options` constructor as keyword arguments.  
 
 Let's take transformer Rewriter as an example,
 
@@ -17,6 +18,9 @@ rewriterOptions = rewriter.Options()
 
 # Set extractConstant to False to disable it
 rewriterOptions.extractConstant = False
+
+# We can also pass extractConstant to the constructor, for example,
+# rewriterOptions = rewriter.Options(extractConstant = False)
 
 # Enable the sub option invertCompareOperator
 rewriterOptions.invertCompareOperator.enabled = True
@@ -63,8 +67,8 @@ Below code demonstrate how to skip all files in folder 'template'.
 import obfupy.transformers.formatter as formatter
 
 def callback(callbackData) :
-	if '/template/' in callbackData.getFileName() :
-		callbackData.getOptions().enabled = False
+    if '/template/' in callbackData.getFileName() :
+        callbackData.getOptions().enabled = False
 
 formatter.Formatter(callback = callback).transform(documentManager)
 ```

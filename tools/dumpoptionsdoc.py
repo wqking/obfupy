@@ -1,9 +1,6 @@
 import sys
 sys.path.append("../")
-import obfupy.transformers.rewriter as rewriter
-import obfupy.transformers.formatter as formatter
 import obfupy.transformers.internal.optionsutil as optionsutil
-import toolutil
 
 titleTag = '###'
 
@@ -14,16 +11,26 @@ def makeQualifiedName(name, parentName) :
 
 def doDumpOptionsValue(name, defaultValue, docObj, parentName) :
 	text = docObj
+	problemSituations = None
 	defaultLiteral = str(defaultValue)
 	if isinstance(docObj, dict) :
 		text = docObj['doc']
 		if 'defaultLiteral' in docObj :
 			defaultLiteral = docObj['defaultLiteral']
+		if 'problemSituations' in docObj :
+			problemSituations = docObj['problemSituations']
 	if name == 'enabled' and text == '' :
 		text = """
 Enable or disable all the options.
 """
 	text = text.strip()
+	if problemSituations is not None :
+		if not isinstance(problemSituations, list) :
+			problemSituations = [ problemSituations ]
+		text += "  \n"
+		text += "\n"
+		for item in problemSituations :
+			text += "**Problem situation:** %s\n" % (item.strip())
 	result = ''
 	qualifiedName = makeQualifiedName(name, parentName)
 	if isinstance(defaultValue, optionsutil._BaseOptions) :
@@ -32,6 +39,7 @@ Enable or disable all the options.
 		result += doDumpOptionsDoc(defaultValue, qualifiedName)
 		return result
 	result += '%s %s = %s\n' % (titleTag, qualifiedName, defaultLiteral)
+	#print('options.%s = %s' % (qualifiedName, defaultLiteral))
 	result += text + '\n'
 	if len(text) > 0 :
 		result += '\n'
@@ -64,17 +72,3 @@ def doDumpOptionsDoc(optionsClass, parentName = None) :
 def dumpOptionsDoc(options) :
 	return doDumpOptionsDoc(options)
 
-tag = '<!--auto generated section-->'
-optionMdMap = [
-	{
-		'mdFileName' : '../doc/transformer_rewriter.md',
-		'optionClass' : rewriter.Options,
-	},
-	{
-		'mdFileName' : '../doc/transformer_formatter.md',
-		'optionClass' : formatter.Options,
-	},
-]
-for item in optionMdMap :
-	text = dumpOptionsDoc(item['optionClass'])
-	toolutil.replaceSectionInFile(item['mdFileName'], text, tag)

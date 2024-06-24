@@ -17,10 +17,16 @@
 import copy
 
 class _BaseOptions :
-	__slots__ = ('_modified', '_data')
-	def __init__(self, data) :
+	__slots__ = ('_modified', '_data', '_readonlyNames')
+	def __init__(self, data, **kwargs) :
 		self._modified = False
 		self._data = data
+		self._readonlyNames = []
+		for name in kwargs :
+			setattr(self, name, kwargs[name])
+
+	def _setReadonlyNames(self, readonlyNames) :
+		self._readonlyNames = copy.deepcopy(readonlyNames)
 
 	def _isModified(self) :
 		return self._modified
@@ -37,6 +43,7 @@ class _BaseOptions :
 		result.__slots__ = self.__slots__
 		result._modified = self._modified
 		result._data = self._data
+		result._readonlyNames = self._readonlyNames
 		return result
 
 	def __deepcopy__(self, memo):
@@ -45,6 +52,7 @@ class _BaseOptions :
 		memo[id(self)] = result
 		result._modified = self._modified
 		result._data = copy.deepcopy(self._data, memo)
+		result._readonlyNames = copy.deepcopy(self._readonlyNames, memo)
 		return result
 
 def _createOptionsClass(fullData) :
@@ -58,10 +66,11 @@ def _createOptionsClass(fullData) :
 		elif isinstance(value, dict) :
 			value = value['default']
 		data[name] = value
+
 	class _Options(_BaseOptions) :
 		__slots__ = ()
-		def __init__(self, data = data):
-			super().__init__(data)
+		def __init__(self, _noCollideData = data, **kwargs):
+			super().__init__(_noCollideData, **kwargs)
 	_Options._fullData = fullData
 	slots = [ '_data' ]
 	for optionName in data :
@@ -85,6 +94,8 @@ def _createOptionsClass(fullData) :
 		else :
 			@prop.setter
 			def prop(self, value, keyName = keyName):
+				if keyName in self._readonlyNames :
+					raise AttributeError("Can't set readonly option: %s" % (keyName))
 				self._data[keyName] = value
 				self._modified = True
 		setattr(_Options, propertyName, prop)

@@ -24,14 +24,28 @@ import tokenize
 import io
 
 Options = optionsutil._createOptionsClass({
-	'symbols' : [],
-	'reportIfReplacedInString' : True,
+	'symbols' : {
+		'default' : [],
+		'doc' : """
+A list or dict of symbols to replace.  
+If it's a list, all items are strings, they are replaced with random generated names.  
+If it's a dict, all keys are strings, they are replaced with the values in the dict. If any value is `None`, random generated name is used.  
+The replacement is always case sensitive and whole word.  
+Note: this option can't be set from within `callback`.
+"""
+	},
+	'reportIfReplacedInString' : {
+		'default' : True,
+		'doc' : """
+If it's `True`, Replace prints warning if any Python string is replaced. Usually we only want to replace class, function, or variable names,
+if any string is replaced, that may be wrong.  
+Note: this option can't be set from within `callback`.
+"""
+	},
 })
 
 class Replacer :
-	def __init__(self, options = None, callback = None) :
-		if options is None :
-			options = Options()
+	def __init__(self, options, callback = None) :
 		self._options = copy.deepcopy(options)
 		self._callback = callback
 		self._reportIfReplacedInString = options.reportIfReplacedInString
@@ -40,13 +54,11 @@ class Replacer :
 		if isinstance(symbols, list) :
 			for name in symbols :
 				self._nameMap[name] = {
-					'regexp' : f'\\b{name}\\b',
 					'replacement' : None
 				}
 		elif isinstance(symbols, dict) :
 			for name in symbols :
 				self._nameMap[name] = {
-					'regexp' : f'\\b{name}\\b',
 					'replacement' : symbols[name]
 				}
 

@@ -39,7 +39,7 @@ Apache License, Version 2.0
 
 ## Dependences
 
-obfupy requires Python 3.9 or later, it doesn't have any other dependences.
+obfupy requires Python 3.9 or later, it doesn't have any other dependencies.
 
 ## Install
 
@@ -89,10 +89,13 @@ util.writeOutputFiles(documentManager, inputPath, outputPath)
 
 ## Documentations
 
+* [Get started -- the scaffolding script](doc/scaffolding.md)
 * [Document and DocumentManager - the input source for transformers](doc/documentmanager.md)
 * [Transformers overview](doc/transformer_overview.md)
 * [Options and callback](doc/options_and_callback.md)
 * [Transformer Rewriter -- rewrite the Python code in different structure](doc/transformer_rewriter.md)
 * [Transformer Formatter -- change the code visual layout](doc/transformer_formatter.md)
+* [Transformer Replacer -- replace symbols literally](doc/transformer_replacer.md)
+* [Transformer Codec -- encode the whole Python source file](doc/transformer_codec.md)
 * [Utilities](doc/util.md)
 * [How obfupy is tested with real world projects](doc/real_world_projects.md)

@@ -1,0 +1,142 @@
+# Get started -- the scaffolding script
+
+The file `examples/scaffolding.py` is a ready to use scaffolding script. You can execute it from command line to obfuscate some code and experience how to it work. You can also copy it as a template to make the obfuscator script for your own projects.  
+
+To execute it, in console, run,  
+```
+python examples/scaffolding.py INPUT_PATH OUTPUT_PATH
+```
+
+For a quick test, you may run it on obfupy test files,  
+```
+python examples/scaffolding.py tests/main/input tests/main/output
+```
+Then go to folder to see the obfuscated files.
+
+The scaffolding script sets all options with their default values, and uses all transformers to obfuscated code. That's usually not necessary in real world projects. You may remove the unnecessary options and transformers on your own.
+
+In case you'd like to read the scaffolding source code online, here you go.
+
+<!--auto generated section-->
+
+```python
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
+
+import obfupy.documentmanager as documentmanager
+import obfupy.util as util
+import obfupy.transformers.rewriter as rewriter
+import obfupy.transformers.formatter as formatter
+import obfupy.transformers.replacer as replacer
+import obfupy.transformers.codec as codec
+import obfupy.transformers.utils.codecproviders as codecproviders
+import obfupy.transformers.utils.stringencoders as stringencoders
+
+# Get the input/output path from command line.
+# You may hardcode the input/output path for your projects.
+if len(sys.argv) != 3 :
+    print("Usage: python examples/scaffolding.py input_path output_path")
+    sys.exit(1)
+inputPath = sys.argv[1]
+outputPath = sys.argv[2]
+
+################################################################################
+########## First step, prepare DocumentManager
+################################################################################
+
+# Search all .py files in input folder, recursively.
+fileList = util.findFiles(inputPath)
+# Ensure all path delimiters are / instead of \ if on Windows. This is not necessary but it's easier to check folder in callback.
+fileList = util.ensureLinuxPath(fileList)
+documentManager = documentmanager.DocumentManager()
+# Load documents from the files and pass them to DocumentManager
+documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
+
+################################################################################
+########## Transformer Rewriter
+################################################################################
+
+# Below is the rewriter Options. It sets the values with the default values. You don't need to sets the default values,
+# and if all values are default, just pass None to argument `options`` Rewriter constructor.
+rewriterOptions = rewriter.Options()
+rewriterOptions.enabled = True
+rewriterOptions.extractFunction = True
+rewriterOptions.extractConstant = True
+rewriterOptions.extractBuiltinFunction = True
+rewriterOptions.renameLocalVariable = True
+rewriterOptions.aliasFunctionArgument = True
+rewriterOptions.addNopControlFlow = True
+rewriterOptions.invertBoolOperator = True
+rewriterOptions.invertCompareOperator.enabled = True
+rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
+rewriterOptions.expandIfCondition = True
+rewriterOptions.rewriteIf = True
+rewriterOptions.removeDocString = True
+rewriterOptions.stringEncoders = stringencoders.defaultEncoders
+rewriterOptions.unrenamedVariableNames = None
+
+# This is the callback function passed to Rewriter. It demonstrates how to use the callback.
+# If you don't need the callback, just pass None to argument `callback`` Rewriter constructor.
+def rewriterCallback(callbackData) :
+    if 'the_file_name_to_skip' in callbackData.getFileName() :
+        callbackData.getOptions().enabled = False
+        return
+    if not callbackData.isFile() :
+        context = callbackData.getContext()
+        if context.isFunction() :
+            if context.getName() == 'functionNotToBeObfuscated' :
+                callbackData.getOptions().enabled = False
+            if context.getName() == 'functionNotToRewriteIf' :
+                callbackData.getOptions().rewriteIf = False
+
+# Execute the transforming with Rewriter
+rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
+
+################################################################################
+########## Transformer Formatter
+################################################################################
+
+formatterOptions = formatter.Options()
+formatterOptions.enabled = True
+formatterOptions.removeComment = True
+formatterOptions.expandIndent = True
+formatterOptions.addExtraSpaces = True
+formatterOptions.addExtraNewLines = True
+
+formatter.Formatter(options = formatterOptions, callback = None).transform(documentManager)
+
+################################################################################
+########## Transformer Replacer
+################################################################################
+
+replacerOptions = replacer.Options()
+replacerOptions.symbols = [ 'theFuncNameToReplace', 'theClassNameToReplace' ]
+replacerOptions.reportIfReplacedInString = True
+
+replacer.Replacer(options = replacerOptions, callback = None).transform(documentManager)
+
+################################################################################
+########## Transformer Codec
+################################################################################
+
+codecOptions = codec.Options()
+codecOptions.provider = codecproviders.zip
+
+# The callback demonstrates how to use random codec provider for each source file
+def codecCallback(callbackData) :
+    providerList = [ codecproviders.zip, codecproviders.bz2, codecproviders.byteEncryption, codecproviders.base64 ]
+    import random
+    callbackData.getOptions().provider = random.choice(providerList)
+
+codec.Codec(options = codecOptions, callback = codecCallback).transform(documentManager)
+
+################################################################################
+########## Last step, save the obfuscated files.
+################################################################################
+
+util.writeOutputFiles(documentManager, inputPath, outputPath)
+
+```
+
+<!--auto generated section-->

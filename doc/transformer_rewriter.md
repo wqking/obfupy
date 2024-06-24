@@ -82,7 +82,10 @@ Enable or disable all the options.
 ### extractFunction = True
 Take out the function (global or class member) body to a new random named function with random arguments,
 then make the original function calls the new function.
-The function won't be changed if obfupy determines that may cause error, such as `super` is used.
+The function won't be changed if obfupy determines that may cause error, such as `super` is used.  
+
+**Problem situation:** It doesn't work if the function frame object is accessed, such as using the frame object in `inspect` package.
+
 
 ### extractConstant = True
 Replace constants with random named variables, the variables represent obfuscated constants.
@@ -95,7 +98,10 @@ Rename function local variables with random names.
 
 ### aliasFunctionArgument = True
 If `extractFunction` is False or the function can't be extracted, obfupy can use random named variables as the argument names
-and replace all usage with the random names. Note the argument names are not renamed.
+and replace all usage with the random names. Note the argument names are not renamed.  
+
+**Problem situation:** It may not work if the function uses `locals()` or frame object to access the arguments by name.
+
 
 ### addNopControlFlow = True
 Add no-effect code block around `for` and `while`.
@@ -104,13 +110,23 @@ Add no-effect code block around `for` and `while`.
 Convert `a and b` to `not (not a or not b)`, etc
 
 ### invertCompareOperator = sub options
-Convert `a < b` to `not (a >= b)`.
+Convert `a < b` to `not (a >= b)`.  
+
+**Problem situation:** It doesn't work if the comparison operator is not invertible, i.e, `(a < b) != not (a >= b)`. One case is `set`. For example,
+```python
+a = { 'a', 'b' }
+b = { '1', '2' }
+print(a < b) # False
+print(a >= b) # False
+```
+
 ### invertCompareOperator.enabled = True
 Enable or disable all the options.
 
 ### invertCompareOperator.wrapInvertedCompareOperator = True
 Convert `a < b` to a function `try: return not (a >= b) except: return a < b`, so if `a` doesn't support operator `>=`,
-it will fall back to `<`.
+it will fall back to `<`. This is useful if an object implements comparison operator such as '<' but doesn't implement
+the inverted operator `>=`.
 
 ### expandIfCondition = True
 Insert no-effect conditions to `if` conditions. For example, `if a and b` to `if alwaysTrueExpression and a and alwaysTrueExpression and b`, etc.
@@ -122,17 +138,20 @@ If `expandIfCondition` is enabled, then the inserted no-effect conditions become
 that increases the obfuscating effect significantly. The option `invertCompareOperator` may help too.
 
 ### removeDocString = True
-Remove doc strings. Note the comments are always removed, there is no option to control it.
+Remove doc strings. Note the comments are always removed, there is no option to control it.  
+
+**Problem situation:** This doesn't work if the source code uses the doc strings, e.g, by accessing `__doc__`.
+
 
 ### stringEncoders = stringencoders.defaultEncoders
 The list of encoders that's used to obfuscate strings. The default is `stringencoders.defaultEncoders`.
 If `stringEncoders` is `None` or empty list, the strings are not obfuscated.  
 Note strings are obfuscated only if `extractConstant` is `True`.  
-This option can't be set in the `callback`.
+Note: this option can't be set from within `callback`.
 
 ### unrenamedVariableNames = None
 A list of variable names that will be kept unrenamed. If it's `None`, no variable names are kept.  
-This option can't be set in the `callback`.
+Note: this option can't be set from within `callback`.
 
 
 <!--auto generated section-->
@@ -200,13 +219,13 @@ For example,
 
 ```python
 class MyClass :
-	def myFunc(self) :
-		def inner() :
-			pass
-		pass
+    def myFunc(self) :
+        def inner() :
+            pass
+        pass
 
 class AnotherClass :
-	pass
+    pass
 ```
 
 Parent context of `inner` is `myFunc`. Parent of `myFunc` is `MyClass`. Parent of `MyClass` is the module. The module's parent is `None`.  
@@ -227,7 +246,7 @@ import obfupy.transformers.utils.stringencoders as stringencoders
 
 #### reverse
 
-Convert "abc" to "cba".
+Convert "abcdef" to "fedcba".
 
 #### rot13
 
@@ -245,10 +264,10 @@ Replace each bytes `ch` in the string with `ch xor randomInteger`.
 
 ```python
 stringencoders.defaultEncoders = [
-	reverse,
-	rot13,
-	hex,
-	xor
+    reverse,
+    rot13,
+    hex,
+    xor
 ]
 ```
 

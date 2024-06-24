@@ -16,9 +16,11 @@
 
 import random
 import base64
+import copy
 
 from .internal import util as util
 from .internal import callbackdata
+from .internal import optionsutil
 
 class CodecProvider :
 	def __init__(
@@ -45,23 +47,42 @@ class CodecProvider :
 	def getExtraCode(self, indent) :
 		return self._extraCode
 
+def _getDefaultCodecProvider() :
+	import obfupy.transformers.utils.codecproviders as codecproviders
+	return codecproviders.zip
+
+Options = optionsutil._createOptionsClass({
+	'provider' : {
+		'default' : _getDefaultCodecProvider(),
+		'defaultLiteral' : "codecproviders.zip",
+		'doc' : """
+A codec provider defined in module `obfupy.transformers.utils.codecproviders`.
+"""
+	},
+})
+
 class Codec :
-	def __init__(self, provider, callback = None) :
-		self._provider = provider
+	def __init__(self, options, callback = None) :
+		self._options = copy.deepcopy(options)
 		self._callback = callback
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :
-			if callbackdata._shouldSkipFile(self._callback, document.getFileName()) :
+			options = callbackdata._invokeCallback(
+				self._callback,
+				callbackdata._OptionCallbackData(document.getFileName(), self._options)
+			) or self._options
+			if not options.enabled :
 				continue
-			self._doTransformDocument(document)
+			self._doTransformDocument(document, options)
 
-	def _doTransformDocument(self, document) :
-		if hasattr(self._provider, 'reset') :
-			self._provider.reset()
+	def _doTransformDocument(self, document, options) :
+		provider = options.provider
+		if hasattr(provider, 'reset') :
+			provider.reset()
 		content = document.getContent()
 		data = bytearray(content, 'utf-8')
-		data = self._provider.encode(data)
+		data = provider.encode(data)
 		
 		encoded = base64.b64encode(data).decode('utf-8')
 
@@ -70,13 +91,13 @@ class Codec :
 		code = ''
 		code += "import base64\n"
 		extraCode = None
-		if hasattr(self._provider, 'getExtraCode') :
-			extraCode = self._provider.getExtraCode(indent)
+		if hasattr(provider, 'getExtraCode') :
+			extraCode = provider.getExtraCode(indent)
 		if extraCode is not None :
 			code += f"{extraCode}\n"
 		code += f"{variableName} = '{encoded}'\n"
 		tempVariableName = util.getRandomSymbol()
-		decoder = self._provider.getDecoder(tempVariableName)
+		decoder = provider.getDecoder(tempVariableName)
 		code += f"{tempVariableName} = bytearray(base64.b64decode({variableName}))\n"
 		code += f"eval(compile({decoder},'<string>','exec'))\n"
 		document.setContent(code)
