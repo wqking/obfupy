@@ -16,8 +16,9 @@ from obfupy.transformers.codec import Codec
 from obfupy.transformers.codec import CodecProvider
 import obfupy.transformers.utils.codecproviders as codecproviders
 
-def obfuscateProject(options = None, callback = None) :
-	args = helper.parseCommandLine()
+def obfuscateProject(options = None, callback = None, args = None) :
+	if args is None :
+		args = helper.parseCommandLine()
 	input = args['input']
 	output = args['output']
 	print(input, '->', output)
@@ -38,4 +39,3 @@ def obfuscateProject(options = None, callback = None) :
 	#Codec(codecproviders.base64).transform(documentManager)
 
 	util.writeOutputFiles(documentManager, input, output)
-	return args

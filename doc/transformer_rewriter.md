@@ -168,7 +168,7 @@ def callback(callbackData)
 
 ### Member functions
 
-`callbackData` supports all member function in [basic callbackData](options_and_callback.md). Beside that, `callbackData` also extends with more functions.
+`callbackData` supports all member function in [basic callbackData](options_and_callback.md). Besides that, `callbackData` also extends with more functions.
 
 #### getContext()
 

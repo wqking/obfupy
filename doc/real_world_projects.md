@@ -1,6 +1,6 @@
 # How obfupy is tested with real world projects
 
-obfupy is not an academic project. obfupy aims to produce correct and functional code for real world projects. Thus some real world non-trivial projects are tested with obfupy.
+obfupy is not an academic project. obfupy aims to produce correct and functional code for real world projects. So some real world non-trivial projects are tested with obfupy.
 
 Only transformer Rewriter is tested with these projects. The other transformers are simple enough and don't need to test with them.
 
@@ -35,12 +35,12 @@ https://github.com/django/django.git
 
 Below features (options) are disabled,  
 `extractFunction`: Django uses inspect package to get local variable, extractFunction won't work for all functions.  
-`extractBuiltinFunction`: Django uses the builtin function names as variable and function names.  
+`extractBuiltinFunction`: Django uses the built-in function names as variable and function names.  
 `aliasFunctionArgument`: Due to usage of inspect package.  
 `removeDocString`: Django code accesses doc string thus it can't be removed.  
-`invertCompareOperator`: Some comparison is not invertable such as `<` with set operands.  
+`invertCompareOperator`: Some comparison is not invertible such as `<` with set operands.  
 `rewriteIf`: enabled by default, but disabled for class body, because some classes inherits from enum.Enum and have if condition in class body, if we rewrite the `if` condition, the newly generated assignment will cause enum.Enum throw exceptions.  
 
 Almost all .py files in both Django source folder and tests folder are obfuscated, only small parts are left untouched, such as test data, templates, etc.  
 Almost all unit tests succeed. Only several test folders fail, either due to they don't work well on my Windows with Chinese code page (gbk encode error) which is not related to the obfuscator, or some due to the usage of inspect package.  
-It's possible to enable above disabled options for most code and only disable them for problematic code, however it will be very time consuming. The goal to test with Django is to verify obfuscate works, not to make Django maximally obfuscated.
+It's possible to enable above disabled options for most code and only disable them for problematic code, however it will be very time-consuming. The goal to test with Django is to verify obfuscate works, not to make Django maximally obfuscated.

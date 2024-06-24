@@ -33,7 +33,7 @@ rewriter.Rewriter(options = rewriterOptions).transform(documentManager)
 
 ## Callback
 
-All transformers constructor accepts argument `callback`. `callback` is a function that will be called at certain time point by the transformer. The callback function can change the options for each source file, or even for each function or class in transformer Rewriter.  
+All transformers' constructor accepts argument `callback`. `callback` is a function that will be called at certain time point by the transformer. The callback function can change the options for each source file, or even for each function or class in transformer Rewriter.  
 
 ### callback prototype
 
@@ -41,7 +41,7 @@ All transformers constructor accepts argument `callback`. `callback` is a functi
 def callback(callbackData)
 ```
 
-The callback receives one argument `callbackData`. `callbackData` is an object. All transformers supports the same basic `callbackData`, and some transformers such as Rewriter may extend `callbackData`.
+The callback receives one argument `callbackData`. `callbackData` is an object. All transformers support the same basic `callbackData`, and some transformers such as Rewriter may extend `callbackData`.
 
 ### callbackData member function
 

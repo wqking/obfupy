@@ -2,7 +2,7 @@
 
 The file `examples/scaffolding.py` is a ready to use scaffolding script. You can execute it from command line to obfuscate some code and experience how to it work. You can also copy it as a template to make the obfuscator script for your own projects.  
 
-To execute it, in console, run,  
+To execute it, in terminal, run,  
 ```
 python examples/scaffolding.py INPUT_PATH OUTPUT_PATH
 ```

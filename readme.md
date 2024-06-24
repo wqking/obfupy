@@ -1,4 +1,4 @@
-# obfupy -- Python obfuscator aiming to produce correct and functional code
+# obfupy -- Python source code obfuscator aiming to produce correct and functional code
 
 obfupy is a Python 3 library that can obfuscate whole Python 3 projects, transform the source code to obfuscated and hard to understand code.
 obfupy aims to produce correct and functional code. Several real world non-trivial projects are tested with obfupy,
@@ -37,7 +37,7 @@ Apache License, Version 2.0
 
 [https://github.com/wqking/obfupy](https://github.com/wqking/obfupy)
 
-## Dependences
+## Dependencies
 
 obfupy requires Python 3.9 or later, it doesn't have any other dependencies.
 

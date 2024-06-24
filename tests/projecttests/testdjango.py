@@ -54,8 +54,8 @@ def callback(data) :
 	else :
 		data.setOption(rewriterOptions.rewriteIf, rewriterOptions[rewriterOptions.rewriteIf])
 
-general.obfuscateProject(options = rewriterOptions, callback = callback)
 args = helper.parseCommandLine()
+general.obfuscateProject(options = rewriterOptions, callback = callback, args = args)
 outputPath = args['output']
 
 def doTest() :
