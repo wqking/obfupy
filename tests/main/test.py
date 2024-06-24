@@ -32,8 +32,9 @@ fileList = list(filter(lambda s : 'error' not in s and '.tox' not in s and 'conf
 documentManager = documentmanager.DocumentManager()
 documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
-rewriterOptions = rewriter.Options(extractConstant = False)
-#rewriterOptions.extractConstant = True
+rewriterOptions = rewriter.Options()
+rewriterOptions.removeDocString = True
+rewriterOptions.extractConstant = True
 rewriterOptions.invertCompareOperator.enabled = True
 rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
 #rewriterOptions.stringEncoders = None
@@ -49,7 +50,7 @@ def formatterCallback(data) :
 		data.getOptions().expandIndent = False
 replacerOptions = replacer.Options()
 replacerOptions.symbols = [ 'makeMessage' ]
-rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
+rewriter.Rewriter(options = None, callback = rewriterCallback).transform(documentManager)
 #replacer.Replacer(options = replacerOptions).transform(documentManager)
 #formatter.Formatter(callback = formatterCallback).transform(documentManager)
 #codec.Codec(codec.Options(provider = codecproviders.byteEncryption)).transform(documentManager)

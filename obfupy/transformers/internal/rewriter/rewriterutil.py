@@ -50,15 +50,11 @@ def getNodeProperty(node, property, default = None) :
 def markNodeDocString(node) :
 	if astutil.isChildDocString(node) :
 		setNodeProperty(node.body[0].value, NodeProperties.docstring)
-		setNodeProperty(node, NodeProperties.docstring)
 
 def isConstantNodeMarkedDocString(node) :
 	return getNodeProperty(node, NodeProperties.docstring) is not None
 
-def isNodeMarkedDocString(node) :
-	return getNodeProperty(node, NodeProperties.docstring) is not None
-
 def findFirstInsertableIndex(node) :
-	if isNodeMarkedDocString(node) :
+	if astutil.isChildDocString(node) :
 		return 1
 	return 0

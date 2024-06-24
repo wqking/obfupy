@@ -191,11 +191,10 @@ def isChildDocString(node) :
 	return True
 
 def removeDocString(node) :
-	if not isChildDocString(node) :
-		return node
-	node.body = node.body[1 : ]
-	if len(node.body) == 0 :
-		node.body.append(ast.Pass())
+	while isChildDocString(node) :
+		node.body = node.body[1 : ]
+		if len(node.body) == 0 :
+			node.body.append(ast.Pass())
 	return node
 
 def addPassIfNecessary(nodeList) :

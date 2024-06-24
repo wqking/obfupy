@@ -267,9 +267,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			for item in extraNodeSourceList :
 				if item is not None :
 					item.loadExtraNode(extraNodeManager)
-			index = 0
-			if rewriterutil.isNodeMarkedDocString(node) :
-				index = 1
+			index = rewriterutil.findFirstInsertableIndex(node)
 			self._prependNodes(node.body, extraNodeManager.getNodeList(), self._findIndexNotImport(node.body, index))
 			return node
 

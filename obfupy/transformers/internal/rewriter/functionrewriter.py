@@ -132,7 +132,7 @@ class FunctionRewriter :
 		newBody = ast.Return(
 			value = newCall
 		)
-		if rewriterutil.isNodeMarkedDocString(node) :
+		if astutil.isChildDocString(node) :
 			node.body = [ node.body[0] ]
 		else :
 			node.body = []
