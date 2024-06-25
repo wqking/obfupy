@@ -28,22 +28,56 @@ class ExitGuard :
 	def __exit__(self, type, value, traceBack) :
 		self._callback()
 
-_randomSymbolLeadLetters = 'Il'
-_randomSymbolAllLetters = _randomSymbolLeadLetters + '1'
 _uniqueSymbolMap = {}
+
+def randomSymbolGenerator111(length) :
+	result = random.choice(randomSymbolGenerator111._leadLetters)
+	while len(result) < length :
+		result += random.choice(randomSymbolGenerator111._allLetters)
+	return result
+randomSymbolGenerator111._leadLetters = 'Il'
+randomSymbolGenerator111._allLetters = randomSymbolGenerator111._leadLetters + '1'
+
+def randomSymbolGenerator000(length) :
+	result = random.choice(randomSymbolGenerator000._leadLetters)
+	while len(result) < length :
+		result += random.choice(randomSymbolGenerator000._allLetters)
+	return result
+randomSymbolGenerator000._leadLetters = 'oO'
+randomSymbolGenerator000._allLetters = randomSymbolGenerator000._leadLetters + '0'
+
+def randomSymbolGeneratorUnicode(length) :
+	if randomSymbolGeneratorUnicode.charList is None :
+		charList = []
+		for i in range(0x100, 0x110000) :
+			ch = chr(i)
+			if ch.isidentifier() :
+				charList.append(ch)
+		randomSymbolGeneratorUnicode.charList = charList
+	result = ''
+	while len(result) < length :
+		result += random.choice(randomSymbolGeneratorUnicode.charList)
+	return result
+randomSymbolGeneratorUnicode.charList = None
+
+randomSymbolGenerator = randomSymbolGenerator111
+
+def setRandomSymbolGenerator(generator) :
+	global randomSymbolGenerator
+
+	if generator is not None :
+		randomSymbolGenerator = generator
 
 def getRandomSymbol(length = None) :
 	if length is None :
 		length = random.randint(6, 20)
-	result = random.choice(_randomSymbolLeadLetters)
-	while len(result) < length :
-		result += random.choice(_randomSymbolAllLetters)
-	return result
+	return randomSymbolGenerator(length)
 
 def getUnusedRandomSymbol(usedMap = None, originalName = None) :
 	if usedMap is None :
 		usedMap = _uniqueSymbolMap
-	length = 12
+	length = 8
+	countDown = 5
 	while True :
 		newName = getRandomSymbol(length)
 		#if originalName is not None :
@@ -52,7 +86,11 @@ def getUnusedRandomSymbol(usedMap = None, originalName = None) :
 			usedMap[newName] = True
 			_uniqueSymbolMap[newName] = True
 			return newName
-		length = None
+		if length is not None :
+			if countDown > 0 :
+				countDown -= 1
+			if countDown <= 0 :
+				length = None
 
 def isUsedRandomSymbol(symbol) :
 	return symbol in _uniqueSymbolMap

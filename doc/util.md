@@ -49,3 +49,15 @@ The function returns a dictionary,
 }
 ```
 The use case of this function is to collect symbols and use transformer Replacer to replace them.
+
+#### setRandomSymbolGenerator(generator)
+
+Set the generator function for random symbol. The function is used by all transformers. The word 'generator' is not related to Python generator. When possible, obfupy tries to limit the symbol length to 8. Longer symbols may only increase file size and don't help with obfuscating.  
+There are several built-in generators,  
+
+`util.randomSymbolGenerator111` : Generate symbols with characters I, l, and 1. This is the default generator. Examples: I1lllll1, llllI1lI.  
+`util.randomSymbolGenerator000` : Generate symbols with characters O, o, and 0. Examples: ooOO0OO0, O0O0oO00.  
+`util.randomSymbolGeneratorUnicode` : Generate symbols with non-English Unicode characters. Examples: 𢺐齍嬱𗱯𡪲𤥳𛂮雩, 𧓢ᗰ䮝𢔻𘒤𥤏𡄑𥮮.  
+
+**Provide your own symbol generator**  
+The generator is a function of prototype `someGenerator(length)`. `length` is a positive integer of the expected length of the generated symbol. The function can choose not to respect `length` and use any length it likes. The function must return a string value. The string must be a valid Python identifier, that's to say, `string.isidentifier()` must be True.

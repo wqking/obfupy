@@ -25,6 +25,8 @@ import obfupy.transformers.internal.rewriter.nopmaker as nopmaker
 from obfupy.document import Document
 import ast
 
+#util.setRandomSymbolGenerator(util.randomSymbolGenerator000)
+
 inputPath = os.path.join(scriptPath, 'input')
 outputPath = os.path.join(scriptPath, 'output')
 fileList = util.findFiles(inputPath)

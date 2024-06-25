@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from . import document
+from .transformers.internal import util as iutil
 
 import codecs
 import os
@@ -84,3 +85,9 @@ def listSymbols(documentManager, regexps = None) :
 		'function' : list(functionNameSet.keys()),
 		'other' : list(otherNameSet.keys())
 	}
+
+randomSymbolGenerator111 = iutil.randomSymbolGenerator111
+randomSymbolGenerator000 = iutil.randomSymbolGenerator000
+randomSymbolGeneratorUnicode = iutil.randomSymbolGeneratorUnicode
+
+setRandomSymbolGenerator = iutil.setRandomSymbolGenerator
