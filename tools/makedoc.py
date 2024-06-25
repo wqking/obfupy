@@ -46,7 +46,7 @@ def processScaffolding() :
 ```python
 %s
 ```
-""" % (toolutil.readTextFile(srcFileName))
+""" % (util.readTextFile(srcFileName))
 	toolutil.replaceSectionInFile(docFileName, text, tag)
 
 def tabToSpaceForCode() :

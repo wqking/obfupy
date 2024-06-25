@@ -1,27 +1,27 @@
 # obfupy -- Python source code obfuscator aiming to produce correct and functional code
 
-obfupy is a Python 3 library that can obfuscate whole Python 3 projects, transform the source code to obfuscated and hard to understand code.
-obfupy aims to produce correct and functional code. Several real world non-trivial projects are tested with obfupy,
+obfupy is a Python 3 library that can obfuscate entire Python 3 projects, transforming source code into obfuscated and difficult-to-understand code.
+obfupy aims to produce correct and functional code. Several non-trivial real-world projects were tested using obfupy,
 such as Flask, Nodezator, Algorithms collection, and Django (not all features are enabled for Django).
 
 ## Facts and features
 
 - **Obfuscation methods**
-  - Rewrite `if` condition with many confusing branches.
+  - Rewrite the "if" conditional to include many confusing branches.
   - Rename local variable names.
-  - Extract function and make original function call the extracted one, then rename the arguments in the extracted function.
-  - Make alias for function arguments.
-  - Obfuscate number and string constants and replace them with random variable names.
-  - Replace built-in function names such as `print` with random variable names.
-  - Add useless control flow to `for`, `while`, and `if`.
+  - Extract the function and have the original function call the extracted function, then rename the parameters in the extracted function.
+  - Create alias for function arguments.
+  - Obfuscate numeric and string constants and replace them with random variable names.
+  - Replace built-in function names (e.g. "print") with random variable names.
+  - Add useless control flow to `for` and `while`.
   - Remove doc strings.
   - Remove comments.
   - Add extra spaces around operators.
-  - Make indent spaces much larger to make it harder to read.
+  - Make indents larger to make it harder to read.
   - Add extra blank lines between code lines.
   - Encode the whole Python source file with base64, zip, bz2, byte obfuscator, and easy to add your own codec.
 - **Customizable**
-  - There are multiple layers of independent transformers. You can choose which transformer to use, which not.
+  - There are multiple layers of independent transformers. You can choose which transformers to use and which not to use.
   - The non-trivial transformers such as Rewriter, Formatter, support comprehensive options to enable/disable features. If any feature doesn't work well for your project, you can just disable it.
 - **Well tested**
   - There are tests that cover all features.
@@ -99,3 +99,4 @@ util.writeOutputFiles(documentManager, inputPath, outputPath)
 * [Transformer Codec -- encode the whole Python source file](doc/transformer_codec.md)
 * [Utilities](doc/util.md)
 * [How obfupy is tested with real world projects](doc/real_world_projects.md)
+* [Infrequently Asked Questions](doc/faq.md)

@@ -8,7 +8,7 @@ or even a regular expression replace in the code editor.
 
 - Remove comments.
 - Add extra spaces around operators.
-- Make indent spaces much larger to make it harder to read.
+- Make indents larger to make it harder to read.
 - Add extra blank lines between code lines.
 
 ## Import

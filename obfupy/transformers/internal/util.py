@@ -137,16 +137,3 @@ def ensureList(a) :
 def joinList(a, b) :
 	return ensureList(a) + ensureList(b)
 
-def addOptionPropertiesToClass(cls, optionNameValueMap) :
-	for optionName in optionNameValueMap :
-		propertyName = optionName
-		keyName = propertyName
-		@property
-		def prop(self, keyName = keyName):
-			return self._data[keyName]
-
-		@prop.setter
-		def prop(self, value, keyName = keyName):
-			self._data[keyName] = value
-			self._modified = True
-		setattr(cls, propertyName, prop)

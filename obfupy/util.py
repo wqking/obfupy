@@ -23,6 +23,10 @@ import pathlib
 import ast
 import re
 
+def readTextFile(fileName) :
+	with codecs.open(fileName, 'r', 'utf-8') as file :
+		return file.read()
+
 def writeTextFile(fileName, content) :
 	with codecs.open(fileName, "w", "utf-8") as file :
 		file.write(str(content))

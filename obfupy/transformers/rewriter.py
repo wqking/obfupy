@@ -24,20 +24,20 @@ Options = optionsutil._createOptionsClass({
 	'extractFunction' : {
 		'default' : True,
 		'doc' : """
-Take out the function (global or class member) body to a new random named function with random arguments,
-then make the original function calls the new function.
-The function won't be changed if obfupy determines that may cause error, such as `super` is used.
+Take the body of a function (global or class member) and put it into a randomly named new function with random arguments,
+and then have the original function call the new function.
+If obfupy determines that this might cause an error, such as using `super`, the function will not be changed.
 """,
-		'problemSituations' : "It doesn't work if the function frame object is accessed, such as using the frame object in `inspect` package.",
+		'problemSituations' : "It doesn't work if the function frame object is accessed, e.g, using the frame object in `inspect` package.",
 	},
 	'extractConstant' : {
 		'default' : True,
-		'doc' : "Replace constants with random named variables, the variables represent obfuscated constants.",
+		'doc' : "Replace constants with randomly named variables that represent obfuscated constants.",
 	},
 	'extractBuiltinFunction' : {
 		'default' : True,
 		'doc' : """
-Replace built-in function names such as 'print', 'isinstance', with random named variables, the variables represent the functions.
+Replace built-in function names (e.g., "print", "isinstance") with randomly named variables that represent the functions.
 """,
 	},
 	'renameLocalVariable' : {
@@ -47,8 +47,8 @@ Replace built-in function names such as 'print', 'isinstance', with random named
 	'aliasFunctionArgument' : {
 		'default' : True,
 		'doc' : """
-If `extractFunction` is False or the function can't be extracted, obfupy can use random named variables as the argument names
-and replace all usage with the random names. Note the argument names are not renamed.
+If `extractFunction` is `False` or the function cannot be extracted, obfupy can use randomly named variables as parameter names
+and replace all usages with the random names. Note that parameter names are not renamed.
 """,
 		'problemSituations' : "It may not work if the function uses `locals()` or frame object to access the arguments by name.",
 	},
@@ -108,14 +108,14 @@ that increases the obfuscating effect significantly. The option `invertCompareOp
 		'doc' : """
 The list of encoders that's used to obfuscate strings. The default is `stringencoders.defaultEncoders`.
 If `stringEncoders` is `None` or empty list, the strings are not obfuscated.  
-Note strings are obfuscated only if `extractConstant` is `True`.  
+Note: strings are obfuscated only if `extractConstant` is `True`.  
 Note: this option can't be set from within `callback`.
 """,
 	},
-	'unrenamedVariableNames' : {
+	'preservedVariableNames' : {
 		'default' : None,
 		'doc' : """
-A list of variable names that will be kept unrenamed. If it's `None`, no variable names are kept.  
+A list of variable names that will be preserved and not renamed. If it's `None`, no variable names are preserved.  
 Note: this option can't be set from within `callback`.
 """,
 	},

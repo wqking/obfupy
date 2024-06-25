@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from . import util
+
 import os
 import codecs
 
@@ -27,9 +29,7 @@ class Document :
 		Document._uidSeed += 1
 
 	def loadFromFile(self, fileName) :
-		file = codecs.open(fileName, "r", "utf-8")
-		self._content = file.read()
-		file.close()
+		self._content = util.readTextFile(fileName)
 		self._fileName = fileName
 		return self
 

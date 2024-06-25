@@ -46,3 +46,19 @@ Note: this option can't be set from within `callback`.
 
 <!--auto generated section-->
 
+## Use Replacer efficiently
+
+Replacer is the simplest transformer. If used properly, it can also be the most powerful and very reliable. Here is a suggested approach for effectively using Replacer in a semi-automated form, step by step.  
+
+Step 1, prepare two text files (or tables in database). One named "rename" that contains symbols to be renamed, another named "preserve" that contains symbols that will be preserved.  
+
+Step 2, write a tool to find all symbols that can probably be replaced in your projects. This can be done by either using `util.listSymbols` or write your own algorithm. The symbols can be whatever you need, such as class names, function names, or special argument/variable names such as _xxx.  
+The tool will then filter out all the symbols in the two text files from step 1, and the remaining symbols will be the newly found ones.
+
+Step 3, developers watch for new symbols and place them into appropriate text files to rename or preserve them.  
+
+Step 4, in the obfuscating script, it reads symbols from "rename" text file and feed them to Replacer.
+
+Done
+
+Only Step 3 involves manual operation, and only the initial creation of the database requires a lot of work. Subsequent work is incremental and small.

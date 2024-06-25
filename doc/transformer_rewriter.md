@@ -18,9 +18,9 @@
 		- [rewriteIf = True](#rewriteif--true)
 		- [removeDocString = True](#removedocstring--true)
 		- [stringEncoders = stringencoders.defaultEncoders](#stringencoders--stringencodersdefaultencoders)
-		- [unrenamedVariableNames = None](#unrenamedvariablenames--none)
+		- [preservedVariableNames = None](#preservedvariablenames--none)
 	- [Callback](#callback)
-		- [Member functions](#member-functions)
+		- [callbackData member functions](#callbackdata-member-functions)
 			- [getContext()](#getcontext)
 		- [Context](#context)
 			- [isFile()](#isfile)
@@ -42,17 +42,17 @@
 
 # Transformer Rewriter
 
-Rewriter is the core and most useful transformer. Rewriter rewrites Python code into different structure.  
+Rewriter is the core and most useful transformer. Rewriter rewrites Python code into a different structure.  
 
 ## Features
 
-- Rewrite `if` condition with many confusing branches.
+- Rewrite the "if" conditional to include many confusing branches.
 - Rename local variable names.
-- Extract function and make original function call the extracted one, then rename the arguments in the extracted function.
-- Make alias for function arguments.
-- Obfuscate number and string constants and replace them with random variable names.
-- Replace built-in function names such as `print` with random variable names.
-- Add no-effect control flows to `for` and `while`.
+- Extract the function and have the original function call the extracted function, then rename the parameters in the extracted function.
+- Create alias for function arguments.
+- Obfuscate numeric and string constants and replace them with random variable names.
+- Replace built-in function names (e.g. "print") with random variable names.
+- Add useless control flow to `for` and `while`.
 - Remove doc strings.
 
 ## Import
@@ -80,25 +80,25 @@ Rewriter constructor accept `options` and `callback`. For basic usage of `option
 Enable or disable all the options.
 
 ### extractFunction = True
-Take out the function (global or class member) body to a new random named function with random arguments,
-then make the original function calls the new function.
-The function won't be changed if obfupy determines that may cause error, such as `super` is used.  
+Take the body of a function (global or class member) and put it into a randomly named new function with random arguments,
+and then have the original function call the new function.
+If obfupy determines that this might cause an error, such as using `super`, the function will not be changed.  
 
-**Problem situation:** It doesn't work if the function frame object is accessed, such as using the frame object in `inspect` package.
+**Problem situation:** It doesn't work if the function frame object is accessed, e.g, using the frame object in `inspect` package.
 
 
 ### extractConstant = True
-Replace constants with random named variables, the variables represent obfuscated constants.
+Replace constants with randomly named variables that represent obfuscated constants.
 
 ### extractBuiltinFunction = True
-Replace built-in function names such as 'print', 'isinstance', with random named variables, the variables represent the functions.
+Replace built-in function names (e.g., "print", "isinstance") with randomly named variables that represent the functions.
 
 ### renameLocalVariable = True
 Rename function local variables with random names.
 
 ### aliasFunctionArgument = True
-If `extractFunction` is False or the function can't be extracted, obfupy can use random named variables as the argument names
-and replace all usage with the random names. Note the argument names are not renamed.  
+If `extractFunction` is `False` or the function cannot be extracted, obfupy can use randomly named variables as parameter names
+and replace all usages with the random names. Note that parameter names are not renamed.  
 
 **Problem situation:** It may not work if the function uses `locals()` or frame object to access the arguments by name.
 
@@ -146,11 +146,11 @@ Remove doc strings. Note the comments are always removed, there is no option to 
 ### stringEncoders = stringencoders.defaultEncoders
 The list of encoders that's used to obfuscate strings. The default is `stringencoders.defaultEncoders`.
 If `stringEncoders` is `None` or empty list, the strings are not obfuscated.  
-Note strings are obfuscated only if `extractConstant` is `True`.  
+Note: strings are obfuscated only if `extractConstant` is `True`.  
 Note: this option can't be set from within `callback`.
 
-### unrenamedVariableNames = None
-A list of variable names that will be kept unrenamed. If it's `None`, no variable names are kept.  
+### preservedVariableNames = None
+A list of variable names that will be preserved and not renamed. If it's `None`, no variable names are preserved.  
 Note: this option can't be set from within `callback`.
 
 
@@ -160,42 +160,42 @@ Note: this option can't be set from within `callback`.
 
 ## Callback
 
-The argument `callback` in Rewriter constructor is a function that will be called at certain time point by the transformer. The callback function can change the options for each source file, each function, or each class.  
+The `callback` parameter in the Rewriter constructor is a function that will be called by the transformer at a specific point in time. The callback function can change options per source file, or per class, per function.
 
 ```python
 def callback(callbackData)
 ```
 
-### Member functions
+### callbackData member functions
 
 `callbackData` supports all member function in [basic callbackData](options_and_callback.md). Besides that, `callbackData` also extends with more functions.
 
 #### getContext()
 
-Returns current context object if the processing within module, class, or function. `None` if it's within the file (`callbackData.isFile()` returns `True`).
+If processing is within a module, class or function, returns the current context object. If processing is within a file, returns None (callbackData.isFile() returns True).
 
 ### Context
 
-The context object describes the current context of the transforming.
-Context has below member functions.
+The context object describes the current context of the transformation.  
+The context has the following member functions.
 
 #### isFile()
 
-Returns `True` if it's processing file, in such case `getContext()` returns `None`.  
-If `isFile()` returns `False`, then `getContext()` returns the context.
+Returns `True` if a file is being processed, in which case `getContext()` returns `None`.  
+If `isFile()` returns `False`, `getContext()` returns the context.
 
 #### getFileName()
 
-Returns the full file name of the current source code file being processed. This function is always valid no matter `isFile()` returns `True` or `False`.
+Returns the full file name of the source code file currently being processed. This function works regardless of whether `isFile()` returns `True` or `False`.
 
 #### getOptions()
 
-Returns the options object. The user can change the options on the object to change the behavior. Changing the options only affects current context and all inner (i.e, child) context, it doesn't affect the other contexts. See the document of `getParent()` for the example code.
+Returns an options object. The user can change the options on the object to change the behavior. Changing options only affects the current context and all inner (i.e. child) contexts, not other contexts. See the documentation for `getParent()` for example code.
 
 #### isModule()
 
-Returns `True` if current content is processing a Python module. A Python module is just a Python source file.  
-Note in obfupy `module` (where `callbackData.isFile()` is `False` and `callbackData.getContext().isModule()` is `True`) is different with `file` (where `callbackData.isFile()` is `True` and `callbackData.getContext()` is `None`). When it's in `file`, the Python code is not parsed yet, so the code can contain syntax error. When it's in `module`, the Python code is already parsed so the code requires to be legal Python code and can't contain any syntax error.
+Returns `True` if the current context is processing a Python module. A Python module is simply a Python source file.  
+Note that in obfupy, `module` (where `callbackData.isFile()` is `False` and `callbackData.getContext().isModule()` is `True`) is different from `file` (where `callbackData.isFile()` is `True` and `callbackData.getContext()` is `None`). When it is in `file`, the Python code has not been parsed yet, so the code may contain syntax errors. When it is in `module`, the Python code has been parsed, so the code needs to be legal Python code and cannot contain any syntax errors otherwise it throws exception and the processing will stop.
 
 #### isClass()
 

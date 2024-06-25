@@ -1,8 +1,8 @@
 # How obfupy is tested with real world projects
 
-obfupy is not an academic project. obfupy aims to produce correct and functional code for real world projects. So some real world non-trivial projects are tested with obfupy.
+obfupy is not an academic project. obfupy is designed to generate correct and usable code for real-world projects. As such, several non-trivial real-world projects are tested using obfupy.
 
-Only transformer Rewriter is tested with these projects. The other transformers are simple enough and don't need to test with them.
+Only the transformer Rewriter is tested with these projects. The other transformers are simpler and do not need to be tested with them.
 
 If a project uses pytest for unit test and there is a file `conftest.py`, then `conftest.py` is not obfuscated because it exposes functions for the whole tests and can't be obfuscated.
 

@@ -1,15 +1,9 @@
-def readTextFile(fileName) :
-	with open(fileName, 'r') as file :
-		return file.read()
-
-def writeTextFile(fileName, content) :
-	with open(fileName, 'w') as file :
-		file.write(content)
+import obfupy.util as util
 
 def replaceSectionInFile(fileName, text, beginTag, endTag = None) :
 	if endTag is None :
 		endTag = beginTag
-	inputLineList = readTextFile(fileName).split('\n')
+	inputLineList = util.readTextFile(fileName).split('\n')
 	lineList = []
 	inSection = False
 	for line in inputLineList :
@@ -23,10 +17,10 @@ def replaceSectionInFile(fileName, text, beginTag, endTag = None) :
 				inSection = True
 				lineList = lineList + text.split('\n')
 	content = '\n'.join(lineList)
-	writeTextFile(fileName, content)
+	util.writeTextFile(fileName, content)
 
 def tabToSpaceInCode(fileName) :
-	inputLineList = readTextFile(fileName).split('\n')
+	inputLineList = util.readTextFile(fileName).split('\n')
 	lineList = []
 	inCode = False
 	for line in inputLineList :
@@ -41,4 +35,4 @@ def tabToSpaceInCode(fileName) :
 				inCode = True
 		lineList.append(line)
 	content = '\n'.join(lineList)
-	writeTextFile(fileName, content)
+	util.writeTextFile(fileName, content)
