@@ -74,7 +74,7 @@ rewriterOptions.expandIfCondition = True
 rewriterOptions.rewriteIf = True
 rewriterOptions.removeDocString = True
 rewriterOptions.stringEncoders = stringencoders.defaultEncoders
-rewriterOptions.preservedVariableNames = None
+rewriterOptions.preservedNames = None
 
 # This is the callback function passed to Rewriter. It demonstrates how to use the callback.
 # If you don't need the callback, just pass None to argument `callback`` Rewriter constructor.

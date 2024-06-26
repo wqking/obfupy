@@ -241,7 +241,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			context.NameType.globalScope, context.NameType.nonlocalScope, context.NameType.argument
 		]) :
 			return False
-		if node.id in self._specialOptions.preservedVariableNames :
+		if node.id in self._specialOptions.preservedNames :
 			return False
 		return True
 
@@ -462,7 +462,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self._trueMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
-specialOptionNames = [ 'preservedVariableNames', 'stringEncoders' ]
+specialOptionNames = [ 'preservedNames', 'stringEncoders' ]
 class _IRewriter :
 	def __init__(self, options, callback) :
 		super().__init__()
@@ -474,18 +474,18 @@ class _IRewriter :
 		for name in specialOptionNames :
 			setattr(self._specialOptions, name, getattr(self._options, name))
 			setattr(self._options, name, None)
-		self._options._setReadonlyNames([ 'stringEncoders', 'preservedVariableNames' ])
+		self._options._setReadonlyNames([ 'stringEncoders', 'preservedNames' ])
 		self._doInitOptions()
 
 	def _doInitOptions(self) :
-		names = self._specialOptions.preservedVariableNames
+		names = self._specialOptions.preservedNames
 		if names is None :
 			names = {}
 		elif isinstance(names, (list, tuple)) :
 			names = { n: 1 for n in names }
 		elif isinstance(names, str) :
 			names = { names: 1 }
-		self._specialOptions.preservedVariableNames = names
+		self._specialOptions.preservedNames = names
 
 	def transform(self, documentManager) :
 		for document in documentManager.getDocumentList() :

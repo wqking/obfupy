@@ -47,10 +47,10 @@ obfupy requires Python 3.9 or later, it doesn't have any other dependencies.
 `pip install obfupy`
 
 **Install from source code**  
-Clone obfupy repository, change dir to the root of obfupy, then,  
+Clone obfupy repository, change directory to the root of obfupy, then,  
 `pip install -e .`
 
-**Use from source code without install**  
+**Use from source code without installation**  
 Clone obfupy repository, add below lines in the beginning of your script,  
 ```
 import sys

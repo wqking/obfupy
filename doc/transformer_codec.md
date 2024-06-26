@@ -21,7 +21,7 @@ There are two classes, `codec.Codec` is the transformer, `codec.Options` is the 
 Codec(options, callback = None)
 ```
 
-Codec constructor accept `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
+Codec constructor accepts `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
 
 ## Codec options
 

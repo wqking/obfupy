@@ -18,7 +18,7 @@
 		- [rewriteIf = True](#rewriteif--true)
 		- [removeDocString = True](#removedocstring--true)
 		- [stringEncoders = stringencoders.defaultEncoders](#stringencoders--stringencodersdefaultencoders)
-		- [preservedVariableNames = None](#preservedvariablenames--none)
+		- [preservedNames = None](#preservednames--none)
 	- [Callback](#callback)
 		- [callbackData member functions](#callbackdata-member-functions)
 			- [getContext()](#getcontext)
@@ -69,7 +69,7 @@ There are two classes, `rewriter.Rewriter` is the transformer, `rewriter.Options
 Rewriter(options = None, callback = None)
 ```
 
-Rewriter constructor accept `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
+Rewriter constructor accepts `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
 
 ## Rewriter options
 
@@ -149,8 +149,8 @@ If `stringEncoders` is `None` or empty list, the strings are not obfuscated.
 Note: strings are obfuscated only if `extractConstant` is `True`.  
 Note: this option can't be set from within `callback`.
 
-### preservedVariableNames = None
-A list of variable names that will be preserved and not renamed. If it's `None`, no variable names are preserved.  
+### preservedNames = None
+A list of symbol names that will be preserved and not renamed. If it's `None`, no symbol names are preserved.  
 Note: this option can't be set from within `callback`.
 
 

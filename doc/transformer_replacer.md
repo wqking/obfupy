@@ -21,7 +21,7 @@ There are two classes, `replacer.Replacer` is the transformer, `replacer.Options
 Replacer(options, callback = None)
 ```
 
-Replacer constructor accept `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
+Replacer constructor accepts `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
 
 ## Replacer options
 

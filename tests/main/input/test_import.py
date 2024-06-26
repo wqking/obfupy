@@ -1,5 +1,7 @@
 from __future__ import annotations # This is to test SyntaxError: from __future__ imports must occur at the beginning of the file
 
+import importa as importa
+
 def funcLocalImport(n = None) :
 	if n is None :
 		from os import chdir as n
@@ -21,3 +23,7 @@ def test_import() :
 	assert funcLocalImport() is not None
 	assert funcLocalImport2() is not None
 	assert funcLocalImport3() is not None
+
+def test_importa() :
+	assert importa.add(3, 5) == 8
+

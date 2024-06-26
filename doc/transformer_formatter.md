@@ -25,7 +25,7 @@ There are two classes, `formatter.Formatter` is the transformer, `formatter.Opti
 Formatter(options = None, callback = None)
 ```
 
-Formatter constructor accept `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
+Formatter constructor accepts `options` and `callback`. For basic usage of `options` and `callback`, [please read here](options_and_callback.md).  
 
 ## Formatter options
 

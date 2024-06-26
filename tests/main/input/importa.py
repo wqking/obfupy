@@ -93,3 +93,6 @@ def anotherTest() :
 
 a = 0 or 10
 assert a == 10
+
+def add(a, b) :
+	return a + b

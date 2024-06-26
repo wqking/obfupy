@@ -30,7 +30,7 @@ rewriterOptions.invertCompareOperator = False # verified
 # This is not used since invertCompareOperator is False
 rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
 # sensitive_variables_wrapper is used by inspect, don't rename it
-rewriterOptions.preservedVariableNames = [ 'sensitive_variables_wrapper' ]
+rewriterOptions.preservedNames = [ 'sensitive_variables_wrapper' ]
 
 excludeFolderList = [
 	'/tests/admin_scripts/custom_templates/', # the comment in the templates can't be removed.

@@ -112,10 +112,10 @@ Note: strings are obfuscated only if `extractConstant` is `True`.
 Note: this option can't be set from within `callback`.
 """,
 	},
-	'preservedVariableNames' : {
+	'preservedNames' : {
 		'default' : None,
 		'doc' : """
-A list of variable names that will be preserved and not renamed. If it's `None`, no variable names are preserved.  
+A list of symbol names that will be preserved and not renamed. If it's `None`, no symbol names are preserved.  
 Note: this option can't be set from within `callback`.
 """,
 	},
