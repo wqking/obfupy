@@ -25,7 +25,8 @@ outputPath = sys.argv[2]
 
 # Search all .py files in input folder, recursively.
 fileList = util.findFiles(inputPath)
-# Ensure all path delimiters are / instead of \ if on Windows. This is not necessary but it's easier to check folder in callback.
+# Ensure all path delimiters are / instead of \ if on Windows. This is not necessary
+# but it's easier to check folder in callback.
 fileList = util.ensureLinuxPath(fileList)
 documentManager = documentmanager.DocumentManager()
 # Load documents from the files and pass them to DocumentManager
@@ -35,8 +36,9 @@ documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 ########## Transformer Rewriter
 ################################################################################
 
-# Below is the rewriter Options. It sets the values with the default values. You don't need to sets the default values,
-# and if all values are default, just pass None to argument `options`` Rewriter constructor.
+# Following are the options for Rewriter. It sets the values ​​with default values.
+# You don't need to set default values for your project. If all options ​​are default values,
+# just pass `None` to the parameter `options` in Rewriter constructor.
 rewriterOptions = rewriter.Options()
 rewriterOptions.enabled = True
 rewriterOptions.extractFunction = True
@@ -54,8 +56,8 @@ rewriterOptions.removeDocString = True
 rewriterOptions.stringEncoders = stringencoders.defaultEncoders
 rewriterOptions.preservedNames = None
 
-# This is the callback function passed to Rewriter. It demonstrates how to use the callback.
-# If you don't need the callback, just pass None to argument `callback`` Rewriter constructor.
+# This is the callback function passed to the Rewriter. It demonstrates how to use callbacks.
+# If you don't need the callback, just pass `None` to argument `callback` in Rewriter constructor.
 def rewriterCallback(callbackData) :
 	if 'the_file_name_to_skip' in callbackData.getFileName() :
 		callbackData.getOptions().enabled = False
@@ -68,7 +70,7 @@ def rewriterCallback(callbackData) :
 			if context.getName() == 'functionNotToRewriteIf' :
 				callbackData.getOptions().rewriteIf = False
 
-# Execute the transforming with Rewriter
+# Performing transformations using Rewriter
 rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
 
 ################################################################################

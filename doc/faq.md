@@ -20,7 +20,8 @@ By counting the number of documents in the `DocumentManager` we can also display
 
 ### Why can't Rewriter rename class, function, and argument names?
 
-Due to the dynamic nature of Python, it is impossible to generate 100% correct code if we rename the class and function names. For example, in below code,  
+Due to the dynamic nature of Python, it is impossible to generate 100% correct code if we rename the class and function names.
+For example, in following code,  
 
 ```python
 class MyClass :

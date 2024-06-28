@@ -51,7 +51,7 @@ Clone obfupy repository, change directory to the root of obfupy, then,
 `pip install -e .`
 
 **Use from source code without installation**  
-Clone obfupy repository, add below lines in the beginning of your script,  
+Clone obfupy repository, add following lines in the beginning of your script,  
 ```
 import sys
 sys.path.append(PATH_TO_OBFUPY)

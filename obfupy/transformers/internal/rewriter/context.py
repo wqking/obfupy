@@ -97,7 +97,7 @@ class _RenameMixin :
 		return self._renameMap[name]
 	
 	def createNewName(self, name = None) :
-		return util.getUnusedRandomSymbol(self._usedNewNameSet, originalName = name)
+		return util.getUnusedRandomSymbol(usedMap = None, originalName = name)
 
 	def cancelRename(self, name) :
 		if name in self._renameMap :
@@ -155,7 +155,6 @@ class Context(_NameMixin, _RenameMixin, _SiblingMixin, _SectionMixin, _OptionMix
 
 		# _RenameMixin
 		self._renameMap = {}
-		self._usedNewNameSet = {}
 
 		# _SectionMixin
 		self._sectionList = []
@@ -178,7 +177,7 @@ class Context(_NameMixin, _RenameMixin, _SiblingMixin, _SectionMixin, _OptionMix
 	def isFunction(self) :
 		return self._type == ContextType.functionContext
 	
-	def getParentContext(self) :
+	def getParent(self) :
 		return self._parent
 
 class ModuleContext(Context) :

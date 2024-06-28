@@ -61,7 +61,7 @@ class _CallbackContext :
 	
 	def getParent(self) :
 		if self._parent is False :
-			parentContext = self._currentContext.getParentContext()
+			parentContext = self._currentContext.getParent()
 			if parentContext is None :
 				self._parent = None
 			else :
@@ -103,7 +103,7 @@ class _BaseAstVistor(ast.NodeTransformer) :
 		if adjustBySection :
 			section = currentContext.getCurrentSection()
 			if section not in [ None, context.Section.body ] :
-				parent = currentContext.getParentContext()
+				parent = currentContext.getParent()
 				if parent is None :
 					print(currentContext.getContextName(), section)
 					assert parent is not None
@@ -180,7 +180,7 @@ class _AstVistorPreprocess(_BaseAstVistor) :
 			rewriterutil.markNodeDocString(node)
 			currentContext.seeName(node.name, context.NameType.store)
 			# Function name is visible in both the function scope and outter scope
-			currentContext.getParentContext().seeName(node.name, context.NameType.store)
+			currentContext.getParent().seeName(node.name, context.NameType.store)
 			node.decorator_list = self._doVisit(node.decorator_list, context.Section.decorator)
 			self._doVisitArguments(node.args)
 			node.body = self._doVisit(node.body, context.Section.body)

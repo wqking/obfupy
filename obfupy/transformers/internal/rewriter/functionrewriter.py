@@ -44,7 +44,7 @@ class FunctionRewriter :
 	
 	def _doAliasFunctionArguments(self, node) :
 		currentContext = self._visitor.getCurrentContext()
-		node.name = currentContext.getParentContext().findRenamedName(node.name) or node.name
+		node.name = currentContext.getParent().findRenamedName(node.name) or node.name
 		renamedArgs = self._doCreateRenamedArgs(node)
 		for item in renamedArgs['renamedArgList'] :
 			currentContext.renameSymbol(item['argName'], item['newName'])
@@ -74,7 +74,7 @@ class FunctionRewriter :
 			return False
 		parentContext = currentContext
 		while True :
-			parentContext = parentContext.getParentContext()
+			parentContext = parentContext.getParent()
 			if parentContext is None :
 				break
 			if not (parentContext.isModule() or parentContext.isClass()) :

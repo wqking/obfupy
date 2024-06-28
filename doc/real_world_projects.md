@@ -33,7 +33,7 @@ All unit tests in Flask succeed.
 
 https://github.com/django/django.git
 
-Below features (options) are disabled,  
+Following features (options) are disabled,  
 `extractFunction`: Django uses inspect package to get local variable, extractFunction won't work for all functions.  
 `extractBuiltinFunction`: Django uses the built-in function names as variable and function names.  
 `aliasFunctionArgument`: Due to usage of inspect package.  

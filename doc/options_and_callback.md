@@ -45,7 +45,7 @@ The callback receives one argument `callbackData`. `callbackData` is an object. 
 
 ### callbackData member functions
 
-All transformers support `callbackData` with below member functions
+All transformers support `callbackData` with following member functions.
 
 #### isFile()
 
