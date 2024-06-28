@@ -1,11 +1,16 @@
 import setuptools
 import re
+import os.path
 
-with open("readme.md", "r") as fh:
-    longDescription = fh.read()
-    longDescription = re.sub(r'\]\(doc\/', '](https://github.com/wqking/obfupy/tree/master/doc/', longDescription)
+longDescription = None
+if os.path.isfile("readme.md") :
+    with open("readme.md", "r") as fh:
+        longDescription = fh.read()
+        longDescription = re.sub(r'\]\(doc\/', '](https://github.com/wqking/obfupy/tree/master/doc/', longDescription)
 
 description = "obfupy is a Python 3 library that can obfuscate whole Python 3 projects, transform the source code to obfuscated and hard to understand code. obfupy aims to produce correct and functional code.",
+if longDescription is None :
+    longDescription = description
 
 setuptools.setup(
     name = "obfupy",
