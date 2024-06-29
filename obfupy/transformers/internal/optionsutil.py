@@ -20,7 +20,7 @@ class _BaseOptions :
 	__slots__ = ('_modified', '_data', '_readonlyNames')
 	def __init__(self, data, **kwargs) :
 		self._modified = False
-		self._data = data
+		self._data = copy.deepcopy(data)
 		self._readonlyNames = []
 		for name in kwargs :
 			setattr(self, name, kwargs[name])
