@@ -4,6 +4,10 @@ obfupy is a Python 3 library that can obfuscate entire Python 3 projects, transf
 obfupy aims to produce correct and functional code. Several non-trivial real-world projects were tested using obfupy,
 such as Flask, Nodezator, Algorithms collection, and Django (not all features are enabled for Django).
 
+obfupy helps closed source projects to protect the code and intellectual property. You may not need it in your open source projects.  
+
+You use this project at your own risk. If you use it to obfuscate malicious code, you bear all consequences of your malicious code. This project is not associated with any malicious code.
+
 ## Facts and features
 
 - **Obfuscation methods**
@@ -58,6 +62,8 @@ sys.path.append(PATH_TO_OBFUPY)
 ```
 
 ## Quick start
+
+If you want to see how the obfuscated code looks, please check [the obfuscated eventqueue.obfuscated.py](https://github.com/wqking/obfupy/blob/master/examples/eventqueue.obfuscated.py), and [the orginal eventqueue.py](https://github.com/wqking/obfupy/blob/master/examples/eventqueue.py). The source file is taken from my `eventpy` library.
 
 A typical Python script using obfupy looks like,   
 

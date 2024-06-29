@@ -2,6 +2,7 @@ __pycache__
 .vscode
 tests/main/output
 temp
+temp.py
 *.bat
 *.egg-info
 dist

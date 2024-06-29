@@ -94,7 +94,8 @@ Replace constants with randomly named variables that represent obfuscated consta
 Replace built-in function names (e.g., "print", "isinstance") with randomly named variables that represent the functions.
 
 ### renameLocalVariable = True
-Rename function local variables with random names.
+Rename function local variables with random names.  
+Note only variables inside function are renamed, the variables in global scope are not renamed.
 
 ### aliasFunctionArgument = True
 If `extractFunction` is `False` or the function cannot be extracted, obfupy can use randomly named variables as parameter names

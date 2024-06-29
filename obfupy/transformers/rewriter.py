@@ -42,7 +42,10 @@ Replace built-in function names (e.g., "print", "isinstance") with randomly name
 	},
 	'renameLocalVariable' : {
 		'default' : True,
-		'doc' : "Rename function local variables with random names.",
+		'doc' : """
+Rename function local variables with random names.  
+Note only variables inside function are renamed, the variables in global scope are not renamed.
+""",
 	},
 	'aliasFunctionArgument' : {
 		'default' : True,
