@@ -45,3 +45,79 @@ def test_builtinFunctionAsNestedFunc() :
 	assert open.value == 5
 	assert open() == 5
 
+def test_foldConstantExpression() :
+	if 1 and 2 :
+		assert True
+	if 1 or 2 :
+		assert True
+	
+	a = ~5
+	assert a == -6
+	a = not True
+	assert not a
+	a = +5
+	assert a == 5
+	a = -5
+	assert a == -5
+
+	a = 5 + 3
+	assert a == 8
+	a = 5 - 3
+	assert a == 2
+	a = 5 * 3
+	assert a == 15
+	a = 6 / 3
+	assert a == 2
+	a = 5 % 3
+	assert a == 2
+	a = 5 ** 3
+	assert a == 125
+	a = 5 << 3
+	assert a == 40
+	a = 15 >> 1
+	assert a == 7
+	a = 1 | 2
+	assert a == 3
+	a = 3 ^ 1
+	assert a == 2
+	a = 3 & 1
+	assert a == 1
+	a = 5 // 3
+	assert a == 1
+
+	a = (3 == (1 + 2))
+	assert a is True
+	a = (3 != (1 + 2))
+	assert a is False
+	a = (3 < 5)
+	assert a is True
+	a = (3 <= 5)
+	assert a is True
+	a = (3 <= 3)
+	assert a is True
+	a = (3 > 5)
+	assert a is not True
+	a = (3 >= 5)
+	assert a is not True
+	a = (3 >= 3)
+	assert a is True
+	a = 'a' in 'abc'
+	assert a is True
+	a = 'd' not in 'abc'
+	assert a is True
+	a = True is True
+	assert a is True
+	a = True is not True
+	assert a is not True
+
+	a = (((5 + 3 - 2) * 3 // 2) << 2) >> 1
+	assert a == 18
+	a = "abc" + "def"
+	assert a == "abcdef"
+
+	a = str()
+	assert a == ''
+	a = str(3)
+	assert a == '3'
+	a = str((((5 + 3 - 2) * 3 // 2) << 2) >> 1)
+	assert a == '18'

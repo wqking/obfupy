@@ -37,10 +37,15 @@ documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
 rewriterOptions = rewriter.Options()
 rewriterOptions.removeDocString = True
-rewriterOptions.extractConstant = True
-rewriterOptions.invertCompareOperator.enabled = True
+rewriterOptions.extractFunction = not True
+rewriterOptions.extractConstant = not True
+rewriterOptions.invertBoolOperator = not True
+rewriterOptions.invertCompareOperator.enabled = not True
 rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
-#rewriterOptions.stringEncoders = None
+rewriterOptions.rewriteIf = not True
+rewriterOptions.expandIfCondition = not True
+rewriterOptions.extractBuiltinFunction = not True
+rewriterOptions.foldConstantExpression = True
 
 def rewriterCallback(data) :
 	if 'importa' in data.getFileName() and not data.isFile() :
@@ -53,7 +58,7 @@ def formatterCallback(data) :
 		data.getOptions().expandIndent = False
 replacerOptions = replacer.Options()
 replacerOptions.symbols = [ 'makeMessage' ]
-rewriter.Rewriter(options = None, callback = rewriterCallback).transform(documentManager)
+rewriter.Rewriter(options = rewriterOptions, callback = rewriterCallback).transform(documentManager)
 #replacer.Replacer(options = replacerOptions).transform(documentManager)
 #formatter.Formatter(callback = formatterCallback).transform(documentManager)
 #codec.Codec(codec.Options(provider = codecproviders.byteEncryption)).transform(documentManager)

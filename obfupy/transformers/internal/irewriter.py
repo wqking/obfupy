@@ -350,7 +350,9 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self._doGenericVisit(node)
 	
 	def visit_Call(self, node) :
-		return self._doGenericVisit(node)
+		node = self._doGenericVisit(node)
+		node = self._precomputeConstantFunctionCall(node) or node
+		return node
 
 	def visit_Constant(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_constant) :
@@ -373,17 +375,37 @@ class _AstVistorRewrite(_BaseAstVistor) :
 
 	def visit_Compare(self, node) :
 		if self._reentryGuard.isEntered([ rewriterutil.guardId_compare, rewriterutil.guardId_boolOp ]) :
-			return self._doGenericVisit(node)
-		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_compare) :
-			node = self._doInvertBoolOperator(node)
-			return self._doGenericVisit(node)
+			node = self._doGenericVisit(node)
+		else :
+			with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_compare) :
+				node = self._doInvertBoolOperator(node)
+				node = self._doGenericVisit(node)
+		if isinstance(node, ast.Compare) :
+			node = self._precomputeConstantCompareExpression(node) or node
+		return node
 
 	def visit_BoolOp(self, node) :
 		if self._reentryGuard.isEntered(rewriterutil.guardId_boolOp) :
-			return self._doGenericVisit(node)
-		with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_boolOp) :
-			node = self._doInvertBoolOperator(node)
-			return self._doGenericVisit(node)
+			node = self._doGenericVisit(node)
+		else :
+			with reentryguard.AutoReentryGuard(self._reentryGuard, rewriterutil.guardId_boolOp) :
+				node = self._doInvertBoolOperator(node)
+				node = self._doGenericVisit(node)
+		if isinstance(node, ast.BoolOp) :
+			node = self._precomputeConstantExpression(node.op, node.values) or node
+		return node
+	
+	def visit_UnaryOp(self, node) :
+		node = self._doGenericVisit(node)
+		if isinstance(node, ast.UnaryOp) :
+			node = self._precomputeConstantExpression(node.op, [ node.operand ]) or node
+		return node
+
+	def visit_BinOp(self, node) :
+		node = self._doGenericVisit(node)
+		if isinstance(node, ast.BinOp) :
+			node = self._precomputeConstantExpression(node.op, [ node.left, node.right ]) or node
+		return node
 
 	def visit_For(self, node):
 		node = self._doMakeCodeBlock(node, allowOuterBlock = True)
@@ -403,6 +425,135 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def visit_TryStar(self, node) :
 		node = self._doRewriteTry(node)
 		return self._doGenericVisit(node)
+
+	def _precomputeConstantFunctionCall(self, node) :
+		if not self._getOptions().foldConstantExpression :
+			return None
+		if not isinstance(node.func, ast.Name) :
+			return None
+		funcName = node.func.id
+		func = None
+		funcNameMap = {
+			'abs' : abs,
+			'ascii' : ascii,
+			'bin' : bin,
+			'bool' : bool,
+			'bytes' : bytes,
+			'chr' : chr,
+			'float' : float,
+			'int' : int,
+			'max' : max,
+			'min' : min,
+			'len' : len,
+			'oct' : oct,
+			'ord' : ord,
+			'pow' : pow,
+			'str' : str,
+		}
+		if funcName in funcNameMap :
+			func = funcNameMap[funcName]
+		if func is not None :
+			args = []
+			keywords = {}
+			for arg in node.args :
+				if not isinstance(arg, ast.Constant) :
+					return None
+				args.append(arg.value)
+			for keyword in node.keywords :
+				if not isinstance(keyword.value, ast.Constant) :
+					return None
+				keywords[keyword.arg] = keyword.value.value
+			try :
+				value = func(*args, **keywords)
+				return astutil.makeConstant(value)
+			except :
+				pass
+		return None
+
+	def _precomputeConstantCompareExpression(self, node) :
+		if not self._getOptions().foldConstantExpression :
+			return None
+		if not isinstance(node.left, ast.Constant) :
+			return None
+		for operand in node.comparators :
+			if not isinstance(operand, ast.Constant) :
+				return None
+
+		compareMap = {
+			ast.Eq : lambda left, right : left.value == right.value,
+			ast.NotEq : lambda left, right : left.value != right.value,
+			ast.Lt : lambda left, right : left.value < right.value,
+			ast.LtE : lambda left, right : left.value <= right.value,
+			ast.Gt : lambda left, right : left.value > right.value,
+			ast.GtE : lambda left, right : left.value >= right.value,
+			ast.Is : lambda left, right : left.value is right.value,
+			ast.IsNot : lambda left, right : left.value is not right.value,
+			ast.In : lambda left, right : left.value in right.value,
+			ast.NotIn : lambda left, right : left.value not in right.value,
+		}
+		try :
+			value = True
+			left = node.left
+			for i in range(len(node.comparators)) :
+				op = node.ops[i]
+				if op.__class__ not in compareMap :
+					return None
+				right = node.comparators[i]
+				value = compareMap[op.__class__](left, right)
+				if not value :
+					break
+				left = right
+			return astutil.makeConstant(value)
+		except :
+			pass
+		return None
+
+	def _precomputeConstantExpression(self, operator, operandList) :
+		if not self._getOptions().foldConstantExpression :
+			return None
+		for operand in operandList :
+			if not isinstance(operand, ast.Constant) :
+				return None
+
+		def _precomputerAnd(operandList) :
+			for operand in operandList :
+				if not operand.value :
+					return operand.value
+			return operandList[-1].value
+		def _precomputerOr(operandList) :
+			for operand in operandList :
+				if operand.value :
+					return operand.value
+			return operandList[-1].value
+		precomputerMap = {
+			# boolean
+			ast.And : _precomputerAnd,
+			ast.Or : _precomputerOr,
+			# unary
+			ast.Invert : lambda operands : ~operands[0].value,
+			ast.Not : lambda operands : not operands[0].value,
+			ast.UAdd : lambda operands : +operands[0].value,
+			ast.USub : lambda operands : -operands[0].value,
+			# binary, ignore ast.MatMult
+			ast.Add : lambda operands : operands[0].value + operands[1].value,
+			ast.Sub : lambda operands : operands[0].value - operands[1].value,
+			ast.Mult : lambda operands : operands[0].value * operands[1].value,
+			ast.Div : lambda operands : operands[0].value / operands[1].value,
+			ast.Mod : lambda operands : operands[0].value % operands[1].value,
+			ast.Pow : lambda operands : operands[0].value ** operands[1].value,
+			ast.LShift : lambda operands : operands[0].value << operands[1].value,
+			ast.RShift : lambda operands : operands[0].value >> operands[1].value,
+			ast.BitOr : lambda operands : operands[0].value | operands[1].value,
+			ast.BitXor : lambda operands : operands[0].value ^ operands[1].value,
+			ast.BitAnd : lambda operands : operands[0].value & operands[1].value,
+			ast.FloorDiv : lambda operands : operands[0].value // operands[1].value,
+		}
+		if operator.__class__ in precomputerMap :
+			try :
+				return astutil.makeConstant(precomputerMap[operator.__class__](operandList))
+			except :
+				pass
+		return None
 
 	def _doRewriteTry(self, node) :
 		currentContext = self.getCurrentContext()

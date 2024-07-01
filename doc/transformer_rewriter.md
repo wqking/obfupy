@@ -154,6 +154,12 @@ Note: this option can't be set from within `callback`.
 A list of symbol names that will be preserved and not renamed. If it's `None`, no symbol names are preserved.  
 Note: this option can't be set from within `callback`.
 
+### foldConstantExpression = True
+Precompute the value of any constant expression such as `1 + 2 * 3` and replace the expression with the result (`7` in the example).  
+The folding applies to boolean, unary, binary, and compare operators, and some built-in functions such as `str`, `chr`, `ord`, etc.  
+To make this option affect, you need to turn of other options, such as extractConstant, invertBoolOperator, invertCompareOperator,
+rewriteIf, expandIfCondition, and extractBuiltinFunction.
+
 
 <!--auto generated section-->
 
