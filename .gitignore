@@ -1,6 +1,7 @@
 __pycache__
 .vscode
 tests/main/output
+tests/benchmark/output
 temp
 temp.py
 *.bat
