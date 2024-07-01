@@ -320,6 +320,11 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			return self._doGenericVisit(node)
 
 	def visit_Name(self, node) :
+		if node.id in self._specialOptions.symbolReplacement :
+			value = self._specialOptions.symbolReplacement[node.id]
+			if not isinstance(value, ast.AST) :
+				value = astutil.makeConstant(value)
+			return value
 		if self._getOptions().extractBuiltinFunction and node.id in builtinfunctions.builtinFunctionMap :
 			currentContext = self.getCurrentContext()
 			if not currentContext.isNameSeen(node.id, [ context.NameType.store, context.NameType.argument ]) :
@@ -394,7 +399,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 				node = self._doInvertBoolOperator(node)
 				node = self._doGenericVisit(node)
 		if isinstance(node, ast.BoolOp) :
-			node = self._precomputeConstantExpression(node.op, node.values) or node
+			node = self._precomputeConstantBooleanExpression(node.op, node.values) or node
 		return node
 	
 	def visit_UnaryOp(self, node) :
@@ -546,27 +551,35 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			pass
 		return None
 
+	def _precomputeConstantBooleanExpression(self, operator, operandList) :
+		if not self._getOptions().foldConstantExpression :
+			return None
+		
+		if isinstance(operator, ast.And) :
+			for operand in operandList :
+				if not isinstance(operand, ast.Constant) :
+					return None
+				if not operand.value :
+					return astutil.makeConstant(operand.value)
+			return astutil.makeConstant(operandList[-1].value)
+		elif isinstance(operator, ast.Or) :
+			for operand in operandList :
+				if not isinstance(operand, ast.Constant) :
+					return None
+				if operand.value :
+					return astutil.makeConstant(operand.value)
+			return astutil.makeConstant(operandList[-1].value)
+		return None
+
 	def _precomputeConstantExpression(self, operator, operandList) :
 		if not self._getOptions().foldConstantExpression :
 			return None
+
 		for operand in operandList :
 			if not isinstance(operand, ast.Constant) :
 				return None
 
-		def _precomputerAnd(operandList) :
-			for operand in operandList :
-				if not operand.value :
-					return operand.value
-			return operandList[-1].value
-		def _precomputerOr(operandList) :
-			for operand in operandList :
-				if operand.value :
-					return operand.value
-			return operandList[-1].value
 		precomputerMap = {
-			# boolean
-			ast.And : _precomputerAnd,
-			ast.Or : _precomputerOr,
 			# unary
 			ast.Invert : lambda operands : ~operands[0].value,
 			ast.Not : lambda operands : not operands[0].value,
@@ -654,7 +667,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return self._trueMaker
 
 astVistorClassList = [ _AstVistorPreprocess, _AstVistorRewrite ]
-specialOptionNames = [ 'preservedNames', 'stringEncoders' ]
+specialOptionNames = [ 'preservedNames', 'stringEncoders', 'symbolReplacement' ]
 class _IRewriter :
 	def __init__(self, options, callback) :
 		super().__init__()
@@ -666,10 +679,12 @@ class _IRewriter :
 		for name in specialOptionNames :
 			setattr(self._specialOptions, name, getattr(self._options, name))
 			setattr(self._options, name, None)
-		self._options._setReadonlyNames([ 'stringEncoders', 'preservedNames' ])
+		self._options._setReadonlyNames(specialOptionNames)
 		self._doInitOptions()
 
 	def _doInitOptions(self) :
+		if self._specialOptions.symbolReplacement is None :
+			self._specialOptions.symbolReplacement = {}
 		names = self._specialOptions.preservedNames
 		if names is None :
 			names = {}

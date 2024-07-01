@@ -157,10 +157,20 @@ Note: this option can't be set from within `callback`.
 ### foldConstantExpression = True
 Precompute the value of any constant expression such as `1 + 2 * 3` and replace the expression with the result (`7` in the example).  
 The folding applies to boolean, unary, binary, and compare operators, and some built-in functions such as `str`, `chr`, `ord`, etc.  
+For boolean operator `and` and `or`, it supports logic short-circuit. For example, `True or anyOther` will be `True`, no matter `anyOther`
+is whether constant or not.  
 To make this option affect, you need to turn of other options, such as extractConstant, invertBoolOperator, invertCompareOperator,
 rewriteIf, expandIfCondition, and extractBuiltinFunction.
 
 ### eliminateDeadCode = True
+Eliminate dead code that appears after `return`, `break`, `continue`, and `raise`, and the body in `if...else` if the condition
+is constant expression. To make it work better, option `rewriteIf` should be disabled, and `foldConstantExpression` should be enabled.
+
+### symbolReplacement = { '__debug__' : False }
+A dictionary holding the keys to be replaced with the corresponding value. The value is either a constant, or a instance of derived
+class of ast.AST. Note this is not to replace the name with random name. This is to replace a constant variable to it's constant value.  
+The default value is `{ '__debug__' : False }`, that means, all `if __debug__` will be transformed to `if False`, then the `if` branch
+can be eliminated completely by the option `eliminateDeadCode`.
 
 
 <!--auto generated section-->

@@ -12,6 +12,7 @@ You use this project at your own risk. If you use it to obfuscate malicious code
 
 - **Obfuscation methods**
   - Constant expression folding (`1 + 2 * 3` -> `7`, `str(5)` -> `"5"`).
+  - Dead code elimination.
   - Rewrite the "if" conditional to include many confusing branches.
   - Rename local variable names.
   - Extract the function and have the original function call the extracted function, then rename the parameters in the extracted function.

@@ -50,6 +50,10 @@ def test_foldConstantExpression() :
 		assert True
 	if 1 or 2 :
 		assert True
+
+	i = 5
+	assert 1 + 5 > 0 or i < 3
+	assert not (1 + 5 < 0 and i < 3)
 	
 	a = ~5
 	assert a == -6
