@@ -164,13 +164,18 @@ rewriteIf, expandIfCondition, and extractBuiltinFunction.
 
 ### eliminateDeadCode = True
 Eliminate dead code that appears after `return`, `break`, `continue`, and `raise`, and the body in `if...else` if the condition
-is constant expression. To make it work better, option `rewriteIf` should be disabled, and `foldConstantExpression` should be enabled.
+is constant expression. It also eliminates `True` in `and` operator and `False` in `or` operator, for example, `1 > 0 and whatEver` becomes
+`whatEver`.
+To make it work better, option `rewriteIf` should be disabled, and `foldConstantExpression` should be enabled.
 
 ### symbolReplacement = { '__debug__' : False }
 A dictionary holding the keys to be replaced with the corresponding value. The value is either a constant, or a instance of derived
 class of ast.AST. Note this is not to replace the name with random name. This is to replace a constant variable to it's constant value.  
 The default value is `{ '__debug__' : False }`, that means, all `if __debug__` will be transformed to `if False`, then the `if` branch
 can be eliminated completely by the option `eliminateDeadCode`.
+
+### combineIfConditions = True
+Convert `if a : if b : X` to `if a and b : X`.
 
 
 <!--auto generated section-->

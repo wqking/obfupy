@@ -399,7 +399,9 @@ class _AstVistorRewrite(_BaseAstVistor) :
 				node = self._doInvertBoolOperator(node)
 				node = self._doGenericVisit(node)
 		if isinstance(node, ast.BoolOp) :
-			node = self._precomputeConstantBooleanExpression(node.op, node.values) or node
+			node = self._precomputeConstantBooleanExpression(node) or node
+		if isinstance(node, ast.BoolOp) :
+			node = self._eliminateDeadCodeForBoolOp(node)
 		return node
 	
 	def visit_UnaryOp(self, node) :
@@ -429,6 +431,7 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def visit_If(self, node) :
 		node.body = self._eliminateDeadCodeForNodeList(node.body)
 		node.orelse = self._eliminateDeadCodeForNodeList(node.orelse)
+		node = self._combineIfConditions(node)
 		node = self._ifRewriter.rewriteIf(node)
 		if isinstance(node, ast.If) :
 			node = self._eliminateDeadCodeForIfCondition(node)
@@ -468,6 +471,21 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			return node.body
 		else :
 			return node.orelse
+
+	def _eliminateDeadCodeForBoolOp(self, node) :
+		if not self._getOptions().eliminateDeadCode :
+			return node
+		isAnd = isinstance(node.op, ast.And)
+		newValues = []
+		for value in node.values :
+			if isinstance(value, ast.Constant) :
+				if isAnd and value.value :
+					continue
+				if not isAnd and not value.value :
+					continue
+			newValues.append(value)
+		node.values = newValues
+		return node
 
 	def _precomputeConstantFunctionCall(self, node) :
 		if not self._getOptions().foldConstantExpression :
@@ -551,24 +569,24 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			pass
 		return None
 
-	def _precomputeConstantBooleanExpression(self, operator, operandList) :
+	def _precomputeConstantBooleanExpression(self, node) :
 		if not self._getOptions().foldConstantExpression :
 			return None
 		
-		if isinstance(operator, ast.And) :
-			for operand in operandList :
+		if isinstance(node.op, ast.And) :
+			for operand in node.values :
 				if not isinstance(operand, ast.Constant) :
 					return None
 				if not operand.value :
 					return astutil.makeConstant(operand.value)
-			return astutil.makeConstant(operandList[-1].value)
-		elif isinstance(operator, ast.Or) :
-			for operand in operandList :
+			return astutil.makeConstant(node.values[-1].value)
+		elif isinstance(node.op, ast.Or) :
+			for operand in node.values :
 				if not isinstance(operand, ast.Constant) :
 					return None
 				if operand.value :
 					return astutil.makeConstant(operand.value)
-			return astutil.makeConstant(operandList[-1].value)
+			return astutil.makeConstant(node.values[-1].value)
 		return None
 
 	def _precomputeConstantExpression(self, operator, operandList) :
@@ -605,6 +623,35 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			except :
 				pass
 		return None
+	
+	def _combineIfConditions(self, node) :
+		if not self._getOptions().combineIfConditions :
+			return node
+		while True :
+			newNode = self._doCombineIfConditions(node)
+			if newNode is None :
+				break
+			node = newNode
+		return node
+
+	def _doCombineIfConditions(self, node) :
+		if len(node.orelse) > 0 :
+			return None
+		if len(node.body) != 1 :
+			return None
+		nested = node.body[0]
+		if not isinstance(nested, ast.If) :
+			return None
+		if len(nested.orelse) > 0 :
+			return None
+		return ast.If(
+			test = ast.BoolOp(
+				op = ast.And(),
+				values = [ node.test, nested.test ]
+			),
+			body = nested.body,
+			orelse = []
+		)
 
 	def _doRewriteTry(self, node) :
 		node.body = self._eliminateDeadCodeForNodeList(node.body)

@@ -47,3 +47,49 @@ def doTestIf() :
 
 def test_if() :
 	doTestIf()
+
+def combineIfConditions() :
+	i = 5
+	condition = False
+	if 1 > 0 :
+		if i < 10 :
+			condition = True
+	assert condition
+
+	if 1 < 0 :
+		if i < 10 :
+			condition = False
+	assert condition
+
+	condition = False
+	if i > 1 :
+		if i < 10 :
+			condition = True
+	assert condition
+
+	condition = False
+	if 1 > 0 :
+		if i < 10 :
+			if i > 0 :
+				if i > 1 :
+					condition = True
+	assert condition
+
+	condition = False
+	if i > 1 :
+		if i < 10 :
+			condition = True
+		else :
+			condition = False
+	assert condition
+
+	condition = False
+	if i > 1 :
+		if i < 10 :
+			condition = True
+	else :
+		condition = False
+	assert condition
+
+def test_combineIfConditions() :
+	combineIfConditions()

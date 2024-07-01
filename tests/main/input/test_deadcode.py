@@ -57,3 +57,14 @@ def deadCodeOf__debug__() :
 		print("You can't see this, 333")
 	else :
 		print("Good 333")
+
+def test_deadBoolOp() :
+	i = 5
+	a = (1 > 0) and i > 3
+	assert a
+	a = (1 < 0) and i > 3
+	assert not a
+	a = (1 > 0) or i > 6
+	assert a
+	a = (1 < 0) or i == 5
+	assert a
