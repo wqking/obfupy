@@ -304,10 +304,12 @@ class _AstVistorRewrite(_BaseAstVistor) :
 			return self._makeResultNode(node)
 
 	def visit_AsyncFunctionDef(self, node):
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
 		node = self._functionRewriter.rewriteFunction(node)
 		return self._makeResultNode(node)
 
 	def visit_FunctionDef(self, node) :
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
 		node = self._functionRewriter.rewriteFunction(node)
 		return self._makeResultNode(node)
 		
@@ -408,15 +410,28 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return node
 
 	def visit_For(self, node):
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
+		node.orelse = self._eliminateDeadCodeForNodeList(node.orelse)
 		node = self._doMakeCodeBlock(node, allowOuterBlock = True)
 		return self._doGenericVisit(node)
 
 	def visit_While(self, node):
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
+		node.orelse = self._eliminateDeadCodeForNodeList(node.orelse)
 		node = self._doMakeCodeBlock(node, allowOuterBlock = True)
 		return self._doGenericVisit(node)
 
 	def visit_If(self, node) :
-		return self._ifRewriter.rewriteIf(node)
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
+		node.orelse = self._eliminateDeadCodeForNodeList(node.orelse)
+		node = self._ifRewriter.rewriteIf(node)
+		if isinstance(node, ast.If) :
+			node = self._eliminateDeadCodeForIfCondition(node)
+		return node
+	
+	def visit_With(self, node) :
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
+		return self._doGenericVisit(node)
 	
 	def visit_Try(self, node) :
 		node = self._doRewriteTry(node)
@@ -425,6 +440,29 @@ class _AstVistorRewrite(_BaseAstVistor) :
 	def visit_TryStar(self, node) :
 		node = self._doRewriteTry(node)
 		return self._doGenericVisit(node)
+	
+	def _eliminateDeadCodeForNodeList(self, nodeList) :
+		if not self._getOptions().eliminateDeadCode :
+			return nodeList
+		if nodeList is None :
+			return None
+		if not isinstance(nodeList, list) :
+			return nodeList
+		for i in range(len(nodeList)) :
+			node = nodeList[i]
+			if isinstance(node, (ast.Return, ast.Break, ast.Continue, ast.Raise)) :
+				return nodeList[: i + 1]
+		return nodeList
+
+	def _eliminateDeadCodeForIfCondition(self, node) :
+		if not self._getOptions().eliminateDeadCode :
+			return node
+		if not isinstance(node.test, ast.Constant) :
+			return node
+		if node.test.value :
+			return node.body
+		else :
+			return node.orelse
 
 	def _precomputeConstantFunctionCall(self, node) :
 		if not self._getOptions().foldConstantExpression :
@@ -556,6 +594,9 @@ class _AstVistorRewrite(_BaseAstVistor) :
 		return None
 
 	def _doRewriteTry(self, node) :
+		node.body = self._eliminateDeadCodeForNodeList(node.body)
+		node.orelse = self._eliminateDeadCodeForNodeList(node.orelse)
+		node.finalbody = self._eliminateDeadCodeForNodeList(node.finalbody)
 		currentContext = self.getCurrentContext()
 		for handler in node.handlers :
 			if handler.name is not None :

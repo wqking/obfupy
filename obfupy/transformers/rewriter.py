@@ -131,6 +131,13 @@ To make this option affect, you need to turn of other options, such as extractCo
 rewriteIf, expandIfCondition, and extractBuiltinFunction.
 """,
 	},
+	'eliminateDeadCode' : {
+		'default' : True,
+		'doc' : """
+Eliminate dead code that appears after `return`, `break`, `continue`, and `raise`, and the body in `if...else` if the condition
+is constant expression. To make it work better, option `rewriteIf` should be disabled, and `foldConstantExpression` should be enabled.
+""",
+	},
 })
 
 class Rewriter :

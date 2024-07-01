@@ -37,6 +37,7 @@ documentManager.addDocument(util.loadDocumentsFromFiles(fileList))
 
 rewriterOptions = rewriter.Options()
 rewriterOptions.removeDocString = True
+rewriterOptions.renameLocalVariable = not True
 rewriterOptions.extractFunction = not True
 rewriterOptions.extractConstant = not True
 rewriterOptions.invertBoolOperator = not True
@@ -45,6 +46,7 @@ rewriterOptions.invertCompareOperator.wrapInvertedCompareOperator = True
 rewriterOptions.rewriteIf = not True
 rewriterOptions.expandIfCondition = not True
 rewriterOptions.extractBuiltinFunction = not True
+rewriterOptions.addNopControlFlow = not True
 rewriterOptions.foldConstantExpression = True
 
 def rewriterCallback(data) :
@@ -67,3 +69,4 @@ util.writeOutputFiles(documentManager, inputPath, outputPath)
 
 os.chdir(outputPath)
 os.system('python -m pytest -s')
+

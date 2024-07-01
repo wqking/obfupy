@@ -160,6 +160,8 @@ The folding applies to boolean, unary, binary, and compare operators, and some b
 To make this option affect, you need to turn of other options, such as extractConstant, invertBoolOperator, invertCompareOperator,
 rewriteIf, expandIfCondition, and extractBuiltinFunction.
 
+### eliminateDeadCode = True
+
 
 <!--auto generated section-->
 
