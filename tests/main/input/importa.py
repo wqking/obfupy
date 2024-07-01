@@ -1,5 +1,9 @@
 import os.path
+import math
+import argparse as argparse
 from argparse import ArgumentParser
+import re
+from argparse import ArgumentError
 
 from functools import wraps
 

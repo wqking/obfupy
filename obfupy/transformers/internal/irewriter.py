@@ -269,7 +269,58 @@ class _AstVistorRewrite(_BaseAstVistor) :
 					item.loadExtraNode(extraNodeManager)
 			index = rewriterutil.findFirstInsertableIndex(node)
 			self._prependNodes(node.body, extraNodeManager.getNodeList(), self._findIndexNotImport(node.body, index))
+			node.body = self._combineImports(node.body)
 			return node
+		
+	def _combineImports(self, nodeList) :
+		if not self._getOptions().combineImports :
+			return nodeList
+
+		resultList = []
+		importNamesList = []
+		importFromList = []
+		atIndex = None
+		for i in range(len(nodeList)) :
+			node = nodeList[i]
+			if isinstance(node, ast.ImportFrom) :
+				if node.module is not None and node.module.startswith('__') :
+					resultList.append(node)
+					continue
+				module = node.module
+				level = node.level
+				useItem = None
+				for importFrom in importFromList :
+					if importFrom['module'] == module and importFrom['level'] == level :
+						useItem = importFrom
+						break
+				if useItem is None :
+					useItem = {
+						'module' : module,
+						'level' : level,
+						'names' : []
+					}
+					importFromList.append(useItem)
+				useItem['names'] += node.names
+				if atIndex is None :
+					atIndex = i
+				continue
+			if isinstance(node, ast.Import) :
+				importNamesList += node.names
+				if atIndex is None :
+					atIndex = i
+				continue
+			resultList.append(node)
+		if atIndex is None :
+			return nodeList
+		for importFrom in importFromList :
+			resultList.insert(atIndex, ast.ImportFrom(
+				module = importFrom['module'],
+				level = importFrom['level'],
+				names = importFrom['names'],
+			))
+		if len(importNamesList) > 0 :
+			resultList.insert(atIndex, ast.Import(names = importNamesList))
+		return resultList	
 
 	# This is to avoid SyntaxError: from __future__ imports must occur at the beginning of the file
 	def _findIndexNotImport(self, nodeList, index) :

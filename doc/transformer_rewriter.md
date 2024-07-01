@@ -177,6 +177,9 @@ can be eliminated completely by the option `eliminateDeadCode`.
 ### combineIfConditions = True
 Convert `if a : if b : X` to `if a and b : X`.
 
+### combineImports = True
+Convert multiple imports to one when possible, For exmaple, `import a import b` to `import a, b`.
+
 
 <!--auto generated section-->
 

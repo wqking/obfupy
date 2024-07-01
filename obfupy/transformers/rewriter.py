@@ -158,6 +158,12 @@ can be eliminated completely by the option `eliminateDeadCode`.
 Convert `if a : if b : X` to `if a and b : X`.
 """,
 	},
+	'combineImports' : {
+		'default' : True,
+		'doc' : """
+Convert multiple imports to one when possible, For exmaple, `import a import b` to `import a, b`.
+""",
+	},
 })
 
 class Rewriter :
