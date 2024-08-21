@@ -8,13 +8,13 @@ if os.path.isfile("readme.md") :
         longDescription = fh.read()
         longDescription = re.sub(r'\]\(doc\/', '](https://github.com/wqking/obfupy/tree/master/doc/', longDescription)
 
-description = "obfupy is a Python 3 library that can obfuscate whole Python 3 projects, transform the source code to obfuscated and hard to understand code. obfupy aims to produce correct and functional code.",
+description = "obfupy is a Python 3 library that can obfuscate whole Python 3 projects, transform the source code to obfuscated and hard to understand code. obfupy aims to produce correct and functional code."
 if longDescription is None :
     longDescription = description
 
 setuptools.setup(
     name = "obfupy",
-    version = "0.1.0",
+    version = "0.1.1",
     author = "wqking",
     author_email = "wqking@NOSPAMoutlook.com",
     description = description,

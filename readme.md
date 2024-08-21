@@ -31,7 +31,7 @@ such as Flask, Nodezator, Algorithms collection, and Django (not all features ar
 
 Apache License, Version 2.0  
 
-## Version 0.1.0
+## Version 0.1.1
 
 ## Source code
 
